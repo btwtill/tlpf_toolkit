@@ -23,6 +23,8 @@ importlib.reload(shelf_base)
 # Import maya modules
 from maya import cmds
 
+#Import Functions Modules
+from tlpf_toolkit.utils import ShapeParentFunction
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -64,18 +66,33 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
+        self.addButton(label="", icon=ICON_DIR + "/shapeParent.png" ,command=ShapeParentFunction.ShapeParent)
+
+
+        
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+
+
+
+
+
+
+
+
+        #Fr reference
+
+
         #general_tools_menu = cmds.popupMenu(b=1)
 
         # self.addMenuItemDivider(
         #     general_tools_menu, divider=True, dividerLabel="PROJECT..."
         # )
-
-        # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
-
-        # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
-
         # Week 6 Tools - FOR REFERENCE
         # self.addButton(label="", icon=ICON_DIR + "/week6ToolsRef.png")
 
