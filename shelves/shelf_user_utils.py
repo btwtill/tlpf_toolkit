@@ -1,13 +1,4 @@
-"""
-    Creates user_utils Maya shelf
 
-    To use, run these Python commands in Maya:
-
-        from tlpf_toolkit.shelves import shelf_user_utils
-        reload(shelf_user_utils)
-        shelf_user_utils.load(name="user_utils")
-
-"""
 SHELF_NAME = "tlpf_shelf"
 
 # Logging module is used to print output to user
