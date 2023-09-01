@@ -25,6 +25,7 @@ from maya import cmds
 
 #Import Functions Modules
 from tlpf_toolkit.utils import ShapeParentFunction
+from tlpf_toolkit.utils import ShapeInstanceFunction
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -68,7 +69,7 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/shapeParent.png" ,command=ShapeParentFunction.ShapeParent)
 
-
+        self.addButton(label="", icon=ICON_DIR + "/shapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
         
 
         # Separator
