@@ -86,73 +86,25 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        # General Tools
-        self.addButton(label="", icon=ICON_DIR + "/generalTools.png")
+        #general_tools_menu = cmds.popupMenu(b=1)
 
-        general_tools_menu = cmds.popupMenu(b=1)
-
-        self.addMenuItemDivider(
-            general_tools_menu, divider=True, dividerLabel="PROJECT..."
-        )
-
-        self.addMenuItem(
-            general_tools_menu,
-            "Explore to Project Directory",
-            command=lambda _: explore_maya_project(),
-        )
-
-        self.addMenuItemDivider(
-            general_tools_menu, divider=True, dividerLabel="SETUP..."
-        )
-
-        self.addMenuItem(
-            general_tools_menu,
-            "Setup Marking Menu",
-            command=lambda _: setup_user_marking_menu(),
-        )
+        # self.addMenuItemDivider(
+        #     general_tools_menu, divider=True, dividerLabel="PROJECT..."
+        # )
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
-
-        # ==================================================================
-        # User Tools here
-
-        # ==================================================================
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
         # Week 6 Tools - FOR REFERENCE
-        self.addButton(label="", icon=ICON_DIR + "/week6ToolsRef.png")
+        # self.addButton(label="", icon=ICON_DIR + "/week6ToolsRef.png")
 
-        week6_tools_menu = cmds.popupMenu(b=1)
+        # week6_tools_menu = cmds.popupMenu(b=1)
 
-        cmds.menuItem(
-            p=week6_tools_menu,
-            l="Duplicate (Parent Only)",
-            command=lambda _: cmds.duplicate(parentOnly=True),
-        )
-
-        cmds.menuItem(
-            p=week6_tools_menu,
-            l="Snap second selected object to first",
-            command=lambda _: week6.match_selection(),
-        )
-
-        cmds.menuItem(
-            p=week6_tools_menu,
-            l="Create Pole Vector (select PV control then IK handle)",
-            command=lambda _: week6.create_pole_vector_from_selection(),
-        )
-
-        cmds.menuItem(
-            p=week6_tools_menu,
-            l="Create Category Switch (select rig top node)",
-            command=lambda _: week6.create_category_ui(),
-        )
-
-        cmds.menuItem(
-            p=week6_tools_menu,
-            l="Add offset and group transforms above selected control",
-            command=lambda _: week6.add_transforms_selected(),
-        )
+        # cmds.menuItem(
+        #     p=week6_tools_menu,
+        #     l="Duplicate (Parent Only)",
+        #     command=lambda _: cmds.duplicate(parentOnly=True),
+        # )
