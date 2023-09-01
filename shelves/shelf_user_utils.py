@@ -20,12 +20,6 @@ from tlpf_toolkit.shelves import shelf_base
 importlib.reload(shelf_base)
 
 
-# Import the week6 module whose commands we call in the week6 shelf button
-from tlpf_toolkit.utils import week6
-
-importlib.reload(week6)
-
-
 # Import maya modules
 from maya import cmds
 
@@ -36,13 +30,6 @@ SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts"
 PLATFORM = sys.platform
 
 sys.path.append(SCRIPTS_DIR)
-
-
-def explore_maya_project():
-    """Opens explorer window to current Maya project location"""
-    proj_dir = cmds.workspace(rd=True, q=True)
-    subprocess.Popen(r'explorer /select,"{}scenes"'.format(proj_dir.replace("/", "\\")))
-    LOG.info("Exploring to %s".format(proj_dir))
 
 
 def reload_shelf(shelf_name=SHELF_NAME):
@@ -63,15 +50,6 @@ def reload_shelf(shelf_name=SHELF_NAME):
     except:
         LOG.error("Error reloading shelf")
         return
-
-
-def setup_user_marking_menu():
-    from tlpf_toolkit.marking_menu import user_marking_menu
-
-    importlib.reload(user_marking_menu)
-    user_marking_menu.markingMenu()
-
-    LOG.info("Setup User Marking Menu")
 
 
 class load(shelf_base._shelf):
