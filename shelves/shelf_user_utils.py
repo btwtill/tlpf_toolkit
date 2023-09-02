@@ -31,6 +31,7 @@ from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
 
 from tlpf_toolkit.systems import IkFkSwitch
+from tlpf_toolkit.systems import PoleVectorFunction
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -108,8 +109,11 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
 
+        self.addButton(label="", icon=ICON_DIR + "/simplePV.png", command="")
+        poleVectorMenu = cmds.popupMenu(b=1)
 
-
+        self.addMenuItem(poleVectorMenu, "Simple PV", command=lambda _: PoleVectorFunction.createSimplePoleVector())
+        self.addMenuItem(poleVectorMenu, "PV Line", command=lambda _: PoleVectorFunction.createPoleVectorLine())
 
 
 
