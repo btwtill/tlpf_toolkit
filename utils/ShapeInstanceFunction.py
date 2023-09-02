@@ -1,5 +1,5 @@
 #Module import
-import maya.cmds as mc
+import maya.cmds as cmds
 
 
 
@@ -10,7 +10,7 @@ import maya.cmds as mc
 
 def shapeParentInstance():
 
-    selectionList = mc.ls(selection=True)
+    selectionList = cmds.ls(selection=True)
     instanceNode = ""
     for i in range(len(selectionList)):
         #print(selectionList[i])
@@ -18,7 +18,7 @@ def shapeParentInstance():
             instanceNode = selectionList[i]
             #print(instanceNode)
         else:
-            mc.parent(instanceNode, selectionList[i], add=True, shape=True)
+            cmds.parent(instanceNode, selectionList[i], add=True, shape=True)
 
 
 #=======================================
