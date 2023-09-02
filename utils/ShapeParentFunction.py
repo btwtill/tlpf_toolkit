@@ -1,4 +1,5 @@
-import maya.cmds as mc
+#Module Import
+import maya.cmds as cmds
 
 
 #=======================================
@@ -6,11 +7,11 @@ import maya.cmds as mc
 #=======================================
 
 def ShapeParent(*args):
-    selection = mc.ls(selection=True)
+    selection = cmds.ls(selection=True)
     PosOffset = True
 
     if(selection):
-        mc.parent(selection[0], selection[1], shape=True, relative=PosOffset)
+        cmds.parent(selection[0], selection[1], shape=True, relative=PosOffset)
 
 #=======================================
 ##Shape Parent - END

@@ -26,6 +26,7 @@ from maya import cmds
 #Import Functions Modules
 from tlpf_toolkit.utils import ShapeParentFunction
 from tlpf_toolkit.utils import ShapeInstanceFunction
+from tlpf_toolkit.utils import MatchTransformFunction
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -72,7 +73,17 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/shapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
         
         self.addButton(label="", icon=ICON_DIR + "/dupParentOnly.png", command="cmds.duplicate(parentOnly=True)")
-        
+
+        self.addButton(label="", icon=ICON_DIR + "/matchTransforms.png")
+        transformMatchingMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(transformMatchingMenu, "match All", command=lambda _: MatchTransformFunction.matchAll())
+
+        self.addMenuItem(transformMatchingMenu, "match Translation", command=lambda _: MatchTransformFunction.matchTranslation())
+
+        self.addMenuItem(transformMatchingMenu, "match Rotation", command=lambda _: MatchTransformFunction.matchRotation())
+
+        self.addMenuItem(transformMatchingMenu, "match Scale", command=lambda _: MatchTransformFunction.matchScale())
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
