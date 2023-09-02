@@ -30,12 +30,16 @@ from tlpf_toolkit.utils import MatchTransformFunction
 from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
 
+
 from tlpf_toolkit.systems import IkFkSwitch
 from tlpf_toolkit.systems import PoleVectorFunction
 from tlpf_toolkit.systems import ReverseFootSetup
 from tlpf_toolkit.systems import SimpleStretchSetup
 from tlpf_toolkit.systems import TwistJoints
 from tlpf_toolkit.systems import JiggleSetup
+
+from tlpf_toolkit.ctrls import CtrlColorFunction
+from tlpf_toolkit.ctrls import CreateBasicCtls
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -97,7 +101,7 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/ZeroFunctions.png")
+        self.addButton(label="", icon=ICON_DIR + "/V002/ZeroFunctionsv2.png")
         zeroMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(zeroMenu, "Sam Zero", command=lambda _: ZeroOffsetFunction.insertNodeBefore())
@@ -127,9 +131,18 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/jiggleSetup.png" ,command = JiggleSetup.createJiggleSetup)
 
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/color.png" ,command=CtrlColorFunction.ColorSettingWindow)
+
+        self.addButton(label="", icon=ICON_DIR + "/basicCtrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+
         #Fr reference
-
-
         #general_tools_menu = cmds.popupMenu(b=1)
 
         # self.addMenuItemDivider(
