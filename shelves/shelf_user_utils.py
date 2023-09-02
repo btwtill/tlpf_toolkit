@@ -71,7 +71,8 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/shapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
         
-
+        self.addButton(label="", icon=ICON_DIR + "/dupParentOnly.png", command="cmds.duplicate(parentOnly=True)")
+        
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
