@@ -28,6 +28,7 @@ from tlpf_toolkit.utils import ShapeParentFunction
 from tlpf_toolkit.utils import ShapeInstanceFunction
 from tlpf_toolkit.utils import MatchTransformFunction
 from tlpf_toolkit.utils import ZeroOffsetFunction
+from tlpf_toolkit.utils import NamingFunctions
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -85,6 +86,7 @@ class load(shelf_base._shelf):
         self.addMenuItem(transformMatchingMenu, "match Rotation", command=lambda _: MatchTransformFunction.matchRotation())
 
         self.addMenuItem(transformMatchingMenu, "match Scale", command=lambda _: MatchTransformFunction.matchScale())
+        
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
@@ -96,6 +98,8 @@ class load(shelf_base._shelf):
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/suffix.png" ,command = NamingFunctions.SuffixConfigurationWindow)
 
 
 
