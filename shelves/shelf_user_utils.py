@@ -35,6 +35,7 @@ from tlpf_toolkit.systems import PoleVectorFunction
 from tlpf_toolkit.systems import ReverseFootSetup
 from tlpf_toolkit.systems import SimpleStretchSetup
 from tlpf_toolkit.systems import TwistJoints
+from tlpf_toolkit.systems import JiggleSetup
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -123,6 +124,8 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/samStretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
 
         self.addButton(label="", icon=ICON_DIR + "/twistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
+
+        self.addButton(label="", icon=ICON_DIR + "/jiggleSetup.png" ,command = JiggleSetup.createJiggleSetup)
 
         #Fr reference
 
