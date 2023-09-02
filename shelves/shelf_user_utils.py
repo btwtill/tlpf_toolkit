@@ -30,6 +30,8 @@ from tlpf_toolkit.utils import MatchTransformFunction
 from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
 
+from tlpf_toolkit.systems import IkFkSwitch
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -101,7 +103,10 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/suffix.png" ,command = NamingFunctions.SuffixConfigurationWindow)
 
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
+        self.addButton(label="", icon=ICON_DIR + "/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
 
 
 
