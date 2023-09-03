@@ -48,6 +48,10 @@ from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
 from tlpf_toolkit.node import NodeSRTConnector
 
+from tlpf_toolkit.locator import LocatorFunctions
+
+from tlpf_toolkit.joint import JointFunctions
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -168,9 +172,11 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V002/NodeMenu.png", command="")
         NodeMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectConfigurationInterface())
+        self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="MULTI CONNECTOR")
 
-        self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
+        self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectOneToNConfigurationInterface())
+
+        self.addMenuItem(NodeMenu, "M zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterface())
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="SRT Connector")
         
@@ -179,8 +185,12 @@ class load(shelf_base._shelf):
         self.addMenuItem(NodeMenu, "Connect Translate", command= lambda _: NodeSRTConnector.ConnectTranslate())
 
         self.addMenuItem(NodeMenu, "Connect Rotate", command= lambda _: NodeSRTConnector.ConnectRotate())
-        
+
         self.addMenuItem(NodeMenu, "Connect Scale", command= lambda _: NodeSRTConnector.ConnectScale())
+
+        self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="UTILITY")
+
+        self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
@@ -197,3 +207,26 @@ class load(shelf_base._shelf):
         self.addMenuItem(multiConstraining_menu, "Orient Constraint", command=lambda _: MultiConstraintFunction.MultiOrientConstraintConfig())
 
         self.addMenuItem(multiConstraining_menu, "Scale Constraint", command=lambda _: MultiConstraintFunction.MultiScaleConstraintConfig())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/LOCMenu.png")
+        LocatorMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(LocatorMenu, "Create Loc at Seleceted Pos", command=lambda _: LocatorFunctions.selected_points())
+
+        self.addMenuItem(LocatorMenu, "Create Loc at CENTER of Selected", command=lambda _: LocatorFunctions.center_selection_weighted_average())
+
+        self.addMenuItem(LocatorMenu, "Create Loc Aimed at Selected", command=lambda _: LocatorFunctions.aim_selection())
+
+        self.addMenuItem(LocatorMenu, "Create Loc at Loc/Rot", command=lambda _: LocatorFunctions.create_locator_snap())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/JNTMenu.png")
+        JointMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
+        
