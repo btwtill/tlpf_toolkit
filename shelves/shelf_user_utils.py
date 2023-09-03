@@ -239,4 +239,11 @@ class load(shelf_base._shelf):
         SkinMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(SkinMenu, "Transfer SkinCluster", command=lambda _: SkinFunctions.do_transfer_skin())
+
+        self.addMenuItemDivider(SkinMenu, divider=True, dividerLabel="IMPORT/EXPORT")
+
+        self.addMenuItem(SkinMenu, "Export SkinWeights", command=lambda _: SkinFunctions.export_skin_weights_selected())
+
+        self.addMenuItem(SkinMenu, "Import SkinWeights", command=lambda _: SkinFunctions.import_skin_weights_selected())
+        
         
