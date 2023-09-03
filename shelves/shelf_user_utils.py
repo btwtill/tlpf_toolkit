@@ -31,7 +31,6 @@ from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
 from tlpf_toolkit.utils import MultiConstraintFunction
 
-
 from tlpf_toolkit.systems import IkFkSwitch
 from tlpf_toolkit.systems import PoleVectorFunction
 from tlpf_toolkit.systems import ReverseFootSetup
@@ -47,6 +46,7 @@ from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
 
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
+from tlpf_toolkit.node import NodeSRTConnector
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -88,13 +88,16 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/shapeParent.png" ,command=ShapeParentFunction.ShapeParent)
+        self.addButton(label="", icon=ICON_DIR + "/V002/ShapeParent.png" ,command=ShapeParentFunction.ShapeParent)
 
-        self.addButton(label="", icon=ICON_DIR + "/shapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
+        self.addButton(label="", icon=ICON_DIR + "/V002/ShapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
         
-        self.addButton(label="", icon=ICON_DIR + "/dupParentOnly.png", command="cmds.duplicate(parentOnly=True)")
+        self.addButton(label="", icon=ICON_DIR + "/V002/DupParentOnly.png", command="cmds.duplicate(parentOnly=True)")
 
-        self.addButton(label="", icon=ICON_DIR + "/matchTransforms.png")
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/MatchMenu.png")
         transformMatchingMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(transformMatchingMenu, "match All", command=lambda _: MatchTransformFunction.matchAll())
@@ -104,6 +107,9 @@ class load(shelf_base._shelf):
         self.addMenuItem(transformMatchingMenu, "match Rotation", command=lambda _: MatchTransformFunction.matchRotation())
 
         self.addMenuItem(transformMatchingMenu, "match Scale", command=lambda _: MatchTransformFunction.matchScale())
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/LRA.png", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
+
         
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
@@ -112,38 +118,40 @@ class load(shelf_base._shelf):
         zeroMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(zeroMenu, "Sam Zero", command=lambda _: ZeroOffsetFunction.insertNodeBefore())
+
         self.addMenuItem(zeroMenu, "Tim Zero", command=lambda _: ZeroOffsetFunction.TimZeroUserConfig())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/suffix.png" ,command = NamingFunctions.SuffixConfigurationWindow)
+        self.addButton(label="", icon=ICON_DIR + "/V002/Suffix.png" ,command = NamingFunctions.SuffixConfigurationWindow)
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
 
         self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
         poleVectorMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(poleVectorMenu, "Simple PV", command=lambda _: PoleVectorFunction.createSimplePoleVector())
+
         self.addMenuItem(poleVectorMenu, "PV Line", command=lambda _: PoleVectorFunction.createPoleVectorLine())
 
-        self.addButton(label="", icon=ICON_DIR + "/revChain.png" ,command= ReverseFootSetup.createReverseChain)
+        self.addButton(label="", icon=ICON_DIR + "/V002/RevChain.png" ,command= ReverseFootSetup.createReverseChain)
 
-        self.addButton(label="", icon=ICON_DIR + "/samStretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V002/Stretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
 
-        self.addButton(label="", icon=ICON_DIR + "/twistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
 
-        self.addButton(label="", icon=ICON_DIR + "/jiggleSetup.png" ,command = JiggleSetup.createJiggleSetup)
+        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png" ,command = JiggleSetup.createJiggleSetup)
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/color.png" ,command=CtrlColorFunction.ColorSettingWindow)
+        self.addButton(label="", icon=ICON_DIR + "/V002/CtrlColor.png" ,command=CtrlColorFunction.ColorSettingWindow)
 
-        self.addButton(label="", icon=ICON_DIR + "/basicCtrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
+        self.addButton(label="", icon=ICON_DIR + "/V002/BasicCtrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
@@ -161,7 +169,18 @@ class load(shelf_base._shelf):
         NodeMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectConfigurationInterface())
+
         self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
+
+        self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="SRT Connector")
+        
+        self.addMenuItem(NodeMenu, "Connect SRT", command= lambda _: NodeSRTConnector.ConnectSRT())
+
+        self.addMenuItem(NodeMenu, "Connect Translate", command= lambda _: NodeSRTConnector.ConnectTranslate())
+
+        self.addMenuItem(NodeMenu, "Connect Rotate", command= lambda _: NodeSRTConnector.ConnectRotate())
+        
+        self.addMenuItem(NodeMenu, "Connect Scale", command= lambda _: NodeSRTConnector.ConnectScale())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
