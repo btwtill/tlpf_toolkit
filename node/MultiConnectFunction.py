@@ -1,6 +1,11 @@
 #Module Import
-import maya.cmds as mc
+import maya.cmds as cmds
 from tlpf_toolkit.utils import GeneralFunctions
+import logging
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 
@@ -10,7 +15,7 @@ from tlpf_toolkit.utils import GeneralFunctions
 ####Execute the Attribute Connections
 def ConnectOneToNNodes(_outputNodeAttribute, _inputNodeAttribute):
 
-    _targetList = mc.ls(selection=True)
+    _targetList = cmds.ls(selection=True)
 
     _outputNode = _targetList.pop(0)
 
@@ -19,22 +24,22 @@ def ConnectOneToNNodes(_outputNodeAttribute, _inputNodeAttribute):
     
     #loop over the selected Input nodes and connect the selected output to the input sockets
     for i in _targetList:
-        mc.connectAttr(outputName, i + "." + _inputNodeAttribute)
+        cmds.connectAttr(outputName, i + "." + _inputNodeAttribute)
 
 
 
 #Configuration Interface to let the user decide what Output Attribute should be used to connect to all the selected Input Nodes
-def MultiConnectConfigurationInterface():  
+def MultiConnectOneToNConfigurationInterface():  
 
     #get selection
-    sel = mc.ls(selection=True)
+    sel = cmds.ls(selection=True)
 
     # Filter Attributes
     filterAttributes = ["translate", "rotate", "scale", "Translate", "Rotate", "Scale", "default", "outFloat"]
 
     #seperate out the output node and input nodes into different lists
-    firstElementAttributes = mc.listAttr(sel[0])
-    secondElementAttribtues = mc.listAttr(sel[1])
+    firstElementAttributes = cmds.listAttr(sel[0])
+    secondElementAttribtues = cmds.listAttr(sel[1])
 
     #filter the first attriubte list
     firstElementAttributes = GeneralFunctions.filter_strings(firstElementAttributes, filterAttributes)
@@ -46,35 +51,131 @@ def MultiConnectConfigurationInterface():
 
 
     #basic Window creation
-    configWindow = mc.window(title="MultiConnector", iconName='1xN', widthHeight=(200, 55), sizeable=True)
+    configWindow = cmds.window(title="1XN_MultiConnector", iconName='1xN', widthHeight=(200, 55), sizeable=True)
 
     #Window Layout
-    mc.rowColumnLayout( adjustableColumn=True)
+    cmds.rowColumnLayout( adjustableColumn=True)
 
     #create the Options menues and store them in a variable
-    OutputNodeOptionMenu = mc.optionMenu(label="Output node")
+    OutputNodeOptionMenu = cmds.optionMenu(label="Output node")
 
     for item in firstElementAttributes:
-        mc.menuItem(label=item)
+        cmds.menuItem(label=item)
 
-    InputNodesOptionMenu = mc.optionMenu(label="Input Nodes")
+    InputNodesOptionMenu = cmds.optionMenu(label="Input Nodes")
 
     for item in secondElementAttribtues:
-        mc.menuItem(label=item)
+        cmds.menuItem(label=item)
         
 
 
     #create visuallizers of what nodes are selected
-    mc.text(OutputNode, annotation="Output Node", height=20, backgroundColor = [0.01, 0.01, 0.01] )
+    cmds.text(OutputNode, annotation="Output Node", height=20, backgroundColor = [0.01, 0.01, 0.01] )
 
-    mc.text(InputNodes, annotation="Input Nodes", height=20, backgroundColor = [0.3, 0.3, 0.3] )
+    cmds.text(InputNodes, annotation="Input Nodes", height=20, backgroundColor = [0.3, 0.3, 0.3] )
 
     #execution button to connect the inputs and outputs
-    mc.button(label='Connect Attributes', command=lambda _: ConnectOneToNNodes(mc.optionMenu(OutputNodeOptionMenu, query=True, value=True), mc.optionMenu(InputNodesOptionMenu, query=True, value=True)))
+    cmds.button(label='Connect Attributes', command=lambda _: ConnectOneToNNodes(cmds.optionMenu(OutputNodeOptionMenu, query=True, value=True), cmds.optionMenu(InputNodesOptionMenu, query=True, value=True)))
 
 
     #Display The window
-    mc.showWindow(configWindow)
+    cmds.showWindow(configWindow)
 #=======================================
 ## 1-N MultiConnect Function - END
+#=======================================
+
+
+
+
+    
+
+#=======================================
+## mxn MultiConnect Function
+#=======================================
+
+def ConnectMxNAttributes(_outputList, _targetList, _outputAttribute, _targetAttribute):
+    for i in range(len(_outputList)):
+        cmds.connectAttr(_outputList[i] + "." + _outputAttribute, _targetList[i] + "." + _targetAttribute)
+
+
+
+
+
+def MultiConnectMToNConfigurationInterface():  
+
+    #selection
+    sel  = cmds.ls(selection=True)
+
+    #empty list to later receive the seperated selection list into main and target Objects
+    mainList = []
+    targetList = []
+    
+    #Check if the Selected Objects list length is dividable by 2
+    isDividable = (len(sel) % 2) == 0
+    
+    if isDividable:
+        half = len(sel) / 2
+
+        #append the individual object to there list
+        for i in range(len(sel)):
+            if i < half:
+                mainList.append(sel[i])
+            else:
+                targetList.append(sel[i])
+
+        # Filter Attributes
+        filterAttributes = ["translate", "rotate", "scale", "Translate", "Rotate", "Scale", "default", "outFloat"]
+
+        #seperate out the output node and input nodes into different lists
+        firstElementAttributes = cmds.listAttr(mainList[0])
+        secondElementAttribtues = cmds.listAttr(targetList[0])
+
+        #filter the first attriubte list
+        firstElementAttributes = GeneralFunctions.filter_strings(firstElementAttributes, filterAttributes)
+        secondElementAttribtues = GeneralFunctions.filter_strings(secondElementAttribtues, filterAttributes)
+
+        #safe the output Node into a seperate Variable
+        #OutputNode = sel.pop(0)
+        #InputNodes = sel[0]
+
+
+        #basic Window creation
+        configWindow = cmds.window(title="MxN_MultiConnector", iconName='nxm', widthHeight=(200, 55), sizeable=True)
+
+        #Window Layout
+        cmds.rowColumnLayout( adjustableColumn=True)
+
+        #create the Options menues and store them in a variable
+        OutputNodeOptionMenu = cmds.optionMenu(label="Output nodes")
+
+        for item in firstElementAttributes:
+            cmds.menuItem(label=item)
+
+        TargetNodesOptionMenu = cmds.optionMenu(label="Target Nodes")
+
+        for item in secondElementAttribtues:
+            cmds.menuItem(label=item)
+            
+
+
+        #create visuallizers of what nodes are selected
+        for i in mainList:
+            cmds.text(i, annotation = "Output Nodes", height=20, backgroundColor = [0.5, 0.5, 0] )
+    
+        cmds.text(label="", height=30, backgroundColor= [0,0,0])
+        
+        for i in targetList:    
+            cmds.text(i, annotation="Target Nodes", height=20, backgroundColor = [0, 0.5, 0.5] )
+
+        #execution button to connect the inputs and outputs
+        cmds.button(label='Connect Attributes', command=lambda _: ConnectMxNAttributes(mainList, targetList, cmds.optionMenu(OutputNodeOptionMenu, query=True, value=True), cmds.optionMenu(TargetNodesOptionMenu, query=True, value=True)))
+
+
+        #Display The window
+        cmds.showWindow(configWindow)
+    else:
+        log.error("List is not dividable by 2")
+        raise
+#=======================================
+## nxm MultiConnect Function - END
 #=======================================
