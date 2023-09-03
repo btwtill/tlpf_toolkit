@@ -52,6 +52,8 @@ from tlpf_toolkit.locator import LocatorFunctions
 
 from tlpf_toolkit.joint import JointFunctions
 
+from tlpf_toolkit.skin import SkinFunctions
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -229,4 +231,12 @@ class load(shelf_base._shelf):
         JointMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/SkinMenu.png")
+        SkinMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(SkinMenu, "Transfer SkinCluster", command=lambda _: SkinFunctions.do_transfer_skin())
         
