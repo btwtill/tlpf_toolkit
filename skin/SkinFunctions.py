@@ -138,5 +138,65 @@ def export_skin_weights_selected():
 
 
 
+def NamespaceSkinClusterTransferConfigInterface():
+    configwindow = cmds.window(title="NamespaceSkinTransfer", widthHeight= (220, 50), sizeable=True)
+
+    cmds.rowColumnLayout( adjustableColumn = True)
+
+    AllNamespaces = cmds.namespaceInfo(listOnlyNamespaces=True)
+
+    if "UI" in AllNamespaces:
+        AllNamespaces.remove("UI")
+    if "shared" in AllNamespaces:
+        AllNamespaces.remove("shared")
+
+    NamespaceInputList = []
 
 
+    for i in range(len(AllNamespaces)):
+        counter = str(i)
+        cmds.text(label="Namespace " + counter, height=30)
+        newNamesSpaceInput = buildUserInputGrp("set Namespace: " + AllNamespaces[i], "Not Jet Set", 30, AllNamespaces[i])
+        NamespaceInputList.append(newNamesSpaceInput)
+
+    cmds.button(label="Transfer Skincluster", command=lambda _: TransferSkinlusterBetweenNamespaceModels(NamespaceInputList))
+
+    cmds.showWindow(configwindow)
+
+
+def buildUserInputGrp(buttonLabel, displayLabelText, displayLabelHeight, _NamespaceName):
+    cmds.text(label="", height=10, backgroundColor=[0.0,0.0,0.0])
+    cmds.button(label=buttonLabel, height=40, command=lambda _: updateLabel(labelname, _NamespaceName))
+    labelname = cmds.text(label=displayLabelText, height=displayLabelHeight, backgroundColor=[0.6, 0.1, 0.1])
+    return labelname
+
+def updateLabel(_label, _newLabelText):
+    rgbColor = [0.3, 0.8, 0.2]
+    cmds.text(_label, edit=True, label=_newLabelText, backgroundColor=rgbColor)
+
+def getValidNamespaces(_NamespaceInputs):
+    ValidNamespaces = []
+    for i in _NamespaceInputs:
+        color = cmds.text(i, query=True, backgroundColor=True)
+
+        color[0] = round(color[0], 1)
+        color[1] = round(color[1], 1)
+        color[2] = round(color[2], 1)
+
+
+        if color == [0.3, 0.8, 0.2]:
+            ValidNamespaces.append(cmds.text(i, query=True, label=True))
+    return ValidNamespaces
+
+def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
+    validNamespaces = getValidNamespaces(_NamespaceInputs)
+    print(validNamespaces)
+    if len(validNamespaces) <= 2 or len(validNamespaces) != 0:
+
+        NamespaceAObjects = []
+        for i in validNamespaces:
+            NamespaceAObjects.append(cmds.namespaceInfo(i, listNamespace=True))
+            # TODO Filter for only Mesh Objects --> onlyMesh = [i for i in sel if "_MeshShape" in i] 
+        print(NamespaceAObjects)
+        
+    print(validNamespaces)
