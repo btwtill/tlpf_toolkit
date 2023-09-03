@@ -41,6 +41,11 @@ from tlpf_toolkit.systems import JiggleSetup
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
 
+from tlpf_toolkit.mtrx import MatrixZeroOffset
+from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
+
+from tlpf_toolkit.node import MultiConnectFunction
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -117,7 +122,7 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
 
-        self.addButton(label="", icon=ICON_DIR + "/simplePV.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
         poleVectorMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(poleVectorMenu, "Simple PV", command=lambda _: PoleVectorFunction.createSimplePoleVector())
@@ -140,6 +145,21 @@ class load(shelf_base._shelf):
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/MtrxMenu.png", command="")
+        MatrixMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(MatrixMenu, "Matrix Zero Offset", command=lambda _: MatrixZeroOffset.iterateCreateMatrixZeroOffset())
+        self.addMenuItem(MatrixMenu, "Matrix Drv Offset", command=lambda _: MatrixZeroDrvOffset.createMatrixDrvOffset())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/NodeMenu.png", command="")
+        NodeMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectConfigurationInterface())
+
 
 
         #Fr reference
