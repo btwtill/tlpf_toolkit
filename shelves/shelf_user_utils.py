@@ -29,6 +29,7 @@ from tlpf_toolkit.utils import ShapeInstanceFunction
 from tlpf_toolkit.utils import MatchTransformFunction
 from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
+from tlpf_toolkit.utils import MultiConstraintFunction
 
 
 from tlpf_toolkit.systems import IkFkSwitch
@@ -160,21 +161,18 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectConfigurationInterface())
 
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
+        #Multi Constraining
+        self.addButton(label="", icon=ICON_DIR + "/V002/ConstraintMenu.png")
+        multiConstraining_menu = cmds.popupMenu(b=1)
 
-        #Fr reference
-        #general_tools_menu = cmds.popupMenu(b=1)
+        ##Adding all menu items for Multi Constraining
+        self.addMenuItemDivider(multiConstraining_menu, divider=True, dividerLabel="CHOOSE CONSTRAINT TYPE")
 
-        # self.addMenuItemDivider(
-        #     general_tools_menu, divider=True, dividerLabel="PROJECT..."
-        # )
-        # Week 6 Tools - FOR REFERENCE
-        # self.addButton(label="", icon=ICON_DIR + "/week6ToolsRef.png")
+        self.addMenuItem(multiConstraining_menu, "Parent Constraint", command=lambda _: MultiConstraintFunction.MultiParentConstraintConfig())
 
-        # week6_tools_menu = cmds.popupMenu(b=1)
+        self.addMenuItem(multiConstraining_menu, "Orient Constraint", command=lambda _: MultiConstraintFunction.MultiOrientConstraintConfig())
 
-        # cmds.menuItem(
-        #     p=week6_tools_menu,
-        #     l="Duplicate (Parent Only)",
-        #     command=lambda _: cmds.duplicate(parentOnly=True),
-        # )
+        self.addMenuItem(multiConstraining_menu, "Scale Constraint", command=lambda _: MultiConstraintFunction.MultiScaleConstraintConfig())
