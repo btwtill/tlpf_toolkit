@@ -37,6 +37,7 @@ from tlpf_toolkit.systems import ReverseFootSetup
 from tlpf_toolkit.systems import SimpleStretchSetup
 from tlpf_toolkit.systems import TwistJoints
 from tlpf_toolkit.systems import JiggleSetup
+from tlpf_toolkit.systems import LipSetup
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -151,6 +152,11 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
 
         self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png" ,command = JiggleSetup.createJiggleSetup)
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
+        
+
+
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
