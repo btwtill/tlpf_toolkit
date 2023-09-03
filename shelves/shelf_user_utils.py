@@ -46,6 +46,7 @@ from tlpf_toolkit.mtrx import MatrixZeroOffset
 from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
 
 from tlpf_toolkit.node import MultiConnectFunction
+from tlpf_toolkit.node import CreateDistanceBetween
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -160,6 +161,7 @@ class load(shelf_base._shelf):
         NodeMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectConfigurationInterface())
+        self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
