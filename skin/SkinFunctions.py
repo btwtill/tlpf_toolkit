@@ -137,7 +137,11 @@ def export_skin_weights_selected():
 ##=======================================
 
 
+##=======================================
+## Transfer SkinKluster between Namespaces
+##=======================================
 
+##Interface to Select the Namespaces that will be used to transfer the SkinCluster between
 def NamespaceSkinClusterTransferConfigInterface():
     configwindow = cmds.window(title="NamespaceSkinTransfer", widthHeight= (220, 50), sizeable=True)
 
@@ -152,8 +156,8 @@ def NamespaceSkinClusterTransferConfigInterface():
 
     NamespaceInputList = []
 
-
     for i in range(len(AllNamespaces)):
+
         counter = str(i)
         cmds.text(label="Namespace " + counter, height=30)
         newNamesSpaceInput = buildUserInputGrp("set Namespace: " + AllNamespaces[i], "Not Jet Set", 30, AllNamespaces[i])
@@ -162,7 +166,6 @@ def NamespaceSkinClusterTransferConfigInterface():
     cmds.button(label="Transfer Skincluster", command=lambda _: TransferSkinlusterBetweenNamespaceModels(NamespaceInputList))
 
     cmds.showWindow(configwindow)
-
 
 def buildUserInputGrp(buttonLabel, displayLabelText, displayLabelHeight, _NamespaceName):
     cmds.text(label="", height=10, backgroundColor=[0.0,0.0,0.0])
@@ -174,8 +177,9 @@ def updateLabel(_label, _newLabelText):
     rgbColor = [0.3, 0.8, 0.2]
     cmds.text(_label, edit=True, label=_newLabelText, backgroundColor=rgbColor)
 
-def getValidNamespaces(_NamespaceInputs):
-    ValidNamespaces = []
+
+def getselectedNamespaces(_NamespaceInputs):
+    selectedNamespaces = []
     for i in _NamespaceInputs:
         color = cmds.text(i, query=True, backgroundColor=True)
 
@@ -183,20 +187,136 @@ def getValidNamespaces(_NamespaceInputs):
         color[1] = round(color[1], 1)
         color[2] = round(color[2], 1)
 
-
         if color == [0.3, 0.8, 0.2]:
-            ValidNamespaces.append(cmds.text(i, query=True, label=True))
-    return ValidNamespaces
+            selectedNamespaces.append(cmds.text(i, query=True, label=True))
+    return selectedNamespaces
+
+def getComparedNamespaceObjects(_listA, _listB):
+    resultList = []
+
+    for i in _listA:
+        for j in _listB:
+            if i == j:
+                resultList.append([i, j])
+
+    return resultList
+
+def getPrefixStrippedNamespaceContents(_namespace, prefix):
+    resultList = []
+    for i in _namespace:
+        resultList.append(i.replace(prefix + ":", ""))
+    return resultList
+
+def getSourceNamespace(refObjectA, refObjectB, namespaceNameA, namespaceNameB):
+
+    AOBjectSkinCluster = mel.eval('findRelatedSkinCluster("{}")'.format(refObjectA[0]))
+
+    BOBjectSkinCluster = mel.eval('findRelatedSkinCluster("{}")'.format(refObjectB[0]))
+
+    log.info("SkinCluster A: {}".format(AOBjectSkinCluster))
+    log.info("SkinCluster B: {}".format(BOBjectSkinCluster))
+    
+    log.info("Ref Object A : {}".format(refObjectA))
+    log.info("Ref Object B : {}".format(refObjectB))
+    
+    
+    if AOBjectSkinCluster:
+        if namespaceNameA in refObjectA[0]:
+            return namespaceNameA
+        elif namespaceNameB in refObjectA[0]:
+            return namespaceNameB
+    elif BOBjectSkinCluster:
+        if namespaceNameA in refObjectB[0]:
+            return namespaceNameA
+        elif namespaceNameB in refObjectB[0]:
+            return namespaceNameB
+    else:
+        return "NO Skincluster Detected"
+
+
+def getParentObjectsFromList(targetList):
+    parentList = []
+
+    log.info("TargetList: {}".format(targetList))
+
+    for i in targetList:
+        
+        cmds.select(clear=True)
+        cmds.select(i[0])
+        newFirstParentEntry = cmds.pickWalk(direction="Up")
+        
+        cmds.select(clear=True)
+        cmds.select(i[1])
+        newSecondParentEntry = cmds.pickWalk(direction="Up")
+
+        parentList.append([newFirstParentEntry, newSecondParentEntry])
+
+    return parentList
+
 
 def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
-    validNamespaces = getValidNamespaces(_NamespaceInputs)
-    print(validNamespaces)
-    if len(validNamespaces) <= 2 or len(validNamespaces) != 0:
 
-        NamespaceAObjects = []
-        for i in validNamespaces:
-            NamespaceAObjects.append(cmds.namespaceInfo(i, listNamespace=True))
-            # TODO Filter for only Mesh Objects --> onlyMesh = [i for i in sel if "_MeshShape" in i] 
-        print(NamespaceAObjects)
+    selectedNamespaces = getselectedNamespaces(_NamespaceInputs)
+
+    log.info("Selected Namespaces: {}".format(selectedNamespaces))
+    log.info("Namespace List Lenght: {}".format(len(selectedNamespaces)))
+
+    if len(selectedNamespaces) == 2:
+        NamespaceAObjects = cmds.namespaceInfo(selectedNamespaces[0], listNamespace=True)
+        NamespaceBObjects = cmds.namespaceInfo(selectedNamespaces[1], listNamespace=True)
         
-    print(validNamespaces)
+
+        log.info("Namespace A Contents: {}".format(NamespaceAObjects))
+        log.info("Namespace B Contents: {}".format(NamespaceBObjects))
+
+        # Filter Only the Mesh Shapes from the Out of the Namspace Contents
+
+        cmds.select(clear=True)
+
+        cmds.select(NamespaceAObjects)
+
+        NamespaceAMesh = cmds.findType(deep=False, type="mesh")
+
+        cmds.select(clear=True)
+
+        cmds.select(NamespaceBObjects)
+
+        NamespaceBMesh = cmds.findType(deep=False, type="mesh")
+        
+        cmds.select(clear=True)
+
+        NamespaceAMesh = getPrefixStrippedNamespaceContents(NamespaceAMesh, selectedNamespaces[0])
+
+        NamespaceBMesh = getPrefixStrippedNamespaceContents(NamespaceBMesh, selectedNamespaces[1])
+
+        log.info("Namespace A Mesh Content: {}".format(NamespaceAMesh))
+        log.info("Namespace B Mesh Content: {}".format(NamespaceBMesh))
+
+        MatchedNamespaceObjects = getComparedNamespaceObjects(NamespaceAMesh, NamespaceBMesh)
+
+    
+        for i in range(len(MatchedNamespaceObjects)):
+            MatchedNamespaceObjects[i][0] = selectedNamespaces[0] + ":" + MatchedNamespaceObjects[i][0]
+            MatchedNamespaceObjects[i][1] = selectedNamespaces[1] + ":" + MatchedNamespaceObjects[i][1]
+
+        MatchedNamespaceObjects = getParentObjectsFromList(MatchedNamespaceObjects)
+
+        sourceNamespace = getSourceNamespace(MatchedNamespaceObjects[0][0], MatchedNamespaceObjects[0][1], selectedNamespaces[0], selectedNamespaces[1])
+
+        log.info("Matched Namespace Objects: {}".format(MatchedNamespaceObjects))
+        log.info("Source Namespace: {}".format(sourceNamespace))
+        if sourceNamespace == None or sourceNamespace == "NO Skincluster Detected":
+            log.error("No Source Skincluster Detected")
+        else:
+            if sourceNamespace == selectedNamespaces[0]:
+                for i in MatchedNamespaceObjects:
+                    transfer_skin(i[0][0], i[1][0])
+            elif sourceNamespace == selectedNamespaces[1]:
+                for i in MatchedNamespaceObjects:
+                    transfer_skin(i[1][0], i[0][0])
+    else:
+        log.warning("The Number of Namespace u can select to transfer SKincluster needs to be 2!!")
+
+##=======================================
+## Transfer SkinKluster between Namespaces - END
+##=======================================

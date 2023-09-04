@@ -136,7 +136,16 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" ,command=IkFkSwitch.IKFKConfigurationInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" , command="")
+        IkFkMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(IkFkMenu, "Auto IKFK Chain", command=lambda _: IkFkSwitch.IKFKConfigurationInterface())
+
+        self.addMenuItemDivider(IkFkMenu, divider=True, dividerLabel="UTILITY")
+        
+        self.addMenuItem(IkFkMenu, "Add Soft IK", command=lambda _: IkFkSwitch.SoftIKConfigInterface())
+
+        self.addMenuItem(IkFkMenu, "Create Single IKFK Blend", command=lambda _: IkFkSwitch.CreateSinlgeIKFKBlend())
 
         self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
         poleVectorMenu = cmds.popupMenu(b=1)
@@ -246,6 +255,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(SkinMenu, "Transfer SkinCluster", command=lambda _: SkinFunctions.do_transfer_skin())
 
+        self.addMenuItem(SkinMenu, "Transfer SkinCluster Between Namespaces", command=lambda _: SkinFunctions.NamespaceSkinClusterTransferConfigInterface())
+        
         self.addMenuItemDivider(SkinMenu, divider=True, dividerLabel="IMPORT/EXPORT")
 
         self.addMenuItem(SkinMenu, "Export SkinWeights", command=lambda _: SkinFunctions.export_skin_weights_selected())
