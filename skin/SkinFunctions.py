@@ -160,14 +160,14 @@ def NamespaceSkinClusterTransferConfigInterface():
 
         counter = str(i)
         cmds.text(label="Namespace " + counter, height=30)
-        newNamesSpaceInput = buildUserInputGrp("set Namespace: " + AllNamespaces[i], "Not Jet Set", 30, AllNamespaces[i])
+        newNamesSpaceInput = buildUserInputGrpAdj("set Namespace: " + AllNamespaces[i], "Not Jet Set", 30, AllNamespaces[i])
         NamespaceInputList.append(newNamesSpaceInput)
 
     cmds.button(label="Transfer Skincluster", command=lambda _: TransferSkinlusterBetweenNamespaceModels(NamespaceInputList))
 
     cmds.showWindow(configwindow)
 
-def buildUserInputGrp(buttonLabel, displayLabelText, displayLabelHeight, _NamespaceName):
+def buildUserInputGrpAdj(buttonLabel, displayLabelText, displayLabelHeight, _NamespaceName):
     cmds.text(label="", height=10, backgroundColor=[0.0,0.0,0.0])
     cmds.button(label=buttonLabel, height=40, command=lambda _: updateLabel(labelname, _NamespaceName))
     labelname = cmds.text(label=displayLabelText, height=displayLabelHeight, backgroundColor=[0.6, 0.1, 0.1])
