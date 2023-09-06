@@ -57,6 +57,11 @@ from tlpf_toolkit.skin import SkinFunctions
 
 from tlpf_toolkit.attr import VisibilityAttributFunctions
 
+from tlpf_toolkit.ctrlShapes import color as ctl_color
+from tlpf_toolkit.ctrlShapes import core as ctl_core
+from tlpf_toolkit.ctrlShapes import functions as ctl_func
+from tlpf_toolkit.ctrlShapes import transform as ctl_trans
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -189,6 +194,148 @@ class load(shelf_base._shelf):
 
         self.addButton(label="", icon=ICON_DIR + "/V002/BasicCtrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
 
+
+
+
+
+        #=======================================
+        ## DISCLAIMER - Credit for the Following 
+        # Menu goes to Tim Colemen and Martin Lanton From CGMA 
+        # and there MechRig Toolkit Repsoitory - https://github.com/martinlanton/mechRig_toolkit
+        #=======================================
+        # Anim Control Tools
+        self.addButton(label="", icon=ICON_DIR + "/V002/CtrlShapes.png")
+        ctl_tools_menu = cmds.popupMenu(b=1)
+
+        cmds.menuItem(p=ctl_tools_menu, divider=True, dividerLabel="SHAPE...")
+        cmds.menuItem(
+            p=ctl_tools_menu, l="Save Shape...", command=ctl_func.save_ctl_shape_to_lib
+        )
+
+        sub = cmds.menuItem(
+            p=ctl_tools_menu, l="Assign Shape to selected...", subMenu=1
+        )
+
+        for each in ctl_func.get_available_control_shapes():
+            self.addMenuItem(sub, each[0], command=each[1])
+
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Open Shape directory...",
+            c=lambda *args: ctl_core.open_control_shape_directory(),
+        )
+
+        cmds.menuItem(p=ctl_tools_menu, divider=True, dividerLabel="COLOR...")
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Color Shapes",
+            command=lambda *args: ctl_color.set_override_color_UI(),
+        )
+
+        cmds.menuItem(p=ctl_tools_menu, divider=True, dividerLabel="COPY/PASTE...")
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Copy Shape",
+            command=lambda *args: ctl_func.copy_ctl_shape(),
+        )
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Paste Shape",
+            command=lambda *args: ctl_func.paste_ctl_shape(),
+        )
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Delete Shapes",
+            command=lambda *args: ctl_func.delete_shapes(),
+        )
+
+        # cmds.menuItem(p=ctl_tools_menu, divider=True, dividerLabel="TRANSFORM...")
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Mirror Shape",
+        #     command=lambda *args: ctl_trans.mirror_ctl_shapes(),
+        # )
+
+        cmds.menuItem(p=ctl_tools_menu, divider=True)
+
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate X 90",
+        #     command=lambda *args: ctl_trans.rotate_shape([90, 0, 0]),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate Y 90",
+        #     command=lambda *args: ctl_trans.rotate_shape([0, 90, 0]),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate Z 90",
+        #     command=lambda *args: ctl_trans.rotate_shape([0, 0, 90]),
+        # )
+
+        # cmds.menuItem(p=ctl_tools_menu, divider=True)
+
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate X -90",
+        #     command=lambda *args: ctl_trans.rotate_shape([-90, 0, 0]),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate Y -90",
+        #     command=lambda *args: ctl_trans.rotate_shape([0, -90, 0]),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Rotate Z -90",
+        #     command=lambda *args: ctl_trans.rotate_shape([0, 0, -90]),
+        # )
+
+        # cmds.menuItem(p=ctl_tools_menu, divider=True)
+
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Scale Up Shape",
+            command=lambda *args: ctl_trans.scale_up_selected(),
+        )
+        cmds.menuItem(
+            p=ctl_tools_menu,
+            l="Scale Down Shape",
+            command=lambda *args: ctl_trans.scale_down_selected(),
+        )
+
+        cmds.menuItem(p=ctl_tools_menu, divider=True)
+
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Flip Shape",
+        #     command=lambda *args: ctl_trans.flip_shape_callback(),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Flip Shape X",
+        #     command=lambda *args: ctl_trans.flip_shape_X(),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Flip Shape Y",
+        #     command=lambda *args: ctl_trans.flip_shape_Y(),
+        # )
+        # cmds.menuItem(
+        #     p=ctl_tools_menu,
+        #     l="Flip Shape Z",
+        #     command=lambda *args: ctl_trans.flip_shape_Z(),
+        # )
+        #=======================================
+        ## DISCLAIMER - END
+        #=======================================
+
+
+
+
+
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
@@ -301,9 +448,5 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(AttrMenu, "Copy Attributes Over", command=lambda _: VisibilityAttributFunctions.CopyAttributesToSelectionConfigUI())
 
-        
-        
-
-        
         
         

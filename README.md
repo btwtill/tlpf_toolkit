@@ -1,6 +1,7 @@
 # Thanks
 
 !!Huge thanks to CGMAs Mechanical Rigging Course Instructor Martin Louton and Tim Coleman to provide the underlying template for this Maya shelf!!
+https://github.com/martinlanton/mechRig_toolkit
 
 ## Whats it For?
 

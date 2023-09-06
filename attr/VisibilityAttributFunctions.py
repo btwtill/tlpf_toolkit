@@ -10,8 +10,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
-
-
 #=======================================
 ## Add VisibilityCtrl Attribute
 #=======================================
