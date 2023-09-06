@@ -1,6 +1,7 @@
 #Module import
 import maya.cmds as cmds
 from tlpf_toolkit.utils import GeneralFunctions
+from tlpf_toolkit.ui import common
 
 import logging
 import os
@@ -260,8 +261,8 @@ def SoftIKConfigInterface():
     cmds.rowColumnLayout( adjustableColumn = True)
 
 
-    ikHandleName = buildUserInputGrp("set IKHandle ", "Not Jet Set", 30)
-    ikLocatorName = buildUserInputGrp("set IKLocator ", "Not Jet Set", 30)
+    ikHandleName = common.buildUserInputGrp("set IKHandle ", "Not Jet Set", 30)
+    ikLocatorName = common.buildUserInputGrp("set IKLocator ", "Not Jet Set", 30)
 
     label = cmds.text(label="Leg Name: ")
     name = cmds.textField()
@@ -269,20 +270,6 @@ def SoftIKConfigInterface():
     cmds.button(label="Add Soft IK", command=lambda _: add_softIK(cmds.text(ikHandleName, query=True, label=True), cmds.text(ikLocatorName, query=True, label=True), cmds.textField(name, query=True, text=True)))
 
     cmds.showWindow(configwindow)
-
-def buildUserInputGrp(buttonLabel, displayLabelText, displayLabelHeight):
-    cmds.text(label="", height=10, backgroundColor=[0.0,0.0,0.0])
-    cmds.button(label=buttonLabel, height=40, command=lambda _: updateLabel(labelname, getFirstUserSelection()))
-    labelname = cmds.text(label=displayLabelText, height=displayLabelHeight, backgroundColor=[0.6, 0.1, 0.1])
-    return labelname
-
-def getFirstUserSelection():
-    sel = cmds.ls(selection=True)
-    return sel[0]
-
-def updateLabel(_label, _newLabelText):
-    rgbColor = [0.3, 0.8, 0.2]
-    cmds.text(_label, edit=True, label=_newLabelText, backgroundColor=rgbColor)
 
 def get_aim_axis(joint_name):
     """Returns the axis pointed down the chain as a string

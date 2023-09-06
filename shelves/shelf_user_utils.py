@@ -55,6 +55,8 @@ from tlpf_toolkit.joint import JointFunctions
 
 from tlpf_toolkit.skin import SkinFunctions
 
+from tlpf_toolkit.attr import VisibilityAttributFunctions
+
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -136,6 +138,7 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
+        #IKFK Menu
         self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" , command="")
         IkFkMenu = cmds.popupMenu(b=1)
 
@@ -147,6 +150,7 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(IkFkMenu, "Create Single IKFK Blend", command=lambda _: IkFkSwitch.CreateSinlgeIKFKBlend())
 
+        #PoleVector Menu
         self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
         poleVectorMenu = cmds.popupMenu(b=1)
 
@@ -154,14 +158,25 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(poleVectorMenu, "PV Line", command=lambda _: PoleVectorFunction.createPoleVectorLine())
 
+        #Revers Chain
         self.addButton(label="", icon=ICON_DIR + "/V002/RevChain.png" ,command= ReverseFootSetup.createReverseChain)
 
+        #Stretch Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Stretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
 
+        #Twist Joints
         self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png" ,command = JiggleSetup.createJiggleSetup)
+        #Jiggle Menu
+        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png")
+        jiggleMenu = cmds.popupMenu(b=1)
 
+        self.addMenuItem(jiggleMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
+
+        self.addMenuItem(jiggleMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
+
+
+        #Lip Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
         
 
@@ -262,5 +277,33 @@ class load(shelf_base._shelf):
         self.addMenuItem(SkinMenu, "Export SkinWeights", command=lambda _: SkinFunctions.export_skin_weights_selected())
 
         self.addMenuItem(SkinMenu, "Import SkinWeights", command=lambda _: SkinFunctions.import_skin_weights_selected())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
+        #Attribute Menu
+        self.addButton(label="", icon=ICON_DIR + "/V002/AttrMenu.png")
+        AttrMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="VISIBILITY ATTR")
+
+        self.addMenuItem(AttrMenu, "Add Visibility Attr", command=lambda _: VisibilityAttributFunctions.CreateHiddenVisibilityAttributeConfigUI())
+
+        self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="LOCK/UNLOCK")
+
+        self.addMenuItem(AttrMenu, "Lock Default Attributes", command=lambda _: VisibilityAttributFunctions.lock_unlock_channels(True))
+
+        self.addMenuItem(AttrMenu, "Unlock Default Attributes", command=lambda _: VisibilityAttributFunctions.lock_unlock_channels(False))
+
+        self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="UTILITY")
+
+        self.addMenuItem(AttrMenu, "Add Attribute Divider", command=lambda _: VisibilityAttributFunctions.CreateAttributeDividerConfigUI())
+
+        self.addMenuItem(AttrMenu, "Copy Attributes Over", command=lambda _: VisibilityAttributFunctions.CopyAttributesToSelectionConfigUI())
+
+        
+        
+
+        
         
         
