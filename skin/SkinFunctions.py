@@ -194,6 +194,11 @@ def getselectedNamespaces(_NamespaceInputs):
 def getComparedNamespaceObjects(_listA, _listB):
     resultList = []
 
+    log.info("Empty ResultList: {}".format(resultList))
+
+    log.info("ComparisonList A: {}".format(_listA))
+    log.info("ComparisonList B: {}".format(_listB))
+
     for i in _listA:
         for j in _listB:
             if i == j:
@@ -276,12 +281,14 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
         cmds.select(NamespaceAObjects)
 
         NamespaceAMesh = cmds.findType(deep=False, type="mesh")
+        NamespaceAMesh = set(NamespaceAMesh)
 
         cmds.select(clear=True)
 
         cmds.select(NamespaceBObjects)
 
         NamespaceBMesh = cmds.findType(deep=False, type="mesh")
+        NamespaceBMesh = set(NamespaceBMesh)
         
         cmds.select(clear=True)
 
@@ -311,9 +318,11 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
             if sourceNamespace == selectedNamespaces[0]:
                 for i in MatchedNamespaceObjects:
                     transfer_skin(i[0][0], i[1][0])
+                    #log.info("Transfer from {} to {}".format(i[0][0], i[1][0]))
             elif sourceNamespace == selectedNamespaces[1]:
                 for i in MatchedNamespaceObjects:
                     transfer_skin(i[1][0], i[0][0])
+                    #log.info("Transfer from {} to {}".format(i[0][0], i[1][0]))
     else:
         log.warning("The Number of Namespace u can select to transfer SKincluster needs to be 2!!")
 

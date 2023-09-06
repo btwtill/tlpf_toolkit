@@ -237,12 +237,12 @@ def BuildTimJiggleSetup(_sourceObj, _baseName, _targetObj, _parentObj):
             #Disable Inherit Transform for the Output Locator
             cmds.setAttr(jiggle_output + ".inheritsTransform", 0)
 
-            #Constraint the targetObject to the output OBject
-            jiggleOffsetNode = cmds.duplicate(_targetObj, po=True, name=_targetObj + "_JiggleOffset")
-            cmds.parent(_targetObj, jiggleOffsetNode)
+            # #Constraint the targetObject to the output OBject
+            # jiggleOffsetNode = cmds.duplicate(_targetObj, po=True, name=_targetObj + "_JiggleOffset")
+            # cmds.parent(_targetObj, jiggleOffsetNode)
 
-            targetConstraint = cmds.pointConstraint(jiggle_output, jiggleOffsetNode, mo=True, sk= ["x", "y"])
-            cmds.connectAttr(jiggle_output + ".enable", targetConstraint[0] + "." + jiggle_output + "W0")
+            # targetConstraint = cmds.pointConstraint(jiggle_output, jiggleOffsetNode, mo=True, sk= ["x", "y"])
+            # cmds.connectAttr(jiggle_output + ".enable", targetConstraint[0] + "." + jiggle_output + "W0")
 
             #parent the jiggle group to the parent Object
             cmds.parent(jiggle_group, _parentObj)
