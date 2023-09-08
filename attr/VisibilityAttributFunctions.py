@@ -45,7 +45,7 @@ def CreateHiddenVisibilityAttribute(_attributeName, _configWindow, _selection, _
     #get all the objects that will be connected by the attribute 
     attributeObject = _selection
 
-    log.info("Visibility Ctrl Object: {}".format(_selection[0] + _selection[1] + "..."))
+    log.info("Object FirstSelection : {}".format(_selection[0]))
 
     if _defaultFirst:
         #add the Visibilty Ctrl Attribute on the Ctrl Obj
