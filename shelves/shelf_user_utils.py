@@ -38,6 +38,7 @@ from tlpf_toolkit.systems import SimpleStretchSetup
 from tlpf_toolkit.systems import TwistJoints
 from tlpf_toolkit.systems import JiggleSetup
 from tlpf_toolkit.systems import LipSetup
+from tlpf_toolkit.systems import EyeLidSetup
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -183,6 +184,14 @@ class load(shelf_base._shelf):
 
         #Lip Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
+
+        #Eyelid Setup
+        self.addButton(label="", icon=ICON_DIR + "/V002/EyeMenu.png")
+        EyeMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(EyeMenu, "Eyelid Base", command = lambda _: EyeLidSetup.EyelidConfigWindow())
+
+        
         
 
 
