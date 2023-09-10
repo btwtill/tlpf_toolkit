@@ -125,30 +125,6 @@ def bindObjectToCurve(_objects, _curve, _UParameter, _name = "pci"):
         for j in "XYZ":
             cmds.connectAttr(pciNode + ".position" + j, _objects[i] + ".translate" + j)
 
-
-def EyelidConfigWindow():
-
-    configWindow = cmds.window(title="Eyelid Setup", iconName="Eyelid", sizeable=True)
-
-    cmds.rowColumnLayout( adjustableColumn=True )
-
-    cmds.text(label="Give a Base Name for the Setup")
-
-    Name= cmds.textField()
-
-    eyeCenter = common.buildUserInputGrp("Set Eye Center Position", "Not Defined", 40)
-
-    upperLabel = cmds.text(label="Not Defined")
-    setUpper = cmds.button(label="set Upper", command = lambda _: saveUpperVertecies(upperLabel))
-    
-    lowerLabel=cmds.text(label="Not Defined")
-    setLower = cmds.button(label="set Lower", command = lambda _: saveLowerVertecies(lowerLabel))
-
-    buildEyelid = cmds.button(label="Build Setup", command= lambda _: BuildEyelidSetup(cmds.textField(Name, q=True, text=True), cmds.text(eyeCenter, q=True, label=True)))
-
-    cmds.showWindow(configWindow)
-
-
 def saveUpperVertecies(_label):
     vtx = cmds.ls(os=True, flatten=True)
     utils.save_data(EYELIDUPPERVERTEXPATH, vtx)
@@ -237,3 +213,88 @@ def BuildEyelidSetup(_baseName, _centerPos):
     upperDrvCurveToDefCurve = cmds.wire(upperEyelidDefCurve, w = upperEyelidDriverCurve, name = "UpperdrvToDefWire")
 
     lowerDrvCurveToDefCurve = cmds.wire(lowerEyelidDefCurve, w = lowerEyelidDriverCurve, name = "LowerdrvToDefWire")
+
+    #create eyelid Blink Curve from Upper Driver Curve
+    blinkCurve = cmds.rename(cmds.duplicate(upperEyelidDriverCurve), baseName + "BlinkCurve")
+
+    #blend shape between Upper Driver Curve and LowerDrivercurve onto the eylid Blink curve
+    blinkHeightBlendShape = cmds.rename(cmds.blendShape(upperEyelidDriverCurve, lowerEyelidDriverCurve, blinkCurve), baseName + "BlinkHeightBlendShape")
+
+    #create attribute on some ctrl (Maybe define up front as user input) for the Eye blink height
+    
+
+    #duplicate the upper Deformation curve 
+    upperBlinkCurve = cmds.rename(cmds.duplicate(upperEyelidDefCurve), baseName + "UpperBlinkCurve")
+
+    #wire upper deformation curve to Blink Curve
+    upperBlinkCurveToBlinkCurve = cmds.wire(upperBlinkCurve, w = blinkCurve, name = "UpperBlinkCrvToBlinkCrv")
+
+    cmds.setAttr(upperBlinkCurveToBlinkCurve[0] + ".scale[0]", 0)
+
+    #Move the Blink curve to the lower Eyelid Curve to be able to wire the lower Blink curve correctly
+    cmds.setAttr(blinkHeightBlendShape + "." + upperEyelidDriverCurve, 1)
+    cmds.setAttr(blinkHeightBlendShape + "." + lowerEyelidDriverCurve, 1)
+
+    #duplicat the lower deformation curve 
+    lowerBlinkCurve = cmds.rename(cmds.duplicate(lowerEyelidDefCurve), baseName + "LowerBlinkCurve")
+
+    #wire it to the Blink Curve
+    lowerlinkCurveToBlinkCurve = cmds.wire(lowerBlinkCurve, w = blinkCurve, name = "LowerBlinkCrvToBlinkCrv")
+
+    cmds.setAttr(lowerlinkCurveToBlinkCurve[0] + ".scale[0]", 0)
+
+    cmds.setAttr(blinkHeightBlendShape + "." + lowerEyelidDriverCurve, 0.7)
+    
+    #blendshape between Upper Def Curve and Upper Blink Curve
+    upperBlinkBlendshape = cmds.rename(cmds.blendShape(upperBlinkCurve ,upperEyelidDefCurve), baseName + "UpperBlinkBlendShape")
+
+    #blendshpae between Lower Def Curve and Lower Blink Curve
+    lowerBlinkBlendshape = cmds.rename(cmds.blendShape(lowerBlinkCurve ,lowerEyelidDefCurve), baseName + "LowerBlinkBlendShape")
+
+    #cleanOutliner
+    crvGrp = cmds.group([upperEyelidDefCurve, lowerEyelidDefCurve, upperEyelidDriverCurve, lowerEyelidDriverCurve, blinkCurve, upperBlinkCurve, lowerBlinkCurve], name= baseName + "Curve_grp")
+
+
+
+def EyelidConfigWindow():
+
+    #create window object
+    configWindow = cmds.window(title="Eyelid Setup", iconName="Eyelid", sizeable=True)
+
+    #set window layout
+    cmds.rowColumnLayout( adjustableColumn=True )
+
+    #Heading
+    cmds.text(label="Input Data for Eyelid Setup", align="center", font="boldLabelFont", height=40, width=60)
+
+    #Set User Input Label for the Base name for the Eyelid Setup
+    cmds.text(label="Give a Base Name for the Setup")
+
+    #Store user input string
+    Name= cmds.textField()
+
+    #Get Eye Center Positon defined by the users selection
+    eyeCenter = common.buildUserInputGrp("Set Eye Center Position", "Not Defined", 40)
+
+    #Get Eye Center Positon defined by the users selection
+    eyeCtrl = common.buildUserInputGrp("Eye Ctrl Objct", "Not Defined", 40)
+
+    #Get User Vertecie Selection to define Upper and Lower Eyelid Geometry
+    cmds.text(label="", height=10)
+    cmds.text(label="Please select the Upper Eylid Vertecies", font="boldLabelFont", height=30)
+
+    upperLabel = cmds.text(label="Not Defined")
+    setUpper = cmds.button(label="set Upper", command = lambda _: saveUpperVertecies(upperLabel))
+    
+    cmds.text(label="", height=10)
+
+    cmds.text(label="Please select the Lower Eyelid Vertecies", font="boldLabelFont", height=30)
+
+    lowerLabel=cmds.text(label="Not Defined")
+    setLower = cmds.button(label="set Lower", command = lambda _: saveLowerVertecies(lowerLabel))
+
+    #Build the Eyelid Setup
+    buildEyelid = cmds.button(label="Build Setup", command= lambda _: BuildEyelidSetup(cmds.textField(Name, q=True, text=True), cmds.text(eyeCenter, q=True, label=True)))
+
+    cmds.showWindow(configWindow)
+

@@ -49,11 +49,11 @@ def CreateHiddenVisibilityAttribute(_attributeName, _configWindow, _selection, _
 
     if _defaultFirst:
         #add the Visibilty Ctrl Attribute on the Ctrl Obj
-        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="ON:OFF", keyable=True, hidden=_isHidden)
+        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="ON:OFF", keyable=_isHidden)
 
     elif not _defaultFirst:
 
-        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="OFF:ON", keyable=True, hidden=_isHidden)
+        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="OFF:ON", keyable=_isHidden)
 
     #Connect the Attrbibute with all the Selected Objects
     for i in attributeObject:
