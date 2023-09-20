@@ -362,9 +362,13 @@ class load(shelf_base._shelf):
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="MULTI CONNECTOR")
 
-        self.addMenuItem(NodeMenu, "1 zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectOneToNConfigurationInterface())
+        self.addMenuItem(NodeMenu, "1 zu N MultiConnect Filtered", command=lambda _: MultiConnectFunction.MultiConnectOneToNConfigurationInterfaceFiltered())
 
-        self.addMenuItem(NodeMenu, "M zu N MultiConnect", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterface())
+        self.addMenuItem(NodeMenu, "1 zu N MultiConnect All", command=lambda _: MultiConnectFunction.MultiConnectOneToNConfigurationInterfaceAll())
+
+        self.addMenuItem(NodeMenu, "M zu N MultiConnect Filtered", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterfaceFiltered())
+
+        self.addMenuItem(NodeMenu, "M zu N MultiConnect All", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterfaceAll())
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="SRT Connector")
         
