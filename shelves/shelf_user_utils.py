@@ -461,5 +461,9 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(AttrMenu, "Copy Attributes Over", command=lambda _: VisibilityAttributFunctions.CopyAttributesToSelectionConfigUI())
 
+        self.addMenuItem(AttrMenu, "Hide from ChannelBox", command=lambda _: VisibilityAttributFunctions.hideNodeFromChannelboxHistory())
+
+        
+
         
         

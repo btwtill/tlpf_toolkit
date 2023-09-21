@@ -273,3 +273,15 @@ def getAttributeMinimum(_attr, _node):
 #=======================================
 ## Copy Attributes to Selected - END
 #=======================================
+
+
+#=======================================
+## Channelbox Node Visibility 
+#=======================================
+
+
+def hideNodeFromChannelboxHistory():
+    sel = cmds.ls(selection=True)
+
+    for i in sel:
+        cmds.setAttr(i + ".isHistoricallyInteresting", 0)

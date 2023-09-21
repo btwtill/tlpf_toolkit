@@ -259,6 +259,21 @@ def getParentObjectsFromList(targetList):
     return parentList
 
 
+def validateSourceNamespace(_MatchedNamespaceObjects, _selectedNamespaces):
+    for i in range(len(_MatchedNamespaceObjects)):
+
+        sourceNamespace = getSourceNamespace(_MatchedNamespaceObjects[i][0], _MatchedNamespaceObjects[i][1], _selectedNamespaces[0], _selectedNamespaces[1])
+
+        if sourceNamespace != "NO Skincluster Detected":
+            return sourceNamespace
+        else:
+            pass
+    if sourceNamespace != "NO Skincluster Detected":
+        return sourceNamespace
+    else:
+        log.info("SourceNamespace from Validation Method: {}".format(sourceNamespace))
+        return "NO Skincluster Detected"
+
 def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
 
     selectedNamespaces = getselectedNamespaces(_NamespaceInputs)
@@ -308,7 +323,7 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
 
         MatchedNamespaceObjects = getParentObjectsFromList(MatchedNamespaceObjects)
 
-        sourceNamespace = getSourceNamespace(MatchedNamespaceObjects[0][0], MatchedNamespaceObjects[0][1], selectedNamespaces[0], selectedNamespaces[1])
+        sourceNamespace = validateSourceNamespace(MatchedNamespaceObjects, selectedNamespaces)
 
         log.info("Matched Namespace Objects: {}".format(MatchedNamespaceObjects))
         log.info("Source Namespace: {}".format(sourceNamespace))
