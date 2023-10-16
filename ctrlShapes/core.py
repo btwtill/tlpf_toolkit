@@ -9,7 +9,7 @@ import subprocess
 
 from maya import cmds
 
-from mechRig_toolkit.control_shapes import utils
+from tlpf_toolkit.ctrlShapes import utils
 
 logging.basicConfig()
 log = logging.getLogger(__name__)

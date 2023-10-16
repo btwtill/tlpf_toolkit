@@ -13,7 +13,7 @@ import os
 
 from maya import cmds
 
-from mechRig_toolkit.control_shapes import core
+from tlpf_toolkit.ctrlShapes import core
 
 log = logging.getLogger(__name__)
 
