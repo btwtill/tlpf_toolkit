@@ -112,6 +112,12 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
+
+        self.addButton(label="", icon=ICON_DIR + "/V002/NameMenu.png", command=NamingFunctions.BatchRenameABCUI)
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+
         self.addButton(label="", icon=ICON_DIR + "/V002/MatchMenu.png")
         transformMatchingMenu = cmds.popupMenu(b=1)
 

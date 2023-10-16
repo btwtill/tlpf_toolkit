@@ -38,3 +38,10 @@ shelf_user_utils.load(name="tlpf_shelf")
 
     maya.utils.executeDeferred("load_user_shelf()")
 ```
+
+***Icon Text Font***
+```
+Cambria Math, 
+size: 8 - 12, 
+spacing: 0 - 100%
+```
