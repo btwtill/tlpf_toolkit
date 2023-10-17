@@ -43,20 +43,84 @@ def suffixSelected(_suffix):
 
 def BatchRenameABCUI():
 
-    batchRenameConfigWindow = cmds.window(title = "AbcRename", iconName="abcRename", widthHeight=(600, 200))
+    windowWidth = 300
+
+    batchRenameConfigWindow = cmds.window(title = "AbcRename", iconName="abcRename", widthHeight=(windowWidth, 600))
 
     cmds.rowColumnLayout( adjustableColumn=True ) 
-    cmds.text(label="Type your Input Name string with a -*- at the location u want the Alphabetic ordering to start", align = "center", height= 20,
-              backgroundColor = [.2, .2, .2])
-    batchRenameInputString = cmds.textField(width = 400, height=20 )
+    cmds.text(label="* as Placeholder for incrementation", align = "center", height= 20, backgroundColor = [.2, .2, .2])
+    batchRenameInputString = cmds.textField(width = windowWidth, height=20 )
 
     cmds.button(label="RenameListABC", align = "center", command = lambda _: BatchRenameABC(cmds.textField(batchRenameInputString, query = True, text = True)))
 
+    cmds.text(label="", height=10)
+
     cmds.button(label="RenameList123", align = "center", command = lambda _: BatchRename123(cmds.textField(batchRenameInputString, query = True, text = True)))
+
+    cmds.text(label="", height=20)
+
+    cmds.text(label="Replace Sides", height=20, backgroundColor = [.2, .2, .2])
+
+    cmds.button(label="Replace L -> R", command = lambda _: ReplaceLeftForRight())
+
+    cmds.text(label="", height=10)
+
+    cmds.button(label="Replace R -> L", command = lambda _: ReplaceRightForLeft())
+
+    cmds.text(label="", height=20)
+
+    cmds.text(label="Replace Last", height=20, backgroundColor = [.2, .2, .2])
+
+    cmds.button(label="Delete Last", command = lambda _: ReplaceLast())
+
+    cmds.text(label="", height=20)
+
+    cmds.text(label="Suffix", height=20, backgroundColor = [.2, .2, .2])
+
+    suffixInputString = cmds.textField(width = windowWidth, height=20 )
+    
+    cmds.button(label="Suffix Selected", command = lambda _: suffixSelected(cmds.textField(suffixInputString, query=True, text=True)))
+    
+    
+    cmds.text(label="", height=20)
+
+    cmds.text(label="Prefix", height=20, backgroundColor = [.2, .2, .2])
+
+    prefixInputString = cmds.textField(width = windowWidth, height=20 )
+
+    cmds.button(label="Prefix Selected", command = lambda _: PrefixSelected(cmds.textField(prefixInputString, query=True, text=True)))
 
     cmds.showWindow(batchRenameConfigWindow)
 
     
+
+def PrefixSelected(_prefixInputString):
+    selected = cmds.ls(selection=True)
+
+    for i in selected:
+        if _prefixInputString[-1] == "_":
+            cmds.rename(i, _prefixInputString + i)
+        else:
+            cmds.rename(i, _prefixInputString + "_" + i)
+
+def ReplaceLast():
+    selection = cmds.ls(selection = True)
+
+    for i in selection:
+        cmds.rename(i, i[:-1])
+
+
+def ReplaceLeftForRight():
+    selection = cmds.ls(selection=True)
+
+    for i in selection:
+        cmds.rename(i, i.replace("l_", "r_"))
+
+def ReplaceRightForLeft():
+    selection = cmds.ls(selection=True)
+
+    for i in selection:
+        cmds.rename(i, i.replace("r_", "l_"))
 
 def BatchRename123(inputString):
     selection = cmds.ls(selection=True)
