@@ -113,7 +113,7 @@ def CreateAttributeDivider(_attributeName, _configWindow, _objects):
 
     #Add Attribute Divider for a selection of objects
     for i in _objects:
-        cmds.addAttr(i, ln=_attributeName, at="enum", en="******", keyable=True)
+        cmds.addAttr(i, ln=_attributeName, at="enum", en="******", keyable=False)
         cmds.setAttr(i + "." + _attributeName, cb=True)
 
     #close UI

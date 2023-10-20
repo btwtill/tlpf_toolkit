@@ -145,11 +145,6 @@ class load(shelf_base._shelf):
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/Suffix.png" ,command = NamingFunctions.SuffixConfigurationWindow)
-
-        # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
-
         #IKFK Menu
         self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" , command="")
         IkFkMenu = cmds.popupMenu(b=1)
@@ -161,6 +156,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(IkFkMenu, "Add Soft IK", command=lambda _: IkFkSwitch.SoftIKConfigInterface())
 
         self.addMenuItem(IkFkMenu, "Create Single IKFK Blend", command=lambda _: IkFkSwitch.CreateSinlgeIKFKBlend())
+
+        self.addMenuItem(IkFkMenu, "Create Multi IKFK Blend", command=lambda _: IkFkSwitch.CreateMultiIKFKBlendUI())
 
         #PoleVector Menu
         self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
