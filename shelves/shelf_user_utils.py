@@ -187,7 +187,7 @@ class load(shelf_base._shelf):
         self.addMenuItem(EyeMenu, "Eyelid Base", command = lambda _: EyeLidSetup.EyelidConfigWindow())
 
         #Spline Setup
-        self.addButton(label="", icon=ICON_DIR + "", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V002/SplineMenu.png", command="")
         splineMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(splineMenu, "Simple Spline", command= lambda _: SplineSystem.NeckSplineIKConfigUI())
