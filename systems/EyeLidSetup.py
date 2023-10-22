@@ -2,6 +2,7 @@
 import maya.cmds as cmds
 from tlpf_toolkit.ui import common
 from tlpf_toolkit.ctrlShapes import utils
+from tlpf_toolkit import global_variables
 import time
 
 import logging
@@ -9,11 +10,9 @@ import os
 import re
 import subprocess
 
-CURRENT_DIRECTORY = os.path.dirname(__file__)
-DATA_LIBRARY_PATH = os.path.abspath("{}\\tmpData".format(CURRENT_DIRECTORY))
 
-EYELIDUPPERVERTEXPATH = os.path.join(DATA_LIBRARY_PATH, "EyelidUpperVtxSel.json")
-EYELIDLOWERVERTEXPATH = os.path.join(DATA_LIBRARY_PATH, "EyelidLowerVtxSel.json")
+EYELIDUPPERVERTEXPATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "EyelidUpperVtxSel.json")
+EYELIDLOWERVERTEXPATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "EyelidLowerVtxSel.json")
 
 #Eyelid_rig
 

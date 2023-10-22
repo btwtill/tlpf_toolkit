@@ -2,7 +2,7 @@
 import maya.cmds as cmds
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.ui import common
-
+from tlpf_toolkit import global_variables
 import logging
 import os
 from tlpf_toolkit.ctrlShapes import utils
@@ -12,12 +12,9 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
-CURRENT_DIRECTORY = os.path.dirname(__file__)
-DATA_LIBRARY_PATH = os.path.abspath("{}\\tmpData".format(CURRENT_DIRECTORY))
-
-IK_JOINT_SELECTION_PATH = os.path.join(DATA_LIBRARY_PATH, "IKJoints.json")
-FK_JOINT_SELECTION_PATH = os.path.join(DATA_LIBRARY_PATH, "FKJoints.json")
-TARGET_JOINT_SELECTION_PATH = os.path.join(DATA_LIBRARY_PATH, "TargetJoints.json")
+IK_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "IKJoints.json")
+FK_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "FKJoints.json")
+TARGET_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "TargetJoints.json")
 
 
 #=======================================
@@ -421,7 +418,7 @@ def CreateMultiIKFKBlendUI():
     cmds.text(label="", height=20)
 
     #Create pairBlends Button
-    createPairBlendsButton = cmds.button(label = "Craet pair blends", command = lambda _: CreateMultiPairBlends())
+    createPairBlendsButton = cmds.button(label = "Create pair blends", command = lambda _: CreateMultiPairBlends())
 
     #display Window 
     cmds.showWindow(configWindow)

@@ -39,6 +39,7 @@ from tlpf_toolkit.systems import TwistJoints
 from tlpf_toolkit.systems import JiggleSetup
 from tlpf_toolkit.systems import LipSetup
 from tlpf_toolkit.systems import EyeLidSetup
+from tlpf_toolkit.systems import SplineSystem
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -176,15 +177,6 @@ class load(shelf_base._shelf):
         #Twist Joints
         self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
 
-        #Jiggle Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png")
-        jiggleMenu = cmds.popupMenu(b=1)
-
-        self.addMenuItem(jiggleMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
-
-        self.addMenuItem(jiggleMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
-
-
         #Lip Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
 
@@ -194,8 +186,22 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(EyeMenu, "Eyelid Base", command = lambda _: EyeLidSetup.EyelidConfigWindow())
 
+        #Spline Setup
+        self.addButton(label="", icon=ICON_DIR + "", command="")
+        splineMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(splineMenu, "Simple Spline", command= lambda _: SplineSystem.NeckSplineIKConfigUI())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
         
-        
+        #Jiggle Menu
+        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png")
+        jiggleMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(jiggleMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
+
+        self.addMenuItem(jiggleMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
 
 
 
