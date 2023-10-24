@@ -58,6 +58,7 @@ from tlpf_toolkit.joint import JointFunctions
 from tlpf_toolkit.skin import SkinFunctions
 
 from tlpf_toolkit.attr import VisibilityAttributFunctions
+from tlpf_toolkit.attr import RotationOrderAttributeFunctions
 
 from tlpf_toolkit.ctrlShapes import color as ctl_color
 from tlpf_toolkit.ctrlShapes import core as ctl_core
@@ -471,6 +472,12 @@ class load(shelf_base._shelf):
         self.addMenuItem(AttrMenu, "Copy Attributes Over", command=lambda _: VisibilityAttributFunctions.CopyAttributesToSelectionConfigUI())
 
         self.addMenuItem(AttrMenu, "Hide from ChannelBox", command=lambda _: VisibilityAttributFunctions.hideNodeFromChannelboxHistory())
+
+        self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="ROTATE ORDER")
+
+        self.addMenuItem(AttrMenu, "Set Rotation Order", command=lambda _: RotationOrderAttributeFunctions.setRotationOrderUI())
+
+        
 
         
 
