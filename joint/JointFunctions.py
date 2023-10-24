@@ -32,3 +32,24 @@ def CreateJointsOnSelected():
 #=======================================
 ## Create Joints at selected Pos - END
 #=======================================
+
+
+#=======================================
+## Move Joints Tranforms to Parent Matrix Offset
+#=======================================
+
+def MoveJointSRTtoParentMatirxOffset():
+    sel = cmds.ls(selection =True)
+
+    for i in sel:
+        
+        cmds.connectAttr(i + ".matrix" , i + ".offsetParentMatrix")
+        cmds.disconnectAttr(i + ".matrix" , i + ".offsetParentMatrix")
+
+        for j in "XYZ":
+            cmds.setAttr(i + ".translate" + j, 0)
+            
+            cmds.setAttr(i + ".rotate" + j, 0)
+            cmds.setAttr(i + ".jointOrient" + j, 0)
+
+            cmds.setAttr(i + ".scale" + j, 1)

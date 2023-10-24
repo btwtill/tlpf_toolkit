@@ -432,6 +432,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
 
+        self.addMenuItem(JointMenu, "Move Joint SRT to Matrix", command=lambda _: JointFunctions.MoveJointSRTtoParentMatirxOffset())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
 
