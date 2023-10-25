@@ -40,6 +40,7 @@ from tlpf_toolkit.systems import JiggleSetup
 from tlpf_toolkit.systems import LipSetup
 from tlpf_toolkit.systems import EyeLidSetup
 from tlpf_toolkit.systems import SplineSystem
+from tlpf_toolkit.systems import SpaceSwapping
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -192,6 +193,14 @@ class load(shelf_base._shelf):
         splineMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(splineMenu, "Simple Spline", command= lambda _: SplineSystem.NeckSplineIKConfigUI())
+        
+
+        #Space Swapping
+        self.addButton(label="", icon=ICON_DIR + "/V002/SplineMenu.png", command="")
+        spaceMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(spaceMenu, "Matrix SpaceSwap", command= lambda _: SpaceSwapping.MatrixSpaceSwappingConfigUI())
+        
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
@@ -433,6 +442,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
 
         self.addMenuItem(JointMenu, "Move Joint SRT to Matrix", command=lambda _: JointFunctions.MoveJointSRTtoParentMatirxOffset())
+
+        self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
