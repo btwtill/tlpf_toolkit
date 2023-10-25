@@ -53,3 +53,23 @@ def MoveJointSRTtoParentMatirxOffset():
             cmds.setAttr(i + ".jointOrient" + j, 0)
 
             cmds.setAttr(i + ".scale" + j, 1)
+
+
+#=======================================
+## Move Joints Tranforms to Parent Matrix Offset - END
+#=======================================
+
+
+#=======================================
+## Clear Joint Orient Values
+#=======================================
+
+def ClearJointOrientValues():
+
+    for i in cmds.ls(selection = True):
+        for j in "XYZ":
+            cmds.setAttr(i + ".jointOrient" + j, 0)
+
+#=======================================
+## Clear Joint Orient Values - END
+#=======================================
