@@ -196,10 +196,10 @@ class load(shelf_base._shelf):
         
 
         #Space Swapping
-        self.addButton(label="", icon=ICON_DIR + "/V002/SplineMenu.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V002/SpaceMenu.png", command="")
         spaceMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(spaceMenu, "Matrix SpaceSwap", command= lambda _: SpaceSwapping.MatrixSpaceSwappingConfigUI())
+        self.addMenuItem(spaceMenu, "Matrix SpaceSwap", command= lambda _: SpaceSwapping.MatrixSpaceSwitch())
         
 
         # Separator
