@@ -1,6 +1,13 @@
 #Modules Import
 import maya.cmds as cmds
+import logging
 
+from tlpf_toolkit.utils import ZeroOffsetFunction
+from tlpf_toolkit.mtrx import MatrixZeroOffset
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 #=======================================
 ## Twist Joints Function
@@ -132,3 +139,120 @@ def getWeights(_numberOfJoints):
 #=======================================
 ## Twist Joints Function - ENd
 #=======================================
+
+
+
+
+#=======================================
+## Twist Setup
+#=======================================
+
+
+def DefineTwistAxies(joint):
+    if round(cmds.getAttr(joint + ".translateX"), 3) != 0:
+        return "X"
+    elif round(cmds.getAttr(joint + ".translateY"), 3) != 0:
+        return "Y"
+    elif round(cmds.getAttr(joint + ".translateZ"), 3) != 0:
+        return "Z"
+    else:
+        return "No Twist"
+        
+
+def MatrixForwardTwistSetup():
+    pass
+    #get selection
+    sel = cmds.ls(selection = True)
+
+    #seperate main Joint from twist joint selection
+    mainJoint = sel.pop(0)
+
+    #validate selection length
+    if len(sel) < 2:
+        raise Exception("Not enough Twist joints Selected!!")
+    else:
+        log.info(f"Number of Twist Joints: {len(sel)}")
+
+    #define Twist Axies through translation value from second twist joints
+    twistAxies = DefineTwistAxies(sel[0])
+
+    if twistAxies == "No Twist":
+        raise Exception("The Selected Joint and the TwistJoint are in the same Position!!")
+    else:
+        log.info(f"The Twist Axies is: {twistAxies}")
+
+    #get parent joint of main joint
+    parentJoint = cmds.listRelatives(mainJoint, parent=True)[0]
+
+    #create two locators and rename them
+    referenceLocator = cmds.spaceLocator(name=mainJoint + "_TwistReferenceLoc")[0]
+    followLocator =  cmds.spaceLocator(name = mainJoint + "_TwistFollowLoc")[0]
+
+    #match follow locator to main joint and parent follow to main and reference to parent joint
+    cmds.matchTransform(referenceLocator, mainJoint)
+    cmds.matchTransform(followLocator, mainJoint)
+
+    referenceLocator = cmds.parent(referenceLocator, parentJoint)
+    followLocator = cmds.parent(followLocator, mainJoint)
+
+    #give locators offset grp
+    cmds.select(clear=True)
+    cmds.select(referenceLocator,  add = True)
+    cmds.select(followLocator, add=True)
+
+    ZeroOffsetFunction.insertNodeBefore()
+    
+    cmds.select(clear=True)
+
+    print(type(referenceLocator), type(followLocator))
+
+    #convert offset grp to mtrx nodes
+
+    cmds.select(referenceLocator)
+
+    MatrixZeroOffset.createMatrixZeroOffset(cmds.ls(selection=True)[0])
+
+    cmds.select(clear=True)
+
+    cmds.select(followLocator)
+    MatrixZeroOffset.createMatrixZeroOffset(cmds.ls(selection=True)[0])
+
+    cmds.select(clear=True)
+
+    #create mult matrix node
+    multMatrixTwist = cmds.createNode("multMatrix", name=mainJoint + "_TwistmultMtrx")
+
+    #connect follow locator world mtrx to mult matrix 
+    log.info(f"{followLocator}, {type(followLocator)}")
+    log.info(f"{multMatrixTwist}, {type(multMatrixTwist)}")
+
+    cmds.connectAttr(followLocator[0] + ".worldMatrix[0]", multMatrixTwist + ".matrixIn[0]")
+
+    #connect ref locator inv world matrx to mult matrix
+    cmds.connectAttr(referenceLocator[0] + ".worldInverseMatrix[0]", multMatrixTwist + ".matrixIn[1]")
+    
+    #create decompose Matrix
+    decomposeTwistMatrix = cmds.createNode("decomposeMatrix", name=mainJoint + "_dcmTwist")
+
+    #connect mult matrix to decompose matrix
+    cmds.connectAttr(multMatrixTwist + ".matrixSum", decomposeTwistMatrix + ".inputMatrix")
+
+    #create quat to euler node
+    quatToEulerTwistNode = cmds.createNode("quatToEuler", name=mainJoint + "_qteTwist")
+
+    #connect decompse matrix twist axies und w to quat euler node
+    cmds.connectAttr(decomposeTwistMatrix + ".outputQuatW", quatToEulerTwistNode + ".inputQuatW")
+    cmds.connectAttr(decomposeTwistMatrix + ".outputQuat" + twistAxies, quatToEulerTwistNode + ".inputQuat" + twistAxies)
+
+    #connect twist axies roation output to first twistjoint
+
+    #create multiply divide node
+
+    #connect twist axies rotation from quateuler node to mulitply divide input xyz and 
+
+
+
+
+
+
+    

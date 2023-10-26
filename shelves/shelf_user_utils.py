@@ -176,8 +176,13 @@ class load(shelf_base._shelf):
         #Stretch Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Stretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
 
-        #Twist Joints
-        self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png" ,command=TwistJoints.twistSetupConfigInterface)
+        #Twist Menu
+        self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png", command="")
+        twistMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(twistMenu, "Twist Joints", command=lambda _: TwistJoints.twistSetupConfigInterface())
+
+        self.addMenuItem(twistMenu, "Twist Setup", command=lambda _: TwistJoints.MatrixForwardTwistSetup())
 
         #Lip Setup
         self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
