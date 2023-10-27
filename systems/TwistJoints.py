@@ -245,13 +245,65 @@ def MatrixForwardTwistSetup():
     cmds.connectAttr(decomposeTwistMatrix + ".outputQuat" + twistAxies, quatToEulerTwistNode + ".inputQuat" + twistAxies)
 
     #connect twist axies roation output to first twistjoint
+    cmds.connectAttr(quatToEulerTwistNode + ".outputRotate" + twistAxies, sel[0] + ".rotate" + twistAxies)
 
-    #create multiply divide node
+    #calculate the weight the rotation needs to be multiplied with
+    twistWeight = []
+    invTwistWeight = []
 
-    #connect twist axies rotation from quateuler node to mulitply divide input xyz and 
+    for i in range(len(sel) - 1):
+        weight = (i + 1) / (len(sel) - 1)
+        twistWeight.append(round(weight, 2))
 
+    for i in range(len(twistWeight)):
+        invTwistWeight.append(round(abs(twistWeight[i] - 1),2))
 
+    twistWeight.pop()
 
+    firstTwistJoint = sel.pop(0)
+    lastTwistJoint = sel.pop()
+
+    multiplyNodes = []
+
+    log.info(f"list of effected Joints: {sel}")
+    log.info(f"corresponding Twist Weights: {twistWeight}")
+    log.info(f"corresponding inverse Twist Weights: {invTwistWeight}")
+
+    for i in range(len(sel)):
+
+        #create multiplier node
+        multNode = cmds.createNode("floatMath", name=sel[i] + "_twistWeightMult")
+
+        multiplyNodes.append(multNode)
+
+        #set multiplier to multiply operation 
+        cmds.setAttr(multNode + ".operation", 2)
+
+        #set second float value of multiply node to twist weight value
+        cmds.setAttr(multNode + ".floatB", invTwistWeight[i])
+
+        #connect quatToEuler nodes twist rotation output to float value one input of multiplier
+        cmds.connectAttr(quatToEulerTwistNode + ".outputRotate" + twistAxies, multNode + ".floatA")
+
+        #connect multiplier node float output to joint twist rotation input
+        cmds.connectAttr(multNode + ".outFloat", sel[i] + ".rotate" + twistAxies)
+
+    #rotate the mainJoint by 45 degrees
+    cmds.setAttr(mainJoint + ".rotate" + twistAxies, 45)
+
+    #compare the rotation value of the first and the last Twist Joint
+    if cmds.getAttr(sel[0] + ".rotate" + twistAxies) > cmds.getAttr(sel[-1] + ".rotate" + twistAxies):
+        cmds.setAttr(mainJoint + ".rotate" + twistAxies, 0)
+        cmds.disconnectAttr(quatToEulerTwistNode + ".outputRotate" + twistAxies,  firstTwistJoint + ".rotate" + twistAxies)
+        cmds.connectAttr(quatToEulerTwistNode + ".outputRotate" + twistAxies, lastTwistJoint + ".rotate" + twistAxies)
+
+        #if the first joint has more rotation then the last switch the order of how the weights are implemented
+        for i in range(len(multiplyNodes)):
+            cmds.setAttr(multiplyNodes[i] + ".floatB", twistWeight[i])
+    else:
+        #rotate the main joint back to original position
+        cmds.setAttr(mainJoint + ".rotate" + twistAxies, 0)
+    
 
 
 
