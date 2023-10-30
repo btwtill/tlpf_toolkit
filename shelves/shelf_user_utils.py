@@ -99,29 +99,34 @@ class load(shelf_base._shelf):
         # Reload shelf button
         self.addButton(
             label="",
-            icon=ICON_DIR + "/reloadShelf.png",
+            icon=ICON_DIR + "/V003/reloadShelf.png",
             command=lambda: reload_shelf(shelf_name=SHELF_NAME),
         )
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/ShapeParent.png" ,command=ShapeParentFunction.ShapeParent)
+        self.addButton(label="", icon=ICON_DIR + "/V003/utils.png")
+        utilityMenu = cmds.popupMenu(b=1)
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/ShapeInstance.png" ,command=ShapeInstanceFunction.shapeParentInstance)
-        
-        self.addButton(label="", icon=ICON_DIR + "/V002/DupParentOnly.png", command="cmds.duplicate(parentOnly=True)")
+        self.addMenuItem(utilityMenu, "Parent Shape", command=lambda _: ShapeParentFunction.ShapeParent())
+
+        self.addMenuItem(utilityMenu, "Instance Shape", command=lambda _: ShapeInstanceFunction.shapeParentInstance())
+
+        self.addMenuItem(utilityMenu, "Parent Only", command="cmds.duplicate(parentOnly=True)")
+
+        self.addMenuItem(utilityMenu, "LRA", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/NameMenu.png", command=NamingFunctions.BatchRenameABCUI)
+        self.addButton(label="", icon=ICON_DIR + "/V003/name.png", command=NamingFunctions.BatchRenameABCUI)
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/MatchMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/match.png")
         transformMatchingMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(transformMatchingMenu, "match All", command=lambda _: MatchTransformFunction.matchAll())
@@ -131,14 +136,11 @@ class load(shelf_base._shelf):
         self.addMenuItem(transformMatchingMenu, "match Rotation", command=lambda _: MatchTransformFunction.matchRotation())
 
         self.addMenuItem(transformMatchingMenu, "match Scale", command=lambda _: MatchTransformFunction.matchScale())
-
-        self.addButton(label="", icon=ICON_DIR + "/V002/LRA.png", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
-
         
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/ZeroFunctionsv2.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/zero.png")
         zeroMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(zeroMenu, "Sam Zero", command=lambda _: ZeroOffsetFunction.insertNodeBefore())
@@ -146,10 +148,10 @@ class load(shelf_base._shelf):
         self.addMenuItem(zeroMenu, "Tim Zero", command=lambda _: ZeroOffsetFunction.TimZeroUserConfig())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
         #IKFK Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/IkFk.png" , command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/ikfk.png" , command="")
         IkFkMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(IkFkMenu, "Auto IKFK Chain", command=lambda _: IkFkSwitch.IKFKConfigurationInterface())
@@ -163,7 +165,7 @@ class load(shelf_base._shelf):
         self.addMenuItem(IkFkMenu, "Create Multi IKFK Blend", command=lambda _: IkFkSwitch.CreateMultiIKFKBlendUI())
 
         #PoleVector Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/PV.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/poleVector.png", command="")
         poleVectorMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(poleVectorMenu, "Simple PV", command=lambda _: PoleVectorFunction.createSimplePoleVector())
@@ -171,13 +173,13 @@ class load(shelf_base._shelf):
         self.addMenuItem(poleVectorMenu, "PV Line", command=lambda _: PoleVectorFunction.createPoleVectorLine())
 
         #Revers Chain
-        self.addButton(label="", icon=ICON_DIR + "/V002/RevChain.png" ,command= ReverseFootSetup.createReverseChain)
+        #self.addButton(label="", icon=ICON_DIR + "/V002/RevChain.png" ,command= ReverseFootSetup.createReverseChain)
 
         #Stretch Setup
-        self.addButton(label="", icon=ICON_DIR + "/V002/Stretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V003/stretch.png" ,command=SimpleStretchSetup.SimpleStretchSetupConfigInterface)
 
         #Twist Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/TwistJoints.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/twist.png", command="")
         twistMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(twistMenu, "Twist Joints", command=lambda _: TwistJoints.twistSetupConfigInterface())
@@ -185,47 +187,47 @@ class load(shelf_base._shelf):
         self.addMenuItem(twistMenu, "Twist Setup", command=lambda _: TwistJoints.MatrixForwardTwistSetup())
 
         #Lip Setup
-        self.addButton(label="", icon=ICON_DIR + "/V002/Lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
+        self.addButton(label="", icon=ICON_DIR + "/V003/lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
 
         #Eyelid Setup
-        self.addButton(label="", icon=ICON_DIR + "/V002/EyeMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/eye.png")
         EyeMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(EyeMenu, "Eyelid Base", command = lambda _: EyeLidSetup.EyelidConfigWindow())
 
         #Spline Setup
-        self.addButton(label="", icon=ICON_DIR + "/V002/SplineMenu.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/spline.png", command="")
         splineMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(splineMenu, "Simple Spline", command= lambda _: SplineSystem.NeckSplineIKConfigUI())
         
 
         #Space Swapping
-        self.addButton(label="", icon=ICON_DIR + "/V002/SpaceMenu.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/space.png", command="")
         spaceMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(spaceMenu, "Matrix SpaceSwap", command= lambda _: SpaceSwapping.MatrixSpaceSwitch())
         
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
         
         #Jiggle Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/Jiggle.png")
-        jiggleMenu = cmds.popupMenu(b=1)
+        self.addButton(label="", icon=ICON_DIR + "/V003/dynamics.png")
+        dynamicsMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(jiggleMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
+        self.addMenuItem(dynamicsMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
 
-        self.addMenuItem(jiggleMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
+        self.addMenuItem(dynamicsMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
 
 
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/CtrlColor.png" ,command=CtrlColorFunction.ColorSettingWindow)
+        self.addButton(label="", icon=ICON_DIR + "/V003/color.png" ,command=CtrlColorFunction.ColorSettingWindow)
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/BasicCtrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
+        self.addButton(label="", icon=ICON_DIR + "/V003/ctrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
 
 
 
@@ -237,7 +239,7 @@ class load(shelf_base._shelf):
         # and there MechRig Toolkit Repsoitory - https://github.com/martinlanton/mechRig_toolkit
         #=======================================
         # Anim Control Tools
-        self.addButton(label="", icon=ICON_DIR + "/V002/CtrlShapes.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/shapes.png")
         ctl_tools_menu = cmds.popupMenu(b=1)
 
         cmds.menuItem(p=ctl_tools_menu, divider=True, dividerLabel="SHAPE...")
@@ -370,18 +372,18 @@ class load(shelf_base._shelf):
 
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/MtrxMenu.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/matrix.png", command="")
         MatrixMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(MatrixMenu, "Matrix Zero Offset", command=lambda _: MatrixZeroOffset.iterateCreateMatrixZeroOffset())
         self.addMenuItem(MatrixMenu, "Matrix Drv Offset", command=lambda _: MatrixZeroDrvOffset.createMatrixDrvOffset())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/NodeMenu.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/node.png", command="")
         NodeMenu = cmds.popupMenu(b=1)
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="MULTI CONNECTOR")
@@ -409,10 +411,10 @@ class load(shelf_base._shelf):
         self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
         #Multi Constraining
-        self.addButton(label="", icon=ICON_DIR + "/V002/ConstraintMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/multConstrain.png")
         multiConstraining_menu = cmds.popupMenu(b=1)
 
         ##Adding all menu items for Multi Constraining
@@ -425,9 +427,9 @@ class load(shelf_base._shelf):
         self.addMenuItem(multiConstraining_menu, "Scale Constraint", command=lambda _: MultiConstraintFunction.MultiScaleConstraintConfig())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/LOCMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/locator.png")
         LocatorMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(LocatorMenu, "Create Loc at Seleceted Pos", command=lambda _: LocatorFunctions.selected_points())
@@ -439,9 +441,9 @@ class load(shelf_base._shelf):
         self.addMenuItem(LocatorMenu, "Create Loc at Loc/Rot", command=lambda _: LocatorFunctions.create_locator_snap())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/JNTMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/joints.png")
         JointMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
@@ -451,9 +453,9 @@ class load(shelf_base._shelf):
         self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
-        self.addButton(label="", icon=ICON_DIR + "/V002/SkinMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/skin.png")
         SkinMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(SkinMenu, "Transfer SkinCluster", command=lambda _: SkinFunctions.do_transfer_skin())
@@ -467,10 +469,10 @@ class load(shelf_base._shelf):
         self.addMenuItem(SkinMenu, "Import SkinWeights", command=lambda _: SkinFunctions.import_skin_weights_selected())
 
         # Separator
-        self.addButton(label="", icon=ICON_DIR + "/sep.png", command="")
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
         #Attribute Menu
-        self.addButton(label="", icon=ICON_DIR + "/V002/AttrMenu.png")
+        self.addButton(label="", icon=ICON_DIR + "/V003/attr.png")
         AttrMenu = cmds.popupMenu(b=1)
 
         self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="VISIBILITY ATTR")
