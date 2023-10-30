@@ -1,6 +1,7 @@
 # Thanks
 
 !!Huge thanks to CGMAs Mechanical Rigging Course Instructor Martin Louton and Tim Coleman to provide the underlying template for this Maya shelf!!
+https://github.com/martinlanton/mechRig_toolkit
 
 ## Whats it For?
 
@@ -36,4 +37,11 @@ shelf_user_utils.load(name="tlpf_shelf")
 
 
     maya.utils.executeDeferred("load_user_shelf()")
+```
+
+***Icon Text Font***
+```
+Cambria Math, 
+size: 8 - 12, 
+spacing: 0 - 100%
 ```

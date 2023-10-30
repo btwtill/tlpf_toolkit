@@ -2,13 +2,19 @@
 import maya.cmds as cmds
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.ui import common
-
+from tlpf_toolkit import global_variables
 import logging
 import os
+from tlpf_toolkit.ctrlShapes import utils
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+
+IK_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "IKJoints.json")
+FK_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "FKJoints.json")
+TARGET_JOINT_SELECTION_PATH = os.path.join(global_variables.DATA_LIBRARY_PATH, "TargetJoints.json")
 
 
 #=======================================
@@ -250,6 +256,181 @@ def CreateSinlgeIKFKBlend():
 ## IkFk PairBlend Connect Sinlge Joint - END
 #=======================================
 
+
+#=======================================
+## IkFk Multi PairBlend Connect 
+#=======================================
+
+
+def StoreIKJointsSelection(ikJointsLabel):
+
+    #remove file if already existing
+    try:
+        os.remove(IK_JOINT_SELECTION_PATH)
+    except:
+        pass
+    
+    # get user selection
+    ikJoints = cmds.ls(selection = True)
+
+    #store user Data as json
+    utils.save_data(IK_JOINT_SELECTION_PATH, ikJoints)
+
+    #update label
+    cmds.text(ikJointsLabel, edit=True, label="IK Joints Stored", backgroundColor = [0, .8, 0])
+
+
+def StoreFKJointsSelection(fkJointsLabel):
+
+    #remove file if already existing
+    try:
+        os.remove(FK_JOINT_SELECTION_PATH)
+    except:
+        pass
+    
+    # get user selection
+    fkJoints = cmds.ls(selection = True)
+
+    #store user Data as json
+    utils.save_data(FK_JOINT_SELECTION_PATH, fkJoints)
+
+    #update label
+    cmds.text(fkJointsLabel, edit=True, label="FK Joints Stored", backgroundColor = [0, .8, 0])
+
+def StoreTargetJointsSelection(targetJointsLabel):
+
+    #remove file if already existing
+    try:
+        os.remove(TARGET_JOINT_SELECTION_PATH)
+    except:
+        pass
+    
+    # get user selection
+    targetJoints = cmds.ls(selection = True)
+
+    #store user Data as json
+    utils.save_data(TARGET_JOINT_SELECTION_PATH, targetJoints)
+
+    #update label
+    cmds.text(targetJointsLabel, edit=True, label="Target Joints Stored", backgroundColor = [0, .8, 0])
+
+
+def CreateSinglePairBlend(ikJoint, fkJoint, targtJoint):
+
+    pairBlend = cmds.createNode("pairBlend", name = ikJoint + "_" + fkJoint + "_" + "Blend")
+
+    for i in "XYZ":
+        cmds.connectAttr(ikJoint + ".rotate" + i, pairBlend + ".inRotate" + i + "1")
+    
+    for i in "XYZ":
+        cmds.connectAttr(ikJoint + ".translate" + i, pairBlend + ".inTranslate" + i + "1")
+        
+    for i in "XYZ":
+        cmds.connectAttr(fkJoint + ".rotate" + i, pairBlend + ".inRotate" + i + "2")
+        
+    for i in "XYZ":
+        cmds.connectAttr(fkJoint + ".translate" + i, pairBlend + ".inTranslate" + i + "2")
+        
+    for i in "XYZ":
+        cmds.connectAttr(pairBlend + ".outRotate" + i, targtJoint + ".rotate" + i)
+        
+    for i in "XYZ":
+        cmds.connectAttr(pairBlend + ".outTranslate" + i, targtJoint + ".translate" + i)
+
+    
+
+def CreateMultiPairBlends():
+    # read IK Joints Selection to list
+    try:
+        ikJoints = utils.load_data(IK_JOINT_SELECTION_PATH)
+    except:
+        raise log.error("There is no IK Joint Selection!!")
+    
+    # read FK Joints Selection to list
+    try:
+        fkJoints = utils.load_data(FK_JOINT_SELECTION_PATH)
+    except:
+        raise log.error("There is no FK Joint Selection!!")
+
+    # read Target Joints Selection to list 
+    try:
+        targetJoints = utils.load_data(TARGET_JOINT_SELECTION_PATH)
+    except:
+        raise log.error("There is no target Joint Selection!!")
+
+    #log.info("ik List {}, fk List {}, targetList {}".format(ikJoints[0], fkJoints[0], targetJoints[0]))
+    os.remove(IK_JOINT_SELECTION_PATH)
+    os.remove(FK_JOINT_SELECTION_PATH)
+    os.remove(TARGET_JOINT_SELECTION_PATH)
+
+    # compare List lengths 
+    if len(ikJoints) == len(fkJoints) and len(fkJoints) == len(targetJoints):
+        print(len(ikJoints))
+    else:
+        raise log.error("All selections need to have the same length!!")
+
+    # create pair Blend
+    for i in range(len(targetJoints)):
+        CreateSinglePairBlend(ikJoints[i], fkJoints[i], targetJoints[i])
+
+
+
+
+
+def CreateMultiIKFKBlendUI():
+    #window
+    configWindow = cmds.window(title="Multi_IKFK_Blend", iconName = "MultiBlend", widthHeight=(200, 300), sizeable=True)
+
+    #window Layout
+    cmds.rowColumnLayout(adjustableColumn=True)
+
+    #Title Text
+    titleText = cmds.text(label="Create Multi IKFK pairBlends", height = 30, backgroundColor = [.5, .5, .5])
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #Define IK Joints Label
+    ikJointsLabel = cmds.text(label="Define IK Joints", height = 20, backgroundColor = [.8, .8, .8])
+
+    #Define IK Joints Button
+    ikJointsButton = cmds.button(label="Store IK Joints", command = lambda _: StoreIKJointsSelection(ikJointsLabel))
+
+    #SpaceDivider
+    cmds.text(label="", height=10)
+
+    #Define FK Joitns Label
+    fkJointsLabel = cmds.text(label="Define FK Joints", height = 20, backgroundColor = [.8, .8, .8])
+
+    #Define FK Joints Button
+    fkJointsButton = cmds.button(label="Store FK Joints", command = lambda _: StoreFKJointsSelection(fkJointsLabel))
+
+    #SpaceDivider
+    cmds.text(label="", height=10)
+
+    #Define FK Joints Label
+    targetJointsLabel = cmds.text(label="Define Target Joints", height = 20, backgroundColor = [.8, .8, .8])
+
+    #Define FK Joints Button
+    fkJointsButton = cmds.button(label="Store Target Joints", command = lambda _: StoreTargetJointsSelection(targetJointsLabel))
+
+    #SpaceDivider
+    cmds.text(label="", height=20)
+
+    #Create pairBlends Button
+    createPairBlendsButton = cmds.button(label = "Create pair blends", command = lambda _: CreateMultiPairBlends())
+
+    #display Window 
+    cmds.showWindow(configWindow)
+
+
+
+
+
+
+#=======================================
+## IkFk Multi PairBlend Connect - END
+#=======================================
 
 
 #=======================================

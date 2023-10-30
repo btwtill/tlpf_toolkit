@@ -194,6 +194,11 @@ def getselectedNamespaces(_NamespaceInputs):
 def getComparedNamespaceObjects(_listA, _listB):
     resultList = []
 
+    log.info("Empty ResultList: {}".format(resultList))
+
+    log.info("ComparisonList A: {}".format(_listA))
+    log.info("ComparisonList B: {}".format(_listB))
+
     for i in _listA:
         for j in _listB:
             if i == j:
@@ -254,6 +259,21 @@ def getParentObjectsFromList(targetList):
     return parentList
 
 
+def validateSourceNamespace(_MatchedNamespaceObjects, _selectedNamespaces):
+    for i in range(len(_MatchedNamespaceObjects)):
+
+        sourceNamespace = getSourceNamespace(_MatchedNamespaceObjects[i][0], _MatchedNamespaceObjects[i][1], _selectedNamespaces[0], _selectedNamespaces[1])
+
+        if sourceNamespace != "NO Skincluster Detected":
+            return sourceNamespace
+        else:
+            pass
+    if sourceNamespace != "NO Skincluster Detected":
+        return sourceNamespace
+    else:
+        log.info("SourceNamespace from Validation Method: {}".format(sourceNamespace))
+        return "NO Skincluster Detected"
+
 def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
 
     selectedNamespaces = getselectedNamespaces(_NamespaceInputs)
@@ -276,12 +296,14 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
         cmds.select(NamespaceAObjects)
 
         NamespaceAMesh = cmds.findType(deep=False, type="mesh")
+        NamespaceAMesh = set(NamespaceAMesh)
 
         cmds.select(clear=True)
 
         cmds.select(NamespaceBObjects)
 
         NamespaceBMesh = cmds.findType(deep=False, type="mesh")
+        NamespaceBMesh = set(NamespaceBMesh)
         
         cmds.select(clear=True)
 
@@ -301,7 +323,7 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
 
         MatchedNamespaceObjects = getParentObjectsFromList(MatchedNamespaceObjects)
 
-        sourceNamespace = getSourceNamespace(MatchedNamespaceObjects[0][0], MatchedNamespaceObjects[0][1], selectedNamespaces[0], selectedNamespaces[1])
+        sourceNamespace = validateSourceNamespace(MatchedNamespaceObjects, selectedNamespaces)
 
         log.info("Matched Namespace Objects: {}".format(MatchedNamespaceObjects))
         log.info("Source Namespace: {}".format(sourceNamespace))
@@ -311,9 +333,11 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
             if sourceNamespace == selectedNamespaces[0]:
                 for i in MatchedNamespaceObjects:
                     transfer_skin(i[0][0], i[1][0])
+                    #log.info("Transfer from {} to {}".format(i[0][0], i[1][0]))
             elif sourceNamespace == selectedNamespaces[1]:
                 for i in MatchedNamespaceObjects:
                     transfer_skin(i[1][0], i[0][0])
+                    #log.info("Transfer from {} to {}".format(i[0][0], i[1][0]))
     else:
         log.warning("The Number of Namespace u can select to transfer SKincluster needs to be 2!!")
 

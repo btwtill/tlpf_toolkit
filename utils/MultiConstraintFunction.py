@@ -2,6 +2,13 @@
 import maya.cmds as cmds
 
 
+import logging
+import os
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 #=======================================
 ## Multi ParentConstraint Function 
@@ -26,12 +33,20 @@ def MultiParentConstraintConfig():
 
 def MultiParentConstraint(_firstSuffix, _secondSuffix):
     sel = cmds.ls(selection=True)
+
     try:
         constrainingList = _firstSuffix
         targetList = _secondSuffix
 
+        
+
         filteredFirstList = [s for s in sel if constrainingList in s]
         filteredSecondList = [s for s in sel if targetList in s]
+
+        log.info("firstList {}".format(filteredFirstList))
+        log.info("firstList Lenght {}".format(len(filteredFirstList)))
+        log.info("secondlist {}".format(filteredSecondList))
+        log.info("secondlist length {}".format(len(filteredSecondList)))
 
         if len(filteredFirstList) == len(filteredSecondList):
 

@@ -10,8 +10,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
-
-
 #=======================================
 ## Add VisibilityCtrl Attribute
 #=======================================
@@ -47,15 +45,15 @@ def CreateHiddenVisibilityAttribute(_attributeName, _configWindow, _selection, _
     #get all the objects that will be connected by the attribute 
     attributeObject = _selection
 
-    log.info("Visibility Ctrl Object: {}".format(_selection[0] + _selection[1] + "..."))
+    log.info("Object FirstSelection : {}".format(_selection[0]))
 
     if _defaultFirst:
         #add the Visibilty Ctrl Attribute on the Ctrl Obj
-        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="ON:OFF", keyable=True, hidden=_isHidden)
+        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="ON:OFF", keyable=_isHidden)
 
     elif not _defaultFirst:
 
-        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="OFF:ON", keyable=True, hidden=_isHidden)
+        cmds.addAttr(visibilityCtrlObj, ln=_attributeName, at="enum", en="OFF:ON", keyable=_isHidden)
 
     #Connect the Attrbibute with all the Selected Objects
     for i in attributeObject:
@@ -115,7 +113,7 @@ def CreateAttributeDivider(_attributeName, _configWindow, _objects):
 
     #Add Attribute Divider for a selection of objects
     for i in _objects:
-        cmds.addAttr(i, ln=_attributeName, at="enum", en="******", keyable=True)
+        cmds.addAttr(i, ln=_attributeName, at="enum", en="******", keyable=False)
         cmds.setAttr(i + "." + _attributeName, cb=True)
 
     #close UI
@@ -275,3 +273,15 @@ def getAttributeMinimum(_attr, _node):
 #=======================================
 ## Copy Attributes to Selected - END
 #=======================================
+
+
+#=======================================
+## Channelbox Node Visibility 
+#=======================================
+
+
+def hideNodeFromChannelboxHistory():
+    sel = cmds.ls(selection=True)
+
+    for i in sel:
+        cmds.setAttr(i + ".isHistoricallyInteresting", 0)
