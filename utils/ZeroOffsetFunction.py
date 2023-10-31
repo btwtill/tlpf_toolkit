@@ -111,3 +111,48 @@ def TimZero(transform_list, add_transforms):
 #=======================================
 ## Tim COlement Zero Method - END
 #=======================================
+
+
+
+#=======================================
+## Clear Transforms to offsetParent Matrix
+#=======================================
+
+def ClearTransformsToOffsetParentMatrix():
+
+    #loop through selection
+    for i in cmds.ls(selection=True):
+        #create Compose Matrix to store Transform Values
+        transformationMatrix = cmds.createNode("composeMatrix", name= i + "_tmpTransformationMatrix")
+
+        #connect Transfromation Values to composeMatrix
+        for n in "XYZ":
+            cmds.connectAttr(i + ".translate" + n, transformationMatrix + ".inputTranslate" + n)
+            cmds.connectAttr(i + ".rotate" + n, transformationMatrix + ".inputRotate" + n)
+            cmds.connectAttr(i + ".scale" + n, transformationMatrix + ".inputScale" + n)
+
+
+        #disconnect Tranform values from ComposeMatrix
+        for n in "XYZ":
+            cmds.disconnectAttr(i + ".translate" + n, transformationMatrix + ".inputTranslate" + n)
+            cmds.disconnectAttr(i + ".rotate" + n, transformationMatrix + ".inputRotate" + n)
+            cmds.disconnectAttr(i + ".scale" + n, transformationMatrix + ".inputScale" + n)
+
+        #connect Compose Matrix to OffsetParentMatrix of selection
+        cmds.connectAttr(transformationMatrix + ".outputMatrix", i + ".offsetParentMatrix")
+
+        #set all Transform attributes of selection to 0
+        for j in "XYZ":
+            cmds.setAttr(i + ".rotate" + j, 0)
+            cmds.setAttr(i + ".translate" + j, 0)
+            cmds.setAttr(i + ".scale" + j, 1)
+
+        #disconnect Compose Matrix to OffsetParentMatrix of selection
+        cmds.disconnectAttr(transformationMatrix + ".outputMatrix", i + ".offsetParentMatrix")
+
+        #delete Compose Matrix node
+        cmds.delete(transformationMatrix)
+
+#=======================================
+## Clear Transforms to offsetParent Matrix - END
+#=======================================

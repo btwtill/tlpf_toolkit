@@ -117,6 +117,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(utilityMenu, "LRA", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
 
+        self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
