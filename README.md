@@ -7,9 +7,6 @@ https://github.com/martinlanton/mechRig_toolkit
 
     Collection of Self Written or Inspired Maya Scripts to help make the rigging life easier!
 
-**TODO**
-Split code into Modules
-
 **First shelf Install **
 
 ```python
@@ -37,11 +34,4 @@ shelf_user_utils.load(name="tlpf_shelf")
 
 
     maya.utils.executeDeferred("load_user_shelf()")
-```
-
-***Icon Text Font***
-```
-Cambria Math, 
-size: 8 - 12, 
-spacing: 0 - 100%
 ```
