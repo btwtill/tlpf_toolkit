@@ -210,6 +210,10 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(spaceMenu, "Matrix SpaceSwap", command= lambda _: SpaceSwapping.MatrixSpaceSwitch())
         
+        self.addButton(label="", icon=ICON_DIR + "/V003/revFoot.png", command="")
+        revFootMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(revFootMenu, "RevFoot Setup V001", command= lambda _: ReverseFootSetup.revFootSetup01ConfigUI())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
