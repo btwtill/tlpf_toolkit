@@ -44,6 +44,7 @@ from tlpf_toolkit.systems import SpaceSwapping
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
+from tlpf_toolkit.ctrls import CtrlMirror
 
 from tlpf_toolkit.mtrx import MatrixZeroOffset
 from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
@@ -65,6 +66,10 @@ from tlpf_toolkit.ctrlShapes import color as ctl_color
 from tlpf_toolkit.ctrlShapes import core as ctl_core
 from tlpf_toolkit.ctrlShapes import functions as ctl_func
 from tlpf_toolkit.ctrlShapes import transform as ctl_trans
+
+
+
+
 
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
@@ -188,8 +193,15 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(twistMenu, "Twist Setup", command=lambda _: TwistJoints.MatrixForwardTwistSetup())
 
-        #Lip Setup
-        self.addButton(label="", icon=ICON_DIR + "/V003/lip.png" ,command = LipSetup.SimpleStretchSetupConfigInterface)
+
+
+        #Twist Menu
+        self.addButton(label="", icon=ICON_DIR + "/V003/lip.png", command="")
+        lipMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(lipMenu, "Sam Lip Setup", command=lambda _: LipSetup.SimpleStretchSetupConfigInterface())
+        self.addMenuItem(lipMenu, "Arturo Coso Setup", command=lambda _: LipSetup.createGuides())
+
 
         #Eyelid Setup
         self.addButton(label="", icon=ICON_DIR + "/V003/eye.png")
@@ -232,11 +244,14 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
         self.addButton(label="", icon=ICON_DIR + "/V003/color.png" ,command=CtrlColorFunction.ColorSettingWindow)
+ 
 
-        self.addButton(label="", icon=ICON_DIR + "/V003/ctrls.png" ,command= CreateBasicCtls.CreateCircleCtrls)
+        self.addButton(label="", icon=ICON_DIR + "/V003/ctrls.png")
+        ctrlsMenu = cmds.popupMenu(b=1)
 
+        self.addMenuItem(ctrlsMenu, "Basic Ctrls", command=lambda _: CreateBasicCtls.CreateCircleCtrls())
 
-
+        self.addMenuItem(ctrlsMenu, "Mirror Ctrls", command=lambda _: CtrlMirror.MirrorCtrlsBehavior())
 
 
         #=======================================

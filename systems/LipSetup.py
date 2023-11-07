@@ -123,3 +123,63 @@ def BuildSamLipSetup(_headJoint, _jawJoint):
 #=======================================
 ## Sam Lip Setup -END
 #=======================================
+
+
+
+
+
+#=======================================
+## Lip Setup Arturo Coso
+#=======================================
+
+GROUP = "grp"
+JOINTS = "jnt"
+GUIDE = "guide"
+JAW = "jaw"
+
+LEFT = "l"
+RIGHT = "r"
+CENTER = "cn"
+
+
+def createGuides(number = 5):
+
+    jaw_guide_grp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_{GUIDE}_{GROUP}")
+
+    locs_grp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_{GUIDE}_{GROUP}", parent = jaw_guide_grp)
+
+    lip_loc_grp = cmds.createNode("transform", name = f"{CENTER}_lip_{GUIDE}_{GROUP}", parent = locs_grp)
+
+    for part in ["upper", "lower"]:
+
+        partNum = 1 if part == "upper" else -1
+
+        mid_data = (0, partNum, 0)
+
+        mid_loc = cmds.spaceLocator(name = f"{CENTER}_{JAW}_{part}lip_{GUIDE}")[0]
+
+        cmds.parent(mid_loc, lip_loc_grp)
+
+        for side in [LEFT, RIGHT]:
+            for i in range(number):
+                multiplier = i+1 if side == LEFT else -(i+1)
+                loc_data = (multiplier, partNum, 0)
+                loc = cmds.spaceLocator(name = f"{side}_{JAW}_lip{part}_{i+1}")[0]
+                cmds.parent(loc, lip_loc_grp)
+
+                cmds.setAttr(f"{loc}.translate", *loc_data)
+        
+        cmds.setAttr(f"{mid_loc}.translate", *mid_data)
+
+    
+        
+
+
+
+
+
+
+
+#=======================================
+## Lip Setup Arturo Coso - END
+#=======================================
