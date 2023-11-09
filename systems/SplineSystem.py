@@ -187,10 +187,6 @@ def BuildSpline(_baseJoints, _startCtrl, _endCtrl, _splineCurve, baseName):
     cmds.parent(startCtrlJoint, splinegrp)
     cmds.parent(endCtrlJoint, splinegrp)
 
-
-
-
-
 def FetchNeckSplineData(baseName):
      # read IK Joints Selection to list
     try:
@@ -240,7 +236,6 @@ def FetchNeckSplineData(baseName):
         raise Exception("There cannot be more than one Spline Curve!!")
     
     BuildSpline(joints, startCtrl, endCtrl, splineCurve, baseName)
-
 
 def NeckSplineIKConfigUI():
 

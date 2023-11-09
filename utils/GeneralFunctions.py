@@ -65,3 +65,25 @@ def reparenting(targetArray):
 #=======================================
 ## Reparenting Function - END
 #=======================================
+
+
+#=======================================
+## Convert Vertecie List to Locators
+#=======================================
+
+
+def convertVerteciePositionsToLacators(verteciePos):
+      
+    locators = list()
+
+    for vert in verteciePos:
+        pos = cmds.xform(vert, query = True, worldSpace = True, t = True)
+        loc = cmds.spaceLocator()[0]
+        cmds.xform(loc, t = pos, worldSpace=True)
+        locators.append(loc)
+
+    return locators
+
+#=======================================
+## Convert Vertecie List to Locators - END
+#=======================================

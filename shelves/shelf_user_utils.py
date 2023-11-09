@@ -200,7 +200,7 @@ class load(shelf_base._shelf):
         lipMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(lipMenu, "Sam Lip Setup", command=lambda _: LipSetup.SimpleStretchSetupConfigInterface())
-        self.addMenuItem(lipMenu, "Arturo Coso Setup", command=lambda _: LipSetup.createGuides())
+        self.addMenuItem(lipMenu, "Arturo Coso Setup", command=lambda _: LipSetup.createArturoCosoLipSetupUI())
 
 
         #Eyelid Setup
