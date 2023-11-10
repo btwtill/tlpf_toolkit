@@ -448,7 +448,7 @@ def createGuidesFromVertecies():
 def guideAmountSliderUpdate(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(int(cmds.floatSlider(slider, query = True, value = True))))
 
-
+#jaw Build Function
 def buildArturoCosoLipSetup():
 
     createLipJointHirarchy()
@@ -466,6 +466,12 @@ def buildArturoCosoLipSetup():
 
     createJawAttr()
     createSkinJointConstraints()
+    createInitalValues("Upper", 1.3)
+    createInitalValues("Lower", 1.3)
+
+    connectSearAttr("Upper")
+    connectSearAttr("Lower")
+
 
 #Function to create Guides based on an Input number
 def createGuides(number = 5):
@@ -660,7 +666,13 @@ def createJawBaseJoints():
     #create offset for Base Joints
     cmds.select(clear=True)
     cmds.select(cmds.listRelatives(f"{CENTER}_{JAW}Base_{GROUP}"))
-    ZeroOffsetFunction.insertNodeBefore()
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_AUTO")
+    cmds.select(clear=True)
+
+    #create AUTO OFFset for Base Joints
+    cmds.select(clear=True)
+    cmds.select(cmds.listRelatives(f"{CENTER}_{JAW}Base_{GROUP}"))
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_OFF")
     cmds.select(clear=True)
 
 #Create Constraints for MechanismJoints
@@ -829,23 +841,33 @@ def createJawAttr():
     cmds.addAttr(node, ln=list(getLipParts()['C_Lower'].keys())[0], min = 0, max = 1, dv = 0)
     cmds.setAttr(f"{node}.{list(getLipParts()['C_Lower'].keys())[0]}", lock = 1)
 
+    createJawOffsetFollowAttr()
+    addSealAttrs()
+
+#create all the constraint to the skinned joints
 def createSkinJointConstraints():
 
     #get the relation from the lookup Dictionary
     for value in getLipParts().values():
         for lipJnt, mchJnt in value.items():
+
+            #define for current lipjnt if upper or lower to receive the right seal tranfrom for constraint
             sealToken = "Upper_SEAL" if "Upper" in lipJnt else "Lower_SEAL"
             lipSeal = lipJnt.replace(SKIN, sealToken)
-            log.info(f"All the lip seals: {lipSeal}")
 
+            log.info(f"All the lip seals: {lipSeal}")
+            
+            #if the lip seal could not be defined the current joint is a center joint and will be constraint only to the upper and lower mch jnt
             if not cmds.objExists(lipSeal):
                 const = cmds.parentConstraint(mchJnt, lipJnt, mo=True)[0]
                 cmds.setAttr(f"{const}.interpType", 2)
                 continue
-
+            
+            #create the constraint between the mch joints plus lip seal transform to the skinjoint
             const = cmds.parentConstraint(mchJnt, lipSeal, lipJnt, mo=True)[0]
             cmds.setAttr(f"{const}.interpType", 2)
 
+            #when the skinjoint is only associated with one mch joint it is a corner or mid joint and will only get one reverse node to invert the follow attr value
             if len(mchJnt) == 1:
                 sealAttr = f"{const}.{lipSeal}W1"
                 rev = cmds.createNode('reverse', name = lipJnt.replace(SKIN, "Rev"))
@@ -853,6 +875,7 @@ def createSkinJointConstraints():
                 cmds.connectAttr(f"{rev}.outputX", f"{const}.{mchJnt[0]}W0")
                 cmds.setAttr(sealAttr, 0)
 
+            #for skinjoints between 2 mch joints the seal attribute multiplies the reversed follow attr value to create the seal effect
             if len(mchJnt) == 2:
                 sealAttr = f"{const}.{lipSeal}W2"
                 cmds.setAttr(sealAttr, 0)
@@ -872,8 +895,205 @@ def createSkinJointConstraints():
                 cmds.connectAttr(f"{sealMult}.outputX", f"{const}.{mchJnt[0]}W0")
                 cmds.connectAttr(f"{sealMult}.outputY", f"{const}.{mchJnt[1]}W1")
 
-                
+#create the initial interpolation values for the jaw attribte follow values         
+def createInitalValues(part, multiplier = 1.3):
 
+    #get all the jaw attributes on the jaw attribute tranform object 
+    jawAttr = [lipAttrName for lipAttrName in lipPart(part) if not lipAttrName.startswith('c') and not lipAttrName.startswith('r')]
+    log.info(f"Returned Lip Attributes: {jawAttr}")
+
+    #get Lenght of the lip attribute names stored
+    lipAttrLength = len(jawAttr)
+
+    #loop over all the attribues, calculate the interpolation value and set the attribute on the Jaw attribute transform object
+    for index, attrName in enumerate(reversed(jawAttr)):
+        attr = f"jaw_attributes.{attrName}"
+
+        linearInterpValue = float(index) / float(lipAttrLength - 1)
+        divValue = linearInterpValue / multiplier
+        finalValue = divValue * divValue
+
+        cmds.setAttr(attr, finalValue)
+
+#create Follow Attributes for Jaw Movement
+def createJawOffsetFollowAttr():
+
+    jawAttr = "jaw_attributes"
+    jawJnt = f"{CENTER}_{JAW}_{SKIN}"
+    jawOff = f"{CENTER}_{JAW}_{SKIN}_AUTO"
+
+    cmds.addAttr(jawAttr, ln="follow_ty", min= -10, max = 10, dv = 0)
+    cmds.addAttr(jawAttr, ln="follow_tz", min= -10, max = 10, dv = 0)
+
+    remapY = cmds.createNode("remapValue", name = f"{CENTER}_{JAW}_followY_remap")
+    cmds.setAttr(f"{remapY}.inputMax", 10)
+
+    remapZ = cmds.createNode("remapValue", name = f"{CENTER}_{JAW}_followZ_remap")
+    cmds.setAttr(f"{remapZ}.inputMax", 10)
+
+    mult_y = cmds.createNode("multDoubleLinear", name = f"{CENTER}_{JAW}_followY_mult")
+    cmds.setAttr(f"{mult_y}.input2", -1)
+    
+    cmds.connectAttr(f"{jawJnt}.rx", f"{remapY}.inputValue")
+    cmds.connectAttr(f"{jawJnt}.rx", f"{remapZ}.inputValue")
+
+    cmds.connectAttr(f"{jawAttr}.follow_ty", f"{remapY}.outputMax")
+    cmds.connectAttr(f"{jawAttr}.follow_tz", f"{remapZ}.outputMax")
+    cmds.connectAttr(f"{mult_y}.output", f"{jawOff}.translateY")
+
+    cmds.connectAttr(f"{remapY}.outValue", f"{mult_y}.input1")
+    cmds.connectAttr(f"{remapZ}.outValue", f"{jawOff}.translateZ")
+
+#add seal Attribues on attributes transform
+def addSealAttrs():
+
+    jaw_attr = "jaw_attributes"
+
+    cmds.addAttr(jaw_attr, at="double", ln = "L_seal", min = 0, max = 10, dv= 0)
+    cmds.addAttr(jaw_attr, at="double", ln = "R_seal", min = 0, max = 10, dv= 0)
+
+    cmds.addAttr(jaw_attr, at="double", ln = "L_sealWeight", min = 0, max = 10, dv= 4)
+    cmds.addAttr(jaw_attr, at="double", ln = "R_sealWeight", min = 0, max = 10, dv= 4)
+
+#create the seal interpolation
+def connectSearAttr(part):
+
+    sealToken = f"{part}_SEAL"
+    jawAttr = "jaw_attributes"
+
+    lipJnts = lipPart(part)
+    lipJntsAmount = len(lipJnts)
+    sealDriverNode = cmds.createNode("lightInfo", name = f"{CENTER}_{sealToken}_DRV")
+
+    log.info(f"debug: Name of the sealDriverNode: {sealDriverNode}")
+    log.info(f"debug: Amount of {part} targets: {lipJntsAmount}")
+
+    trigger = { 'l': list(), 'r': list() }
+
+    for side in "lr":
+        #fallOff
+        delaySubName = f"{side}_{sealToken}_delay_SUB"
+        delaySubNode = cmds.createNode("plusMinusAverage", name = delaySubName)
+
+        log.info(f"debug name: {delaySubName}")
+
+        #set DelaySub Nodes Operation and values, connect jawseal delay attribute to delay sub node
+        cmds.setAttr(f"{delaySubNode}.operation", 2)
+        cmds.setAttr(f"{delaySubNode}.input1D[0]", 10)
+        cmds.connectAttr(f"{jawAttr}.{side.capitalize()}_sealWeight", f"{delaySubNode}.input1D[1]")
+
+        #calc linear interp value
+        lerp = 1 / float(lipJntsAmount - 1)
+        log.info(f"lerp Value: {lerp}")
+
+        #create DelayDivision node and set its attributes, connect delaySub out to delayDivision
+        delayDivName = f"{side}_{sealToken}_delay_DIV"
+        delayDivNode = cmds.createNode("multDoubleLinear", name = delayDivName)
+        cmds.setAttr(f"{delayDivNode}.input2", lerp)
+        cmds.connectAttr(f"{delaySubNode}.output1D", f"{delayDivNode}.input1")
+
+        log.info(f"debug name: {delayDivName}")
+
+        multTrigger = list()
+        subTrigger = list()
+
+        trigger[side].append(multTrigger)
+        trigger[side].append(subTrigger)
+
+        for index in range(lipJntsAmount):
+
+            indexName = f"jaw{index : 02d}"
+
+            #create delayMultiplication Node and set its attributes and connect divsion node to multiply divide node
+            delayMultName = f"{indexName}_{side}_{sealToken}_delay_Mult"
+            delayMultNode = cmds.createNode("multDoubleLinear", name=delayMultName)
+            cmds.setAttr(f"{delayMultNode}.input1", index)
+            cmds.connectAttr(f"{delayDivNode}.output", f"{delayMultNode}.input2")
+
+            log.info(f"debug name: {delayMultName}")
+
+            multTrigger.append(delayMultNode)
+
+            #create delaySubNode and connect the delay mult and jaw attribute to the delay sub node
+            delaySubName = f"{indexName}_{side}_{sealToken}_delay_SUB"
+            delaySubNode = cmds.createNode("plusMinusAverage", name = delaySubName)
+            cmds.connectAttr(f"{delayMultNode}.output", f"{delaySubNode}.input1D[0]")
+            cmds.connectAttr(f"{jawAttr}.{side.capitalize()}_sealWeight", f"{delaySubNode}.input1D[1]")
+
+            subTrigger.append(delaySubNode)
+
+    #get Constraints
+    constTargets = list()
+
+    for jnt in lipJnts:
+        attrs = cmds.listAttr(f"{jnt}_parentConstraint1", ud=True)
+        for attr in attrs:
+            if "SEAL" in attr:
+                constTargets.append(f"{jnt}_parentConstraint1.{attr}")
+        
+    log.info(f"Target Constraints: {constTargets}")
+
+    for leftIndex, target in enumerate(constTargets):
+        rightIndex = lipJntsAmount - leftIndex - 1
+        indexName = f"{sealToken}_{leftIndex}"
+
+        lMultTrigger, lSubTrigger = trigger["l"][0][leftIndex], trigger["l"][1][leftIndex]
+        rMultTrigger, rSubTrigger = trigger["r"][0][rightIndex], trigger["r"][1][rightIndex]
+
+        #left
+        lRemapName = f"l_{sealToken}_{indexName}_Remap"
+        lRemapNode = cmds.createNode("remapValue", name = lRemapName)
+        cmds.setAttr(f"{lRemapNode}.outputMax", 1)
+        cmds.setAttr(f"{lRemapNode}.value[0].value_Interp", 2)
+
+        cmds.connectAttr(f"{lMultTrigger}.output", f"{lRemapNode}.inputMin")
+        cmds.connectAttr(f"{lSubTrigger}.output1D", f"{lRemapNode}.inputMax")
+
+        #seal Attribute to input of l remap
+        cmds.connectAttr(f"{jawAttr}.L_seal", f"{lRemapNode}.inputValue")
+
+        #right
+        rSubName = f"r{sealToken}_offset_{indexName}_Sub"
+        rSubNode = cmds.createNode("plusMinusAverage", name= rSubName)
+        cmds.setAttr(f"{rSubNode}.operation", 2)
+        cmds.setAttr(f"{rSubNode}.input1D[0]", 1)
+
+        cmds.connectAttr(f"{lRemapNode}.outValue", f"{rSubNode}.input1D[1]")
+
+        rRemapName = f"r{sealToken}_{indexName}_Remap"
+        rRemapNode = cmds.createNode("remapValue", name = rRemapName)
+        cmds.setAttr(f"{rRemapNode}.outputMax", 1)
+        cmds.setAttr(f"{rRemapNode}.value[0].value_Interp", 2)
+        
+        cmds.connectAttr(f"{rMultTrigger}.output", f"{rRemapNode}.inputMin")
+        cmds.connectAttr(f"{rSubTrigger}.output1D", f"{rRemapNode}.inputMax")
+
+        #seal Attribute to inpout of r Remap
+        cmds.connectAttr(f"{jawAttr}.R_seal", f"{rRemapNode}.inputValue")
+
+        cmds.connectAttr(f"{rSubNode}.output1D", f"{rRemapNode}.outputMax")
+
+        #add Both sides
+
+        plusName = f"{indexName}_Sum"
+        plusNode = cmds.createNode("plusMinusAverage", name = plusName)
+
+        log.info(f"{plusName}")
+        
+        cmds.connectAttr(f"{lRemapNode}.outValue", f"{plusNode}.input1D[0]")
+        cmds.connectAttr(f"{rRemapNode}.outValue", f"{plusNode}.input1D[1]")
+
+        clampName = f"{indexName}_clamp"
+        clampNode = cmds.createNode("remapValue", name = clampName)
+
+        cmds.connectAttr(f"{plusNode}.output1D", f"{clampNode}.inputValue")
+
+        cmds.addAttr(sealDriverNode, at="double", ln=indexName, min=0, max = 1, dv = 0)
+        cmds.connectAttr(f"{clampNode}.outValue", f"{sealDriverNode}.{indexName}")
+
+        cmds.connectAttr(f"{sealDriverNode}.{indexName}", target)
+
+    
 #=======================================
 ## Lip Setup Arturo Coso - END
 #=======================================
