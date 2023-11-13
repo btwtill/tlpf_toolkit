@@ -137,8 +137,6 @@ def BuildSamLipSetup(_headJoint, _jawJoint):
 
 
 
-
-
 #=======================================
 ## Lip Setup Arturo Coso
 #=======================================
@@ -190,10 +188,10 @@ def createArturoCosoLipSetupUI():
     guidesLabel = cmds.text(label="Guides", height = 30, backgroundColor = [.8, .8, .8])
 
     #Guide amountSlider Label
-    guidesLabel = cmds.text(label="0", height = 30, backgroundColor = [.8, .8, .8], align = "center")
+    guidesLabelCount = cmds.text(label="0", height = 30, backgroundColor = [.8, .8, .8], align = "center")
 
     #Guide amountSlider
-    guideAmountSlider = cmds.floatSlider(min=0, max=200, value=0, step=1, dragCommand = lambda _: guideAmountSliderUpdateFullValues(guidesLabel, guideAmountSlider))
+    guideAmountSlider = cmds.floatSlider(min=0, max=200, value=0, step=1, dragCommand = lambda _: guideAmountSliderUpdateFullValues(guidesLabelCount, guideAmountSlider))
 
     #create Guides Button
     createGuidesBtn = cmds.button(label="Create Guides", command = lambda _: createGuides(int(cmds.floatSlider(guideAmountSlider, query = True, value = True))))
@@ -202,7 +200,7 @@ def createArturoCosoLipSetupUI():
     cmds.text(label="", height=10)
 
     #Auto Guides Label
-    guidesLabel = cmds.text(label="Selective Guides", height = 20, backgroundColor = [.3, .3, .3])
+    guidesLabelSelective = cmds.text(label="Selective Guides", height = 20, backgroundColor = [.3, .3, .3])
 
     #Space Divider
     cmds.text(label="", height=10)
@@ -470,7 +468,17 @@ def createGuidesFromVertecies():
     #main grp Containing Locators
     lipLocGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_lip_{GUIDE}_{GROUP}", parent = locsGrp)
 
+    jawBaseGuideGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_base_{GUIDE}_{GROUP}", parent = jawGuideGrp)
+
+    jawGuide = cmds.spaceLocator(name= f"{CENTER}_{JAW}_{GUIDE}")[0]
+    inverseJawGuide = cmds.spaceLocator(name= f"{CENTER}_{JAW}_inverse_{GUIDE}")[0]
+
+    cmds.parent(jawGuide, jawBaseGuideGrp)
+    cmds.parent(inverseJawGuide, jawBaseGuideGrp)
+
     cmds.parent(lipLocators, lipLocGrp)
+
+    cmds.select(clear=True)
 
 def guideAmountSliderUpdateFullValues(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(int(cmds.floatSlider(slider, query = True, value = True))))
@@ -482,7 +490,7 @@ def guideAmountSliderUpdate(sliderLabel, slider):
 #jaw Build Function
 def buildArturoCosoLipSetup(initalValueMultiplier, createTweaks = True):
 
-    createLipJointHirarchy(createTweaks)
+    createLipJointHirarchy()
     createLipSkinJoints()
     createMechanismJoints()
     createJawBaseJoints()
@@ -519,7 +527,7 @@ def createGuides(number = 5):
     lipLocGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_lip_{GUIDE}_{GROUP}", parent = locsGrp)
 
     #split guideCreation into Upper and Lower
-    for part in ["upper", "lower"]:
+    for part in ["Upper", "Lower"]:
 
         #get directional vector indication if current locator is upper or lower for y axies offset
         partNum = 1 if part == "upper" else -1
@@ -605,7 +613,7 @@ def get_jaw_guides():
     return [loc for loc in cmds.listRelatives(grp) if cmds.objExists(grp)]
 
 #functino to set up the Hirarchy for the Joints
-def createLipJointHirarchy(createTweaks):
+def createLipJointHirarchy():
     #Main Group
     mainGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_rig_{GROUP}")
 
@@ -621,19 +629,12 @@ def createLipJointHirarchy(createTweaks):
     #create lip MechanismJoints Grp
     lipMchGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipMchJnt_{GROUP}", parent = lipGrp)
 
-    #createLipTweak Ctrls Grp
-
-    if createTweaks:
-        lipTweakCtrlGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}", parent = lipGrp)
-
     #clear selection
     cmds.select(clear = True)
 
 #create skn Joints
-def createLipSkinJoints(createTweaks):
+def createLipSkinJoints():
 
-    if createTweaks:
-        tweakCtrl = list()
 
     #list to store created Joints
     skinJoints = list()
