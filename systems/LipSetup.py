@@ -158,6 +158,7 @@ JOINTS = "jnt"
 GUIDE = "guide"
 JAW = "jaw"
 SKIN = "skn"
+CTRL = "ctrl"
 
 
 LEFT = "l"
@@ -177,6 +178,14 @@ def createArturoCosoLipSetupUI():
     #Space Divider
     cmds.text(label="", height=10)
 
+
+    #Manual Guides Label
+    guidesLabel = cmds.text(label="Manual Guides", height = 20, backgroundColor = [.3, .3, .3])
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+
     #Guides Label
     guidesLabel = cmds.text(label="Guides", height = 30, backgroundColor = [.8, .8, .8])
 
@@ -184,10 +193,16 @@ def createArturoCosoLipSetupUI():
     guidesLabel = cmds.text(label="0", height = 30, backgroundColor = [.8, .8, .8], align = "center")
 
     #Guide amountSlider
-    guideAmountSlider = cmds.floatSlider(min=0, max=200, value=0, step=1, dragCommand = lambda _: guideAmountSliderUpdate(guidesLabel, guideAmountSlider))
+    guideAmountSlider = cmds.floatSlider(min=0, max=200, value=0, step=1, dragCommand = lambda _: guideAmountSliderUpdateFullValues(guidesLabel, guideAmountSlider))
 
     #create Guides Button
     createGuidesBtn = cmds.button(label="Create Guides", command = lambda _: createGuides(int(cmds.floatSlider(guideAmountSlider, query = True, value = True))))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #Auto Guides Label
+    guidesLabel = cmds.text(label="Selective Guides", height = 20, backgroundColor = [.3, .3, .3])
 
     #Space Divider
     cmds.text(label="", height=10)
@@ -240,10 +255,22 @@ def createArturoCosoLipSetupUI():
     #Space Divider
     cmds.text(label="", height=10)
 
-    #Setup Label
-    setupLabel = cmds.text(label="Setup", height = 30, backgroundColor = [.8, .8, .8])
+    #Set Inital Fallow Value multiplier Label
+    setupLabel = cmds.text(label="Set Inital Lip Falloff Value", height = 20, backgroundColor = [.3, .3, .3])
 
-    createSetupBtn = cmds.button(label="Create Lip Setup", command = lambda _: buildArturoCosoLipSetup())
+    #Lip Fallow multiplySlider Label
+    lipFalloffLabel = cmds.text(label="1.3", height = 20, backgroundColor = [.8, .8, .8], align = "center")
+
+    #Lip Falloff multiply Slider
+    lipFallowSlider = cmds.floatSlider(min=1, max=3, value=1.3, step=0.1, dragCommand = lambda _: guideAmountSliderUpdate(lipFalloffLabel, lipFallowSlider))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #Setup Label
+    setupLabel = cmds.text(label="Build Setup", height = 30, backgroundColor = [.3, .3, .3])
+
+    createSetupBtn = cmds.button(label="Create Lip Setup", command = lambda _: buildArturoCosoLipSetup(round(cmds.floatSlider(lipFallowSlider, query = True, value = True), 2)))
 
     cmds.showWindow(configWindow)
 
@@ -445,13 +472,17 @@ def createGuidesFromVertecies():
 
     cmds.parent(lipLocators, lipLocGrp)
 
-def guideAmountSliderUpdate(sliderLabel, slider):
+def guideAmountSliderUpdateFullValues(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(int(cmds.floatSlider(slider, query = True, value = True))))
 
-#jaw Build Function
-def buildArturoCosoLipSetup():
+def guideAmountSliderUpdate(sliderLabel, slider):
+    cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
 
-    createLipJointHirarchy()
+
+#jaw Build Function
+def buildArturoCosoLipSetup(initalValueMultiplier, createTweaks = True):
+
+    createLipJointHirarchy(createTweaks)
     createLipSkinJoints()
     createMechanismJoints()
     createJawBaseJoints()
@@ -466,11 +497,13 @@ def buildArturoCosoLipSetup():
 
     createJawAttr()
     createSkinJointConstraints()
-    createInitalValues("Upper", 1.3)
-    createInitalValues("Lower", 1.3)
+    createInitalValues("Upper", initalValueMultiplier)
+    createInitalValues("Lower", initalValueMultiplier)
 
     connectSearAttr("Upper")
     connectSearAttr("Lower")
+
+    createJawPin()
 
 
 #Function to create Guides based on an Input number
@@ -572,7 +605,7 @@ def get_jaw_guides():
     return [loc for loc in cmds.listRelatives(grp) if cmds.objExists(grp)]
 
 #functino to set up the Hirarchy for the Joints
-def createLipJointHirarchy():
+def createLipJointHirarchy(createTweaks):
     #Main Group
     mainGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_rig_{GROUP}")
 
@@ -588,11 +621,19 @@ def createLipJointHirarchy():
     #create lip MechanismJoints Grp
     lipMchGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipMchJnt_{GROUP}", parent = lipGrp)
 
+    #createLipTweak Ctrls Grp
+
+    if createTweaks:
+        lipTweakCtrlGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}", parent = lipGrp)
+
     #clear selection
     cmds.select(clear = True)
 
 #create skn Joints
-def createLipSkinJoints():
+def createLipSkinJoints(createTweaks):
+
+    if createTweaks:
+        tweakCtrl = list()
 
     #list to store created Joints
     skinJoints = list()
@@ -911,7 +952,11 @@ def createInitalValues(part, multiplier = 1.3):
 
         linearInterpValue = float(index) / float(lipAttrLength - 1)
         divValue = linearInterpValue / multiplier
-        finalValue = divValue * divValue
+        finalValue = divValue * linearInterpValue
+
+        log.info(f"linearInterpolationValue : {linearInterpValue}")
+        log.info(f"div Value : {divValue}")
+        log.info(f"finalVlaue : {finalValue}")
 
         cmds.setAttr(attr, finalValue)
 
@@ -1093,7 +1138,61 @@ def connectSearAttr(part):
 
         cmds.connectAttr(f"{sealDriverNode}.{indexName}", target)
 
-    
+#create Corner pin 
+def createJawPin():
+
+    pinDriverNode = cmds.createNode("lightInfo", name = f"{CENTER}_pin_Driver")
+    jaw_attr = "jaw_attributes"
+
+    for side in "lr":
+        
+        cmds.addAttr(jaw_attr, at="bool", ln=f"{side}_auto_corner_pin")
+        cmds.addAttr(jaw_attr, at="double", ln=f"{side}_corner_pin", min = -10, max = 10, dv = 0)
+        cmds.addAttr(jaw_attr, at="double", ln=f"{side}_input_ty", min = -10, max = 10, dv = 0)
+
+
+        #Clamp Node
+        clampNode = cmds.createNode("clamp", name = f"{side}_corner_pin_auto_Clamp")
+        cmds.setAttr(f"{clampNode}.minR", -10)
+        cmds.setAttr(f"{clampNode}.maxR", 10)
+
+        cmds.connectAttr(f"{jaw_attr}.{side}_input_ty", f"{clampNode}.inputR")
+
+        #condition Node
+        conditionNode = cmds.createNode("condition", name=f"{side}_corner_pin_auto_Condition")
+        cmds.setAttr(f"{conditionNode}.operation", 0)
+        cmds.setAttr(f"{conditionNode}.secondTerm", 1)
+
+        cmds.connectAttr(f"{jaw_attr}.{side}_auto_corner_pin", f"{conditionNode}.firstTerm")
+        cmds.connectAttr(f"{clampNode}.outputR", f"{conditionNode}.colorIfTrueR")
+        cmds.connectAttr(f"{jaw_attr}.{side}_corner_pin", f"{conditionNode}.colorIfFalseR")
+
+        #plus Minus average Node
+        plusNode = cmds.createNode("plusMinusAverage", name = f"{side}_corner_pin_plus")
+        cmds.setAttr(f"{plusNode}.input1D[1]", 10)
+        cmds.connectAttr(f"{conditionNode}.outColorR", f"{plusNode}.input1D[0]")
+
+        #mult Double Linear Node
+        divisionNode = cmds.createNode("multDoubleLinear", name = f"{side}_corner_pin_Division")
+        cmds.setAttr(f"{divisionNode}.input2", 0.05)
+
+        cmds.connectAttr(f"{plusNode}.output1D", f"{divisionNode}.input1")
+
+        cmds.addAttr(pinDriverNode, at="double", ln= f"{side}_pin", min = 0, max = 1, dv = 0)
+        cmds.connectAttr(f"{divisionNode}.output", f"{pinDriverNode}.{side}_pin")
+
+        #connect to constraints
+        constPinUp = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchUpper_jnt_zroW0"
+
+        constPinLower = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchLower_jnt_zroW1"
+
+        cmds.connectAttr(f"{pinDriverNode}.{side}_pin", constPinUp)
+
+        reverseNode = cmds.createNode("reverse", name = f"{side}_corner_pin_rev")
+        cmds.connectAttr(f"{pinDriverNode}.{side}_pin", f"{reverseNode}.inputX")
+        cmds.connectAttr(f"{reverseNode}.outputX", constPinLower)
+
+
 #=======================================
 ## Lip Setup Arturo Coso - END
 #=======================================
