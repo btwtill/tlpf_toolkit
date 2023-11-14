@@ -7,7 +7,8 @@ from tlpf_toolkit import global_variables
 from tlpf_toolkit.ctrlShapes import utils
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.utils import ZeroOffsetFunction
-from tlpf_toolkit.utils import MatrixZeroOffset
+from tlpf_toolkit.mtrx import MatrixZeroOffset
+
 
 
 logging.basicConfig()
@@ -22,7 +23,7 @@ log.setLevel(logging.INFO)
 ## TODO Build Automatic Ctrls into the system
 #       Add automatic seal and Jaw Follow Attributes to the jaw with attribut blends
 #
-def SimpleStretchSetupConfigInterface():
+def SamLipSetupUI():
     
     #basic Window creation
     configWindow = cmds.window(title="SamLipSetup", iconName='SamLips', widthHeight=(200, 55), sizeable=True)
@@ -60,7 +61,6 @@ def updateLabel(_label, _newLabelText):
 
 def getUserEntry(entry):
     return cmds.text(entry, query=True, label=True)
-
 
 def BuildSamLipSetup(_headJoint, _jawJoint):
     
@@ -490,7 +490,6 @@ def guideAmountSliderUpdateFullValues(sliderLabel, slider):
 def guideAmountSliderUpdate(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
 
-
 #jaw Build Function
 def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, createTweaks = True):
 
@@ -538,7 +537,7 @@ def createGuides(number = 5):
     for part in ["Upper", "Lower"]:
 
         #get directional vector indication if current locator is upper or lower for y axies offset
-        partNum = 1 if part == "upper" else -1
+        partNum = 1 if part == "Upper" else -1
 
         #create vector with y axis offset Values
         midData = (0, partNum, 0)
@@ -915,11 +914,6 @@ def constraintMechanismJoints(createTweaks):
         cmds.select(clear = True)
         cmds.select(mchUpperJnt)
         MatrixZeroOffset.createMatrixZeroOffset()
-
-        
-        
-
-
 
 #get Lookup Dictionary of the Lip Parts and relations
 def getLipParts():
