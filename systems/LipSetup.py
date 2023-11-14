@@ -7,6 +7,8 @@ from tlpf_toolkit import global_variables
 from tlpf_toolkit.ctrlShapes import utils
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.utils import ZeroOffsetFunction
+from tlpf_toolkit.utils import MatrixZeroOffset
+
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -268,7 +270,9 @@ def createArturoCosoLipSetupUI():
     #Setup Label
     setupLabel = cmds.text(label="Build Setup", height = 30, backgroundColor = [.3, .3, .3])
 
-    createSetupBtn = cmds.button(label="Create Lip Setup", command = lambda _: buildArturoCosoLipSetup(round(cmds.floatSlider(lipFallowSlider, query = True, value = True), 2)))
+    createSetupBtn = cmds.button(label="Create Lip Setup", command = lambda _: buildArturoCosoLipSetup(round(cmds.floatSlider(lipFallowSlider, query = True, value = True), 2),
+                                                                                                       inputMesh = "cn_Body_geoShapeDeformed",  
+                                                                                                       createTweaks = True))
 
     cmds.showWindow(configWindow)
 
@@ -488,30 +492,34 @@ def guideAmountSliderUpdate(sliderLabel, slider):
 
 
 #jaw Build Function
-def buildArturoCosoLipSetup(initalValueMultiplier, createTweaks = True):
+def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, createTweaks = True):
 
-    createLipJointHirarchy()
-    createLipSkinJoints()
+    createLipJointHirarchy(createTweaks)
+    createLipSkinJoints(createTweaks, inputMesh)
     createMechanismJoints()
+
+    if createTweaks: 
+        createMechanismCtrls(inputMesh)
+    
     createJawBaseJoints()
-    constraintMechanismJoints()
+    constraintMechanismJoints(createTweaks)
 
-    log.info(f"Lookup Dictionary: {getLipParts()}")
-    log.info(f"Upper Lip Part: {lipPart('Upper')}")
-    log.info(f"Lower Lip Part: {lipPart('Lower')}")
+    # log.info(f"Lookup Dictionary: {getLipParts()}")
+    # log.info(f"Upper Lip Part: {lipPart('Upper')}")
+    # log.info(f"Lower Lip Part: {lipPart('Lower')}")
 
-    createSealTransforms("Upper")
-    createSealTransforms("Lower")
+    # createSealTransforms("Upper")
+    # createSealTransforms("Lower")
 
-    createJawAttr()
-    createSkinJointConstraints()
-    createInitalValues("Upper", initalValueMultiplier)
-    createInitalValues("Lower", initalValueMultiplier)
+    # createJawAttr()
+    # createSkinJointConstraints()
+    # createInitalValues("Upper", initalValueMultiplier)
+    # createInitalValues("Lower", initalValueMultiplier)
 
-    connectSearAttr("Upper")
-    connectSearAttr("Lower")
+    # connectSearAttr("Upper")
+    # connectSearAttr("Lower")
 
-    createJawPin()
+    # createJawPin()
 
 
 #Function to create Guides based on an Input number
@@ -613,7 +621,7 @@ def get_jaw_guides():
     return [loc for loc in cmds.listRelatives(grp) if cmds.objExists(grp)]
 
 #functino to set up the Hirarchy for the Joints
-def createLipJointHirarchy():
+def createLipJointHirarchy(createTweaks):
     #Main Group
     mainGrp = cmds.createNode("transform", name = f"{CENTER}_{JAW}_rig_{GROUP}")
 
@@ -629,12 +637,15 @@ def createLipJointHirarchy():
     #create lip MechanismJoints Grp
     lipMchGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipMchJnt_{GROUP}", parent = lipGrp)
 
+    if createTweaks:
+        lipTweakCtrlGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}", parent = lipGrp)
+        lipMchCtrlGrp = cmds.createNode("transform", name= f"{CENTER}_{JAW}lipMchJnt{CTRL}_{GROUP}", parent = lipGrp)
+
     #clear selection
     cmds.select(clear = True)
 
 #create skn Joints
-def createLipSkinJoints():
-
+def createLipSkinJoints(createTweaks, inputMesh):
 
     #list to store created Joints
     skinJoints = list()
@@ -656,6 +667,74 @@ def createLipSkinJoints():
 
         #parent The joints
         cmds.parent(newLipJoint, f"{CENTER}_{JAW}lipSkinJnt_{GROUP}")
+
+        #create TweakCtlrs
+        if createTweaks:
+
+            #get normal direction for ctrl 
+            normalDirection = getCtrlNormalDirection(inputMesh, guideObject = guide)
+
+            #use normal direction for circle creation
+            tweakCtrl = cmds.circle(nr = normalDirection, c = (0, 0, 0), name = guide.replace(GUIDE, "tweak" + CTRL))[0]
+
+            cmds.xform(tweakCtrl, m = guideMatrix, worldSpace = True)
+
+            cmds.parent(tweakCtrl, f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}")
+
+#get normal direction for Locator
+def getCtrlNormalDirection(inputMesh, guideObject):
+    #create Normal Network tmpGroup
+    tmpNormalNetworkGrp = cmds.createNode("transform", name = f"tmp_{GUIDE}_NormalDirection_{GROUP}")
+
+    #create normal Network Guide 01 
+    normalGuide01 = cmds.spaceLocator(name = f"{guideObject}_tmp01")[0]
+    guideMatrix = cmds.xform(guideObject, query = True, matrix = True, worldSpace = True)
+    cmds.xform(normalGuide01, m = guideMatrix, worldSpace=True)
+
+    #normal constraint between mesh and guide 01
+    guideNormalConstraint = cmds.normalConstraint(inputMesh, normalGuide01)
+
+    #delete normal constraint
+    cmds.delete(guideNormalConstraint)
+
+    #create Normal network Gudie 02
+    normalGuide02 = cmds.spaceLocator(name = f"{guideObject}_tmp02")[0]
+    guideMatrix = cmds.xform(normalGuide01, query = True, worldSpace = True, matrix = True)
+    cmds.xform(normalGuide02, m = guideMatrix, worldSpace = True)
+
+    #parent guides 01 to temp Group 
+    cmds.parent(normalGuide01, tmpNormalNetworkGrp)
+
+    #parent guide 02 to guide 01
+    cmds.parent(normalGuide02, normalGuide01)
+
+    #offset normal Guide 02 in x Translation
+    cmds.setAttr(f"{normalGuide02}.translateX", 1)
+
+    #create Deompose matrix node for Guide 01
+    guide01DecomposeMatrixNode = cmds.createNode("decomposeMatrix", name = f"{normalGuide01}_decomposeMatrix")
+    guide02DecomposeMatrixNode = cmds.createNode("decomposeMatrix", name = f"{normalGuide02}_decomposeMatrix")
+
+    #connect guide to dcm node
+    cmds.connectAttr(f"{normalGuide02}.worldMatrix[0]", f"{guide02DecomposeMatrixNode}.inputMatrix")
+    cmds.connectAttr(f"{normalGuide01}.worldMatrix[0]", f"{guide01DecomposeMatrixNode}.inputMatrix")
+
+    #create plusminus average node
+    plusNode = cmds.createNode("plusMinusAverage", name = f"tmp_{normalGuide02}_{normalGuide01}_subtract")
+
+    for axies in "xyz":
+        cmds.connectAttr(f"{guide02DecomposeMatrixNode}.outputTranslate{axies.capitalize()}", f"{plusNode}.input3D[0].input3D{axies}")
+        cmds.connectAttr(f"{guide01DecomposeMatrixNode}.outputTranslate{axies.capitalize()}", f"{plusNode}.input3D[1].input3D{axies}")
+
+    cmds.setAttr(f"{plusNode}.operation", 2)
+    
+    outputDirection = (cmds.getAttr(f"{plusNode}.output3Dx"), cmds.getAttr(f"{plusNode}.output3Dy"), cmds.getAttr(f"{plusNode}.output3Dz"))
+
+    #delete normal network tmp Group
+    cmds.delete(tmpNormalNetworkGrp)
+
+    #get Ctrl Normal Direction
+    return outputDirection
 
 #create Mechanism Joints
 def createMechanismJoints():
@@ -684,6 +763,59 @@ def createMechanismJoints():
     cmds.xform(leftJnt, m=leftPos)
     cmds.xform(rightJnt, m=rightPos)
 
+    cmds.select(clear=True)
+
+#create MechanismCtrls
+def createMechanismCtrls(inputMesh):
+
+    #create Joints
+    upperCtrl = cmds.circle( nr = getCtrlNormalDirection(inputMesh = inputMesh, guideObject = f"{CENTER}_{JAW}_Upperlip_{GUIDE}"), name=f"{CENTER}_{JAW}_mchUpper_{CTRL}")[0]
+    lowerCtrl = cmds.circle( nr = getCtrlNormalDirection(inputMesh = inputMesh, guideObject = f"{CENTER}_{JAW}_Lowerlip_{GUIDE}"), name=f"{CENTER}_{JAW}_mchLower_{CTRL}")[0]
+    leftCtrl = cmds.circle( nr = getCtrlNormalDirection(inputMesh = inputMesh, guideObject = f"{LEFT}_{JAW}Corner_lip_{GUIDE}"), name=f"{LEFT}_{JAW}_mchCorner_{CTRL}")[0]
+    rightCtrl = cmds.circle( nr = getCtrlNormalDirection(inputMesh = inputMesh, guideObject = f"{RIGHT}_{JAW}Corner_lip_{GUIDE}"), name=f"{RIGHT}_{JAW}_mchCorner_{CTRL}")[0]
+    
+    #parent Joints into hirarchy
+    cmds.parent([upperCtrl, lowerCtrl, leftCtrl, rightCtrl], f"{CENTER}_{JAW}lipMchJnt{CTRL}_{GROUP}")
+
+    #offset Ctrl Center Point 
+    upperCtrlShape = cmds.listRelatives(upperCtrl)[0]
+    upperCtrlMakeNode = cmds.listConnections(upperCtrlShape)[0]
+    cmds.setAttr(f"{upperCtrlMakeNode}.centerZ", 1)
+
+    lowerCtrlShape = cmds.listRelatives(lowerCtrl)[0]
+    lowerCtrlMakeNode = cmds.listConnections(lowerCtrlShape)[0]
+    cmds.setAttr(f"{lowerCtrlMakeNode}.centerZ", 1)
+
+    leftCtrlShape = cmds.listRelatives(leftCtrl)[0]
+    leftCtrlMakeNode = cmds.listConnections(leftCtrlShape)[0]
+    cmds.setAttr(f"{leftCtrlMakeNode}.centerX", 1)
+
+    rightCtrlShape = cmds.listRelatives(rightCtrl)[0]
+    rightCtrlMakeNode = cmds.listConnections(rightCtrlShape)[0]
+    cmds.setAttr(f"{rightCtrlMakeNode}.centerX", -1)
+
+    #get Guide Positions
+    upperPos = cmds.xform(f"{CENTER}_{JAW}_Upperlip_{GUIDE}", q=True, ws=True, m=True)
+    lowerPos = cmds.xform(f"{CENTER}_{JAW}_Lowerlip_{GUIDE}", q=True, ws=True, m=True)
+    leftPos = cmds.xform(f"{LEFT}_{JAW}Corner_lip_{GUIDE}", q=True, ws=True, m=True)
+    rightPos = cmds.xform(f"{RIGHT}_{JAW}Corner_lip_{GUIDE}", q=True, ws=True, m=True)
+
+    #set Ctrl Positions
+    cmds.xform(upperCtrl, m=upperPos)
+    cmds.xform(lowerCtrl, m=lowerPos)
+    cmds.xform(leftCtrl, m=leftPos)
+    cmds.xform(rightCtrl, m=rightPos)
+
+    cmds.select(clear=True)
+
+    cmds.select([upperCtrl, lowerCtrl, leftCtrl, rightCtrl])
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_zro")
+    cmds.select(clear=True)
+    cmds.select([upperCtrl, lowerCtrl, leftCtrl, rightCtrl])
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_off")
+    cmds.select(clear=True)
+    cmds.select([upperCtrl, lowerCtrl, leftCtrl, rightCtrl])
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_const")
     cmds.select(clear=True)
 
 #create Jaw Joints
@@ -718,8 +850,8 @@ def createJawBaseJoints():
     cmds.select(clear=True)
 
 #Create Constraints for MechanismJoints
-def constraintMechanismJoints():
-
+def constraintMechanismJoints(createTweaks):
+        
     #get Base joints and Mechanism Joints
     jawJnt = f"{CENTER}_{JAW}_{SKIN}"
     jawInvJnt = f"{CENTER}_{JAW}Inverse_{JOINTS}"
@@ -748,14 +880,46 @@ def constraintMechanismJoints():
 
     cmds.select(clear=True)
 
-    #create Constraints
-    cmds.parentConstraint(jawJnt, mchLowerJntOffset, mo=True)
-    cmds.parentConstraint(jawInvJnt, mchUpperJntOffset, mo=True)
+    if not createTweaks:
+        #create Constraints
+        cmds.parentConstraint(jawJnt, mchLowerJntOffset, mo=True)
+        cmds.parentConstraint(jawInvJnt, mchUpperJntOffset, mo=True)
 
-    cmds.parentConstraint(mchUpperJntOffset, mchLowerJntOffset, mchRightJntOffset, mo=True)
-    cmds.parentConstraint(mchUpperJntOffset, mchLowerJntOffset, mchLeftJntOffset, mo=True)
+        cmds.parentConstraint(mchUpperJntOffset, mchLowerJntOffset, mchRightJntOffset, mo=True)
+        cmds.parentConstraint(mchUpperJntOffset, mchLowerJntOffset, mchLeftJntOffset, mo=True)
 
-    cmds.select(clear=True)
+        cmds.select(clear=True)
+    else:
+        #get the ctrl Constraint nodes
+        mchUpperCtrl = f"{CENTER}_{JAW}_mchUpper_{CTRL}"
+        mchLowerCtrl = f"{CENTER}_{JAW}_mchLower_{CTRL}"
+        mchLeftCtrl = f"{LEFT}_{JAW}_mchCorner_{CTRL}"
+        mchRightCtrl = f"{RIGHT}_{JAW}_mchCorner_{CTRL}"
+
+        #get ctrl Constraint Nodes 
+        mchUpperCtrlConstraintOffset = f"{CENTER}_{JAW}_mchUpper_{CTRL}_const"
+        mchLowerCtrlConstraintOffset = f"{CENTER}_{JAW}_mchLower_{CTRL}_const"
+        mchLeftCtrlConstraintOffset = f"{LEFT}_{JAW}_mchCorner_{CTRL}_const"
+        mchRightCtrlConstraintOffset = f"{RIGHT}_{JAW}_mchCorner_{CTRL}_const"
+
+        #constraint upper and lower Offset nodes 
+        cmds.parentConstraint(jawJnt, mchLowerCtrlConstraintOffset, mo=True)
+        cmds.parentConstraint(jawInvJnt, mchUpperCtrlConstraintOffset, mo=True)
+
+        #constraint left and right corner offset Nodes
+        cmds.parentConstraint(mchUpperCtrlConstraintOffset, mchLowerCtrlConstraintOffset, mchRightCtrlConstraintOffset, mo=True)
+        cmds.parentConstraint(mchUpperCtrlConstraintOffset, mchLowerCtrlConstraintOffset, mchLeftCtrlConstraintOffset, mo=True)
+
+        #create parent offset matrix for mch joints
+        cmds.parent(mchUpperJntOffset, mchUpperCtrl)
+        cmds.select(clear = True)
+        cmds.select(mchUpperJnt)
+        MatrixZeroOffset.createMatrixZeroOffset()
+
+        
+        
+
+
 
 #get Lookup Dictionary of the Lip Parts and relations
 def getLipParts():
