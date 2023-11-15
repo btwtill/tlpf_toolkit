@@ -530,9 +530,6 @@ def guideAmountSliderUpdateFullValues(sliderLabel, slider):
 def fallOffSliderUpdate(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
 
-def ctrlSizeSliderUpdate(sliderLabel, slider):
-    cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
-
 #jaw Build Function
 def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, ctrlSizeSlider , createTweaks = True):
 
@@ -590,7 +587,7 @@ def createGuides(number = 5):
     for part in ["Upper", "Lower"]:
 
         #get directional vector indication if current locator is upper or lower for y axies offset
-        partNum = 1 if part == "upper" else -1
+        partNum = 1 if part == "Upper" else -1
 
         #create vector with y axis offset Values
         midData = (0, partNum, 0)
