@@ -199,7 +199,7 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V003/lip.png", command="")
         lipMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(lipMenu, "Sam Lip Setup", command=lambda _: LipSetup.SimpleStretchSetupConfigInterface())
+        self.addMenuItem(lipMenu, "Sam Lip Setup", command=lambda _: LipSetup.SamLipSetupUI())
         self.addMenuItem(lipMenu, "Arturo Coso Setup", command=lambda _: LipSetup.createArturoCosoLipSetupUI())
 
 

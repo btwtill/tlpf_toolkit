@@ -7,7 +7,7 @@ from tlpf_toolkit import global_variables
 from tlpf_toolkit.ctrlShapes import utils
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.utils import ZeroOffsetFunction
-from tlpf_toolkit.utils import MatrixZeroOffset
+from tlpf_toolkit.mtrx import MatrixZeroOffset
 
 
 logging.basicConfig()
@@ -22,7 +22,7 @@ log.setLevel(logging.INFO)
 ## TODO Build Automatic Ctrls into the system
 #       Add automatic seal and Jaw Follow Attributes to the jaw with attribut blends
 #
-def SimpleStretchSetupConfigInterface():
+def SamLipSetupUI():
     
     #basic Window creation
     configWindow = cmds.window(title="SamLipSetup", iconName='SamLips', widthHeight=(200, 55), sizeable=True)
@@ -60,7 +60,6 @@ def updateLabel(_label, _newLabelText):
 
 def getUserEntry(entry):
     return cmds.text(entry, query=True, label=True)
-
 
 def BuildSamLipSetup(_headJoint, _jawJoint):
     
@@ -187,10 +186,10 @@ def createArturoCosoLipSetupUI():
 
 
     #Guides Label
-    guidesLabel = cmds.text(label="Guides", height = 30, backgroundColor = [.8, .8, .8])
+    guidesLabel = cmds.text(label="Guides", height = 20, backgroundColor = [.8, .8, .8])
 
     #Guide amountSlider Label
-    guidesLabelCount = cmds.text(label="0", height = 30, backgroundColor = [.8, .8, .8], align = "center")
+    guidesLabelCount = cmds.text(label="0", height = 20, backgroundColor = [.8, .8, .8], align = "center")
 
     #Guide amountSlider
     guideAmountSlider = cmds.floatSlider(min=0, max=200, value=0, step=1, dragCommand = lambda _: guideAmountSliderUpdateFullValues(guidesLabelCount, guideAmountSlider))
@@ -262,7 +261,29 @@ def createArturoCosoLipSetupUI():
     lipFalloffLabel = cmds.text(label="1.3", height = 20, backgroundColor = [.8, .8, .8], align = "center")
 
     #Lip Falloff multiply Slider
-    lipFallowSlider = cmds.floatSlider(min=1, max=3, value=1.3, step=0.1, dragCommand = lambda _: guideAmountSliderUpdate(lipFalloffLabel, lipFallowSlider))
+    lipFallowSlider = cmds.floatSlider(min=1, max=3, value=1.3, step=0.1, dragCommand = lambda _: fallOffSliderUpdate(lipFalloffLabel, lipFallowSlider))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    inputMeshLabel = cmds.text(label="Skin Mesh", height = 20, backgroundColor = [.8, .8, .8], align = "center", visible = False)
+
+    #input Mesh Button
+    inputMeshButton = cmds.button(label="Define Input Mesh", command = lambda _: updateInputMeshLabel(inputMeshLabel), visible = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #ctrl Size Slider Label
+    ctrlSizeSliderLabel = cmds.text(label="Set the Ctrl Size", height = 20, backgroundColor = [.8, .8, .8], align = "center", visible = False)
+
+    #Lip Falloff multiply Slider
+    ctrlSizeSlider = cmds.floatSlider(min=0, max=10, value=1, step=0.1, dragCommand = lambda _: updateCtrlSize(round(cmds.floatSlider(ctrlSizeSlider, query = True, value = True), 2)), visible = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    createTweaksCheckBox = cmds.checkBox(label="Create Tweak Ctrls", changeCommand = lambda _: updateVisibility([inputMeshLabel, inputMeshButton]))
 
     #Space Divider
     cmds.text(label="", height=10)
@@ -271,10 +292,29 @@ def createArturoCosoLipSetupUI():
     setupLabel = cmds.text(label="Build Setup", height = 30, backgroundColor = [.3, .3, .3])
 
     createSetupBtn = cmds.button(label="Create Lip Setup", command = lambda _: buildArturoCosoLipSetup(round(cmds.floatSlider(lipFallowSlider, query = True, value = True), 2),
-                                                                                                       inputMesh = "cn_Body_geoShapeDeformed",  
-                                                                                                       createTweaks = True))
+                                                                                                       cmds.text(inputMeshLabel, query = True, label = True),
+                                                                                                       [ctrlSizeSliderLabel, ctrlSizeSlider],
+                                                                                                       cmds.checkBox(createTweaksCheckBox, query = True, value = True)))
 
     cmds.showWindow(configWindow)
+
+def updateInputMeshLabel(targetLabel):
+    cmds.text(targetLabel, edit = True, label = cmds.ls(selection=True)[0], backgroundColor = [0, .8, 0])
+
+def updateVisibility(targets):
+
+    labelState = cmds.text(targets[0], query = True, visible = True)
+    cmds.text(targets[0], edit = True, visible = not labelState)
+    buttonState = cmds.button(targets[1], query = True, visible = True)
+    cmds.button(targets[1], edit = True, visible = not buttonState)
+
+def updateCtrlSize(ctrlSize):
+    tweakCtrls = cmds.listRelatives(f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}")
+
+    for index, node in enumerate(tweakCtrls):
+        tweakCtrls[index] = cmds.listRelatives(node, allDescendents = True)[0]
+        cmds.setAttr(f"{cmds.listConnections(tweakCtrls[index])[0]}.radius", ctrlSize)
+    
 
 def StoreMidLipPos(midlipPosLabel):
     #remove file if already existing
@@ -487,12 +527,21 @@ def createGuidesFromVertecies():
 def guideAmountSliderUpdateFullValues(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(int(cmds.floatSlider(slider, query = True, value = True))))
 
-def guideAmountSliderUpdate(sliderLabel, slider):
+def fallOffSliderUpdate(sliderLabel, slider):
     cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
 
+def ctrlSizeSliderUpdate(sliderLabel, slider):
+    cmds.text(sliderLabel, edit = True, label = str(round(cmds.floatSlider(slider, query = True, value = True), 2)))
 
 #jaw Build Function
-def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, createTweaks = True):
+def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, ctrlSizeSlider , createTweaks = True):
+
+    if createTweaks:
+        cmds.text(ctrlSizeSlider[0], edit = True, visible = True)
+        cmds.floatSlider(ctrlSizeSlider[1], edit = True, visible = True)
+    else:
+        cmds.text(ctrlSizeSlider[0], edit = True, visible = False)
+        cmds.floatSlider(ctrlSizeSlider[1], edit = True, visible = False)
 
     createLipJointHirarchy(createTweaks)
     createLipSkinJoints(createTweaks, inputMesh)
@@ -500,27 +549,30 @@ def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, createTweaks = Tru
 
     if createTweaks: 
         createMechanismCtrls(inputMesh)
+        createTweakCtrlOffsetGroups()
     
     createJawBaseJoints()
     constraintMechanismJoints(createTweaks)
 
-    # log.info(f"Lookup Dictionary: {getLipParts()}")
-    # log.info(f"Upper Lip Part: {lipPart('Upper')}")
-    # log.info(f"Lower Lip Part: {lipPart('Lower')}")
+    log.info(f"Lookup Dictionary: {getLipParts(createTweaks)}")
+    log.info(f"Upper Lip Part: {lipPart('Upper', createTweaks)}")
+    log.info(f"Lower Lip Part: {lipPart('Lower', createTweaks)}")
 
-    # createSealTransforms("Upper")
-    # createSealTransforms("Lower")
+    createSealTransforms("Upper", createTweaks)
+    createSealTransforms("Lower", createTweaks)
 
-    # createJawAttr()
-    # createSkinJointConstraints()
-    # createInitalValues("Upper", initalValueMultiplier)
-    # createInitalValues("Lower", initalValueMultiplier)
+    createJawAttr(createTweaks)
+    createSkinJointConstraints(createTweaks)
+    createInitalValues("Upper", createTweaks, initalValueMultiplier)
+    createInitalValues("Lower", createTweaks, initalValueMultiplier)
 
-    # connectSearAttr("Upper")
-    # connectSearAttr("Lower")
+    connectSearAttr("Upper", createTweaks)
+    connectSearAttr("Lower", createTweaks)
 
-    # createJawPin()
+    createJawPin(createTweaks)
 
+    if createTweaks:
+        connectTweakCtrlToSkinJoints()
 
 #Function to create Guides based on an Input number
 def createGuides(number = 5):
@@ -914,15 +966,47 @@ def constraintMechanismJoints(createTweaks):
         cmds.parent(mchUpperJntOffset, mchUpperCtrl)
         cmds.select(clear = True)
         cmds.select(mchUpperJnt)
-        MatrixZeroOffset.createMatrixZeroOffset()
+        MatrixZeroOffset.createMatrixZeroOffset(mchUpperJnt)
 
-        
-        
+        cmds.parent(mchLowerJntOffset, mchLowerCtrl)
+        cmds.select(clear = True)
+        cmds.select(mchLowerJnt)
+        MatrixZeroOffset.createMatrixZeroOffset(mchLowerJnt)
 
+        cmds.parent(mchLeftJntOffset, mchLeftCtrl)
+        cmds.select(clear = True)
+        cmds.select(mchLeftJnt)
+        MatrixZeroOffset.createMatrixZeroOffset(mchLeftJnt)
 
+        cmds.parent(mchRightJntOffset, mchRightCtrl)
+        cmds.select(clear = True)
+        cmds.select(mchRightJnt)
+        MatrixZeroOffset.createMatrixZeroOffset(mchRightJnt)
+
+        cmds.select(clear=True)
+
+        cmds.parent([mchUpperJnt, mchLowerJnt, mchLeftJnt, mchRightJnt], f"{CENTER}_{JAW}lipMchJnt_{GROUP}")
+
+#Create Offset Grps for TweakCtrls
+def createTweakCtrlOffsetGroups():
+
+    tweakCtrls = cmds.listRelatives(f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}")
+    cmds.select(clear=True)
+
+    cmds.select(tweakCtrls)
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_zro")
+    cmds.select(clear=True)
+
+    cmds.select(tweakCtrls)
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_const")
+    cmds.select(clear=True)
+
+    cmds.select(tweakCtrls)
+    ZeroOffsetFunction.insertNodeBefore(sfx = "_drv")
+    cmds.select(clear=True)
 
 #get Lookup Dictionary of the Lip Parts and relations
-def getLipParts():
+def getLipParts(createTweaks):
 
     #define nameing Tokens
     upperToken = "Upper"
@@ -935,56 +1019,59 @@ def getLipParts():
     mchLeftJnt = f"{LEFT}_{JAW}_mchCorner_{JOINTS}"
     mchRightJnt = f"{RIGHT}_{JAW}_mchCorner_{JOINTS}"
 
-    lipJnts = cmds.listRelatives(f"{CENTER}_{JAW}lipSkinJnt_{GROUP}", allDescendents=True)
-
     lookup = {'C_Upper': {}, 'C_Lower': {},
               'L_Upper': {}, 'L_Lower': {},
               'R_Upper': {}, 'R_Lower': {},
               'L_Corner': {}, 'R_Corner': {}}
-    
-    #sort joints into lookup dictionary
-    for jnt in lipJnts:
+    if not createTweaks:
+        lipComponents = cmds.listRelatives(f"{CENTER}_{JAW}lipSkinJnt_{GROUP}", allDescendents=True)
+    else:
+        lipComponents = cmds.listRelatives(f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}")
+        for index, node in enumerate(lipComponents):
+            lipComponents[index] = cmds.listRelatives(node)[0]
 
-        if cmds.objectType(jnt) != "joint":
+    #sort joints into lookup dictionary
+    for comp in lipComponents:
+
+        if cmds.objectType(comp) != "joint" and not createTweaks:
             continue
 
-
-        if jnt.startswith(CENTER) and upperToken in jnt:
-            lookup['C_Upper'][jnt] = [mchUpperJnt]
+        if comp.startswith(CENTER) and upperToken in comp:
+            lookup['C_Upper'][comp] = [mchUpperJnt]
         
-        if jnt.startswith(CENTER) and lowerToken in jnt:
-            lookup['C_Lower'][jnt] = [mchLowerJnt]
+        if comp.startswith(CENTER) and lowerToken in comp:
+            lookup['C_Lower'][comp] = [mchLowerJnt]
 
-        if jnt.startswith(LEFT) and upperToken in jnt:
-            lookup['L_Upper'][jnt] = [mchUpperJnt, mchLeftJnt]
+        if comp.startswith(LEFT) and upperToken in comp:
+            lookup['L_Upper'][comp] = [mchUpperJnt, mchLeftJnt]
 
-        if jnt.startswith(LEFT) and lowerToken in jnt:
-            lookup['L_Lower'][jnt] = [mchLowerJnt, mchLeftJnt]
+        if comp.startswith(LEFT) and lowerToken in comp:
+            lookup['L_Lower'][comp] = [mchLowerJnt, mchLeftJnt]
 
-        if jnt.startswith(RIGHT) and upperToken in jnt:
-            lookup['R_Upper'][jnt] = [mchUpperJnt, mchRightJnt]
+        if comp.startswith(RIGHT) and upperToken in comp:
+            lookup['R_Upper'][comp] = [mchUpperJnt, mchRightJnt]
 
-        if jnt.startswith(RIGHT) and lowerToken in jnt:
-            lookup['R_Lower'][jnt] = [mchLowerJnt, mchRightJnt]
+        if comp.startswith(RIGHT) and lowerToken in comp:
+            lookup['R_Lower'][comp] = [mchLowerJnt, mchRightJnt]
 
-        if jnt.startswith(LEFT) and cornerToken in jnt:
-            lookup['L_Corner'][jnt] = [mchLeftJnt]
+        if comp.startswith(LEFT) and cornerToken in comp:
+            lookup['L_Corner'][comp] = [mchLeftJnt]
 
-        if jnt.startswith(RIGHT) and cornerToken in jnt:
-            lookup['R_Corner'][jnt] = [mchRightJnt]
-
+        if comp.startswith(RIGHT) and cornerToken in comp:
+            lookup['R_Corner'][comp] = [mchRightJnt]
+    
     return lookup
 
 #get individual Lip Parts
-def lipPart(part):
+def lipPart(part, createTweaks):
 
     #filter the Dictionary for the given part of the lip
-    lipParts = [reversed(getLipParts()[f"L_{part}"].keys()), getLipParts()[f"C_{part}"].keys(), getLipParts()[f"R_{part}"].keys()]
+    lipParts = [reversed(getLipParts(createTweaks)[f"L_{part}"].keys()), getLipParts(createTweaks)[f"C_{part}"].keys(), getLipParts(createTweaks)[f"R_{part}"].keys()]
 
     return [jnt for jnt in lipParts for jnt in jnt]
 
 #create all seal Transform Objects
-def createSealTransforms(part):
+def createSealTransforms(part, createTweaks):
 
     #create parent grp for seal Transforms
     sealGrpName = f"{CENTER}_seal_{GROUP}"
@@ -997,11 +1084,15 @@ def createSealTransforms(part):
     r_corner = f"{RIGHT}_{JAW}_mchCorner_{JOINTS}"
 
     #amount of joint in a lip Part
-    jntAmount = len(lipPart(part))
+    jntAmount = len(lipPart(part, createTweaks))
 
     #create Trnafroms and Constrain them
-    for index, jnt  in enumerate(lipPart(part)):
-        node = cmds.createNode("transform", name = jnt.replace(SKIN, f"{part}_SEAL"), parent = partGrp)
+    for index, jnt  in enumerate(lipPart(part, createTweaks)):
+        if not createTweaks:
+            node = cmds.createNode("transform", name = jnt.replace(SKIN, f"{part}_SEAL"), parent = partGrp)
+        else:
+            node = cmds.createNode("transform", name = jnt.replace("tweak" + CTRL, f"{part}_SEAL"), parent = partGrp)
+
         mtrx = cmds.xform(jnt, q=True, ws=True, m=True)
         cmds.xform(node, m=mtrx, ws=True)
 
@@ -1021,45 +1112,48 @@ def createSealTransforms(part):
         cmds.select(clear=True)
 
 #create Jaw Attribute Transfrom node and Attributes
-def createJawAttr():
+def createJawAttr(createTweaks):
 
     #create transform node to hold the Attributes for the lip weights
     node = cmds.createNode("transform", name ="jaw_attributes", parent = f"{CENTER}_{JAW}_rig_{GROUP}")
-    log.info(f"Debug: {list(getLipParts()['C_Upper'].keys())[0]}")
+    log.info(f"Debug: {list(getLipParts(createTweaks)['C_Upper'].keys())[0]}")
 
     #add the Upper attribute
-    cmds.addAttr(node, ln=list(getLipParts()['C_Upper'].keys())[0], min = 0, max = 1, dv = 0)
-    cmds.setAttr(f"{node}.{list(getLipParts()['C_Upper'].keys())[0]}",  lock = 1)
+    cmds.addAttr(node, ln=list(getLipParts(createTweaks)['C_Upper'].keys())[0], min = 0, max = 1, dv = 0)
+    cmds.setAttr(f"{node}.{list(getLipParts(createTweaks)['C_Upper'].keys())[0]}",  lock = 1)
 
     #add all upper lip joint attributes
-    for upper in getLipParts()['L_Upper'].keys():
+    for upper in getLipParts(createTweaks)['L_Upper'].keys():
         cmds.addAttr(node, ln= upper, min=0, max = 1, dv = 0)
 
     #add Corner lip joint attributes
-    cmds.addAttr(node, ln = list(getLipParts()['L_Corner'].keys())[0], min = 0, max = 1, dv = 0)
-    cmds.setAttr(f"{node}.{list(getLipParts()['L_Corner'].keys())[0]}",  lock = 1)
+    cmds.addAttr(node, ln = list(getLipParts(createTweaks)['L_Corner'].keys())[0], min = 0, max = 1, dv = 0)
+    cmds.setAttr(f"{node}.{list(getLipParts(createTweaks)['L_Corner'].keys())[0]}",  lock = 1)
 
     #add Lower Lip joint attributes
-    for lower in list(getLipParts()['L_Lower'].keys())[::-1]:
+    for lower in list(getLipParts(createTweaks)['L_Lower'].keys())[::-1]:
         cmds.addAttr(node, ln= lower, min=0, max = 1, dv = 0)
 
     #add Center lower lip joint attributes
-    cmds.addAttr(node, ln=list(getLipParts()['C_Lower'].keys())[0], min = 0, max = 1, dv = 0)
-    cmds.setAttr(f"{node}.{list(getLipParts()['C_Lower'].keys())[0]}", lock = 1)
+    cmds.addAttr(node, ln=list(getLipParts(createTweaks)['C_Lower'].keys())[0], min = 0, max = 1, dv = 0)
+    cmds.setAttr(f"{node}.{list(getLipParts(createTweaks)['C_Lower'].keys())[0]}", lock = 1)
 
     createJawOffsetFollowAttr()
     addSealAttrs()
 
 #create all the constraint to the skinned joints
-def createSkinJointConstraints():
+def createSkinJointConstraints(createTweaks):
 
     #get the relation from the lookup Dictionary
-    for value in getLipParts().values():
+    for value in getLipParts(createTweaks).values():
         for lipJnt, mchJnt in value.items():
 
             #define for current lipjnt if upper or lower to receive the right seal tranfrom for constraint
             sealToken = "Upper_SEAL" if "Upper" in lipJnt else "Lower_SEAL"
-            lipSeal = lipJnt.replace(SKIN, sealToken)
+            if not createTweaks:
+                lipSeal = lipJnt.replace(SKIN, sealToken)
+            else:
+                lipSeal = lipJnt.replace("tweak" + CTRL, sealToken)
 
             log.info(f"All the lip seals: {lipSeal}")
             
@@ -1102,10 +1196,10 @@ def createSkinJointConstraints():
                 cmds.connectAttr(f"{sealMult}.outputY", f"{const}.{mchJnt[1]}W1")
 
 #create the initial interpolation values for the jaw attribte follow values         
-def createInitalValues(part, multiplier = 1.3):
+def createInitalValues(part, createTweaks,  multiplier = 1.3):
 
     #get all the jaw attributes on the jaw attribute tranform object 
-    jawAttr = [lipAttrName for lipAttrName in lipPart(part) if not lipAttrName.startswith('c') and not lipAttrName.startswith('r')]
+    jawAttr = [lipAttrName for lipAttrName in lipPart(part, createTweaks) if not lipAttrName.startswith('c') and not lipAttrName.startswith('r')]
     log.info(f"Returned Lip Attributes: {jawAttr}")
 
     #get Lenght of the lip attribute names stored
@@ -1166,12 +1260,12 @@ def addSealAttrs():
     cmds.addAttr(jaw_attr, at="double", ln = "R_sealWeight", min = 0, max = 10, dv= 4)
 
 #create the seal interpolation
-def connectSearAttr(part):
+def connectSearAttr(part, createTweaks):
 
     sealToken = f"{part}_SEAL"
     jawAttr = "jaw_attributes"
 
-    lipJnts = lipPart(part)
+    lipJnts = lipPart(part, createTweaks)
     lipJntsAmount = len(lipJnts)
     sealDriverNode = cmds.createNode("lightInfo", name = f"{CENTER}_{sealToken}_DRV")
 
@@ -1304,7 +1398,7 @@ def connectSearAttr(part):
         cmds.connectAttr(f"{sealDriverNode}.{indexName}", target)
 
 #create Corner pin 
-def createJawPin():
+def createJawPin(createTweaks):
 
     pinDriverNode = cmds.createNode("lightInfo", name = f"{CENTER}_pin_Driver")
     jaw_attr = "jaw_attributes"
@@ -1347,15 +1441,35 @@ def createJawPin():
         cmds.connectAttr(f"{divisionNode}.output", f"{pinDriverNode}.{side}_pin")
 
         #connect to constraints
-        constPinUp = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchUpper_jnt_zroW0"
 
-        constPinLower = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchLower_jnt_zroW1"
+        if not createTweaks:
+            constPinUp = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchUpper_jnt_zroW0"
+
+            constPinLower = f"{side}_jaw_mchCorner_jnt_zro_parentConstraint1.{CENTER}_jaw_mchLower_jnt_zroW1"
+        else:
+            constPinUp = f"{side}_jaw_mchCorner_ctrl_const_parentConstraint1.{CENTER}_jaw_mchUpper_ctrl_constW0"
+
+            constPinLower = f"{side}_jaw_mchCorner_ctrl_const_parentConstraint1.{CENTER}_jaw_mchLower_ctrl_constW1"
 
         cmds.connectAttr(f"{pinDriverNode}.{side}_pin", constPinUp)
 
         reverseNode = cmds.createNode("reverse", name = f"{side}_corner_pin_rev")
         cmds.connectAttr(f"{pinDriverNode}.{side}_pin", f"{reverseNode}.inputX")
         cmds.connectAttr(f"{reverseNode}.outputX", constPinLower)
+
+#create The connection between the ctrls and the joints
+def connectTweakCtrlToSkinJoints():
+    skinJoints = cmds.listRelatives(f"{CENTER}_{JAW}lipSkinJnt_{GROUP}")
+
+    tweakCtrls = cmds.listRelatives(f"{CENTER}_{JAW}lipSkin{CTRL}_{GROUP}")
+
+    for index, node in enumerate(tweakCtrls):
+        tweakCtrls[index] = cmds.listRelatives(node, allDescendents = True)[1]
+
+    log.info(f"{tweakCtrls}")
+
+    for index, jnt in enumerate(skinJoints):
+        cmds.parentConstraint(tweakCtrls[index], jnt)
 
 
 #=======================================
