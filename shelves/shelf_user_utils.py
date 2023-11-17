@@ -41,6 +41,7 @@ from tlpf_toolkit.systems import LipSetup
 from tlpf_toolkit.systems import EyeLidSetup
 from tlpf_toolkit.systems import SplineSystem
 from tlpf_toolkit.systems import SpaceSwapping
+from tlpf_toolkit.systems import RibbonSetup
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -66,6 +67,8 @@ from tlpf_toolkit.ctrlShapes import color as ctl_color
 from tlpf_toolkit.ctrlShapes import core as ctl_core
 from tlpf_toolkit.ctrlShapes import functions as ctl_func
 from tlpf_toolkit.ctrlShapes import transform as ctl_trans
+
+from tlpf_toolkit.curves import CurveFunctions
 
 
 
@@ -227,6 +230,12 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(revFootMenu, "RevFoot Setup V001", command= lambda _: ReverseFootSetup.revFootSetup01ConfigUI())
 
+        #Ribbon
+        self.addButton(label="", icon=ICON_DIR + "/V003/ribbon.png", command="")
+        ribbonMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(ribbonMenu, "Guided Ribbon", command= lambda _: RibbonSetup.guidedRibbonUI())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
         
@@ -237,8 +246,6 @@ class load(shelf_base._shelf):
         self.addMenuItem(dynamicsMenu, "Sam Jiggle Setup", command=lambda _: JiggleSetup.createSamJiggleSetup())
 
         self.addMenuItem(dynamicsMenu, "Tim Jiggle Setup", command=lambda _: JiggleSetup.TimJiggleSetupConfigInterface())
-
-
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
@@ -461,6 +468,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(LocatorMenu, "Create Loc at Loc/Rot", command=lambda _: LocatorFunctions.create_locator_snap())
 
+        self.addMenuItem(LocatorMenu, "Add Inbetween Locators", command=lambda _: LocatorFunctions.createInbetweenLocators())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
@@ -517,6 +526,17 @@ class load(shelf_base._shelf):
         self.addMenuItemDivider(AttrMenu, divider=True, dividerLabel="ROTATE ORDER")
 
         self.addMenuItem(AttrMenu, "Set Rotation Order", command=lambda _: RotationOrderAttributeFunctions.setRotationOrderUI())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
+
+        #Curve Menu
+        self.addButton(label="", icon=ICON_DIR + "/V003/curve.png")
+        curveMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(curveMenu, "Snap to Closest Curve Point", command=lambda _: CurveFunctions.snapSelectionToClosestCurvePoint())
+        
+        self.addMenuItem(curveMenu, "Create Curve from Selection", command=lambda _: CurveFunctions.createLinearCurveFromSelectionConfig())
 
         
 
