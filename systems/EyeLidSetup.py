@@ -3,6 +3,7 @@ import maya.cmds as cmds
 from tlpf_toolkit.ui import common
 from tlpf_toolkit.ctrlShapes import utils
 from tlpf_toolkit import global_variables
+from tlpf_toolkit.curves import CurveFunctions
 import time
 
 import logging
@@ -77,30 +78,6 @@ def createAimedAtLocators(_baseName, _constraintObjects, _targetPositions, _upVe
         
     #return output List
     return outputLocators   
-
-
-#create Linear Curve from Selection
-def createLinearCurveFromSelection(_objSelection, _crvName):
-
-    #define Curve Point Positions and Knots
-    pointPositions = []
-    knots = []
-
-    #iterate over selection
-    for i in range(len(_objSelection)):
-
-        #get woldspace point position and store it in the point position list
-        newPos = cmds.xform(_objSelection[i], q=True, ws=True, t=True)
-        pointPositions.append(newPos)
-
-        #add Knot into Knot list
-        knots.append(i)
-    
-    newCurve = cmds.curve(d=1, p=pointPositions, k=knots, n = _crvName)
-    cmds.rename(cmds.listRelatives(newCurve, shapes=True), _crvName + "Shape")
-
-    return newCurve, knots
-
 
 #bind Objects to Closest Point on Curve
 def bindObjectToCurve(_objects, _curve, _UParameter, _name = "pci"):
@@ -182,7 +159,7 @@ def BuildEyelidSetup(_baseName, _centerPos):
     AimLocatorGrp = cmds.group([upperEyelidAimLocatorGrp, lowerEyelidAimLocatorGrp], name= baseName + "AimLocator_grp", world=True)
 
     #create Curve from Selected Positions
-    upperEyelidDefCurve, upperEyelidDefCurveParameters = createLinearCurveFromSelection(upperAimLocators, baseName + "UpperDefCurve")
+    upperEyelidDefCurve, upperEyelidDefCurveParameters = CurveFunctions.createLinearCurveFromSelection(upperAimLocators, baseName + "UpperDefCurve")
 
     updatedlowerEylidAimLocators = lowerAimLocators
 
@@ -190,7 +167,7 @@ def BuildEyelidSetup(_baseName, _centerPos):
 
     updatedlowerEylidAimLocators.append(upperAimLocators[-1])
 
-    lowerEyelidDefCurve, lowerEyelidDefCurveParameters = createLinearCurveFromSelection(updatedlowerEylidAimLocators, baseName + "lowerDefCurve")
+    lowerEyelidDefCurve, lowerEyelidDefCurveParameters = CurveFunctions.createLinearCurveFromSelection(updatedlowerEylidAimLocators, baseName + "lowerDefCurve")
 
     #bind locators to curve 
     bindObjectToCurve(upperAimLocators, upperEyelidDefCurve, upperEyelidDefCurveParameters, "UpperEyelid_PointInfo")
