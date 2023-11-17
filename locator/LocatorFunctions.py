@@ -201,3 +201,31 @@ def snap_object():
 #=======================================
 ## Create Locator at Selected Loc/Rot - END
 #=======================================
+
+#=======================================
+## Create Locators innbetween Locators
+#=======================================
+
+def createInbetweenLocators():
+
+    targets = cmds.ls(flatten = True, os= True)
+
+    for index, item in enumerate(targets):
+        if not ((index + 1) == len(targets)):
+            guide01Pos = cmds.xform(item, query=True, translation=True, worldSpace=True)
+            guide02Pos = cmds.xform(targets[index + 1], query = True,translation=True, worldSpace=True)
+            
+            newGuide = list()
+            
+            for col in "012":
+                print(col)
+                newGuidePos = (guide02Pos[int(col)] - guide01Pos[int(col)]) * 0.5 + guide01Pos[int(col)]
+                newGuide.append(newGuidePos)
+            
+            print(newGuide)
+            newLoc = cmds.spaceLocator()[0]
+            cmds.xform(newLoc, translation = newGuide, worldSpace=True)
+
+#=======================================
+## Create Locators innbetween Locators - END
+#=======================================
