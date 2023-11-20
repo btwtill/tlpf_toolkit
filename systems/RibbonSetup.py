@@ -1,7 +1,11 @@
 #Module Import
 import maya.cmds as cmds
 import maya.app as app
+import maya.mel as mel
+import maya.internal.common.cmd.base
 from tlpf_toolkit.curves import CurveFunctions
+from tlpf_toolkit.utils import ZeroOffsetFunction
+from tlpf_toolkit.mtrx import MatrixZeroOffset
 
 import logging
 import os
@@ -58,6 +62,7 @@ def guidedRibbonUI():
     #Space Divider
     cmds.text(label="", height=10)
 
+
     #Manual Guides Label
     guidesLabel = cmds.text(label="Manual Guides", height = 20, backgroundColor = [.3, .3, .3])
 
@@ -68,11 +73,38 @@ def guidedRibbonUI():
     #Space Divider
     cmds.text(label="", height=10)
 
+    #Tweak Ctrls checkbox
+    createTweakCtrls = cmds.checkBox(label="Create Tweak Ctrls", value = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #DO Auto Bind Checkbox
+    doAutoBind = cmds.checkBox(label="Bind to Mesh", value = False, changeCommand = lambda _: toggleAutoBindMesh(autoBindMeshBtn))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    autoBindMeshBtn = cmds.button(label="Define Bind Mesh", command = lambda _: updateBindMeshButton(autoBindMeshBtn), enable = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    doMirrorRibbon = cmds.checkBox(label = "Mirror X", value = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
     #Build Ribbon Label
     buildRibbonLabel = cmds.text(label="Create Guided Ribbon", height = 20, backgroundColor = [.3, .3, .3])
 
     #create Guides Button
-    buildRibbonButton = cmds.button(label="Build Ribbon", height = 40, command = lambda _: buildGuidedRibbon("l", "armVineC"))
+    buildRibbonButton = cmds.button(label="Build Ribbon", height = 40, command = lambda _: buildGuidedRibbon(getSideUserInput([setLeftSideBtn, setCenterBtn, setRightBtn]), 
+                                                                                                         cmds.textField(baseNameTextField, query = True, text = True), 
+                                                                                                         cmds.checkBox(createTweakCtrls, query = True, value = True),
+                                                                                                         cmds.checkBox(doAutoBind, query = True, value = True),
+                                                                                                         cmds.checkBox(doMirrorRibbon, query = True, value = True), 
+                                                                                                         cmds.button(autoBindMeshBtn, query = True, label = True)))
 
     cmds.showWindow(configWindow)
 
@@ -113,11 +145,34 @@ def remapValues(list, min, max, outMin=0, outMax=1):
     ]
     return remapped_values
 
-#Build the Ribbon
-def buildGuidedRibbon(side, baseName):
+def updateBindMeshButton(button):
+    cmds.button(button, edit = True, label= cmds.ls(selection=True)[0], backgroundColor = [0, 0.5, 0])
 
-    createRibbonHirarchy(side, baseName)
-    createRibbonCurve(side, baseName)
+def toggleAutoBindMesh(button):
+    buttonState = cmds.button(button, query = True, enable = True)
+    cmds.button(button, edit = True, enable = not buttonState)
+
+#Build the Ribbon
+def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibbon, bindMesh):
+
+    createRibbonHirarchy(side, baseName, createTweakCtrls)
+    ribbonPatch = createRibbonCurve(side, baseName)
+    createRibbonDeformJoints(side, baseName, createTweakCtrls)
+    createRibbonControls(side, baseName, ribbonPatch)
+
+    if doMirrorRibbon:
+        mirroredSide = defineMirroredSideLabel(side)
+        mirrorGuides(side, mirroredSide, baseName)
+
+        createRibbonHirarchy(mirroredSide, baseName, createTweakCtrls)
+        ribbonPatch = createRibbonCurve(mirroredSide, baseName)
+        createRibbonDeformJoints(mirroredSide, baseName, createTweakCtrls)
+        createRibbonControls(mirroredSide, baseName, ribbonPatch)
+
+    if doBindMesh:
+        bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, defineMirroredSideLabel(side), side, baseName)
+
+    addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, defineMirroredSideLabel(side))
 
 #create Guide Hirarchy Function
 def createGuideHirarchy(side, baseName):
@@ -129,7 +184,7 @@ def createGuideHirarchy(side, baseName):
     ctrlGuidesGrp = cmds.createNode("transform", name = f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}", parent = mainGuideGrp)
 
 #create Ribbon Hirarchy Function
-def createRibbonHirarchy(side, baseName):
+def createRibbonHirarchy(side, baseName, createTweakCtrls):
 
     mainRibbonGrp = cmds.createNode("transform", name = f"{side}_{baseName}_Rig_{GROUP}")
 
@@ -142,14 +197,20 @@ def createRibbonHirarchy(side, baseName):
     #Ctrls Grp
     ctrlRibbonGrp = cmds.createNode("transform", name = f"{side}_{baseName}_{CTRL}_{GROUP}", parent = mainRibbonGrp)
 
+    #tweakCtrl
+    if createTweakCtrls:
+        ribbonTweakCtrlsGrp = cmds.createNode("transform", name = f"{side}_{baseName}_Tweak{CTRL}_{GROUP}",  parent = mainRibbonGrp)
+
 # create the Curve used to build the Surface Patch of the Ribbon
 def createRibbonCurve(side, baseName):
 
     guideLocators = cmds.listRelatives(f"{side}_{baseName}_Pin{GUIDES}_{GROUP}")
 
-    ribbonCurve, ribbonCurveKnots = CurveFunctions.createLinearCurveFromSelection(guideLocators, f"{side}_CenterRibbon_{CURVE}")
+    ribbonCurve, ribbonCurveKnots = CurveFunctions.createLinearCurveFromSelection(guideLocators, f"{side}_{baseName}_CenterRibbon_{CURVE}")
 
     cmds.parent(ribbonCurve, f"{side}_{baseName}_{CURVE}_{GROUP}")
+
+    print(ribbonCurve, side)
 
     cmds.rebuildCurve(ribbonCurve, ch = True, rpo = True, rt = 0, end = 1, kr = 0, kcp = False, kep = True, kt = False, spans = len(cmds.listRelatives(f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}")) - 1, d = 3, tol = 0.01) 
 
@@ -186,13 +247,204 @@ def createRibbonCurve(side, baseName):
 
     cmds.select(clear=True)
 
-    upperCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_UpperRibbon_{CURVE}")[0]
+    upperCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}_UpperRibbon_{CURVE}")[0]
     cmds.setAttr(f"{upperCurve}.translateY", 0.3)
 
-    lowerCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_LowerRibbon_{CURVE}")[0]
+    lowerCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}__LowerRibbon_{CURVE}")[0]
     cmds.setAttr(f"{lowerCurve}.translateY", -0.3)
 
-    ribbonSurfacePatch = cmds.loft(upperCurve, lowerCurve, su = 3, sv = 1)
-    cmds.rebuildSurface(ribbonSurfacePatch)
+    ribbonSurfacePatch = cmds.loft(lowerCurve, upperCurve, ch = 1, u = 1, c = 0, ar = 1, d = 3, ss = 1, rn = 0, po = 0, rsn = True, name = f"{side}_{baseName}_SurfacePatch")[0]
+    cmds.rebuildSurface(ribbonSurfacePatch, sv = 1, su = len(cmds.listRelatives(f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}")) - 1, du = 3, dv = 1)
+
+    cmds.select(clear=True)
+    cmds.select(ribbonSurfacePatch)
+    cmds.select(cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}"), add = True)
+
+    maya.internal.common.cmd.base.executeCommand('uvpin.cmd_create')
+    cmds.select(clear=True)
+
+    cmds.parent(ribbonSurfacePatch, f"{side}_{baseName}_{CURVE}_{GROUP}")
+
+    return ribbonSurfacePatch
+
+# create and organize the deformation joints of the ribbon
+def createRibbonDeformJoints(side, baseName, createTweakCtrls):
+
+    pins = cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}")
 
     
+    for index, pin in enumerate(pins):
+
+        if not createTweakCtrls:
+            cmds.select(clear=True)
+            cmds.select(pin)
+            newSkinJoint = cmds.joint(name = f"{side}_{baseName}{index:02d}_{SKIN}")
+        else:
+            pinMatrix = cmds.xform(pin, q = True, m = True, worldSpace = True)
+
+            newCtrl = cmds.circle(name = f"{side}_{baseName}Tweak{index:02d}_{CTRL}")[0]
+            cmds.xform(newCtrl, m = pinMatrix, worldSpace=True)
+            cmds.parent(newCtrl, pin)
+
+            cmds.select(clear = True)
+            cmds.select(newCtrl)
+            zeroNode = ZeroOffsetFunction.insertNodeBefore(sfx = "_zro")[0]
+        
+            cmds.select(clear = True)
+            cmds.select(newCtrl)
+            MatrixZeroOffset.createMatrixZeroOffset(newCtrl)
+
+            cmds.select(clear=True)
+
+            cmds.parent(newCtrl, f"{side}_{baseName}_Tweak{CTRL}_{GROUP}")
+
+            cmds.select(clear=True)
+
+            cmds.select(newCtrl)
+            newSkinJoint = cmds.joint(name = f"{side}_{baseName}{index:02d}_{SKIN}")
+
+#create the ctrl Joints, transforms and ctrls
+def createRibbonControls(side, baseName, surfacePatch):
+    ctrlGuides = cmds.listRelatives(f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}")
+
+    ctrlJoints = list()
+
+    for index, ctrl in enumerate(ctrlGuides):
+        guideMatrix = cmds.xform(ctrl, query = True, m = True, worldSpace= True)
+
+        cmds.select(clear= True)
+
+        newCtrlJoint = cmds.joint(name = f"{side}_{baseName}Ctrl{index:02d}_{JOINT}")
+        cmds.setAttr(f"{newCtrlJoint}.radius", 1.5)
+        ctrlJoints.append(newCtrlJoint)
+
+        newCtrl = cmds.circle(name = f"{side}_{baseName}{index:02d}_{CTRL}")[0]
+        cmds.parent(newCtrlJoint, newCtrl)
+        cmds.xform(newCtrl, m = guideMatrix, ws = True)
+        cmds.parent(newCtrl, f"{side}_{baseName}_{CTRL}_{GROUP}")
+
+        cmds.select(clear=True)
+        cmds.select(newCtrl)
+        ZeroOffsetFunction.insertNodeBefore(sfx= "_zro")
+
+        cmds.select(clear=True)
+        cmds.select(newCtrl)
+        ZeroOffsetFunction.insertNodeBefore(sfx= "_const")
+
+        cmds.select(clear=True)
+        cmds.select(newCtrl)
+        ZeroOffsetFunction.insertNodeBefore(sfx= "_off")
+
+    cmds.select(clear= True)
+
+    cmds.select(ctrlJoints)
+    cmds.select(surfacePatch, add = True)
+
+    maya.internal.common.cmd.base.executeCommand('skincluster.cmd_create')
+
+#get the prefix for the mirrored Side Names  
+def defineMirroredSideLabel(side):
+    if side == "l":
+        return "r"
+    if side == "r":
+        return "l"
+
+#mirror The Guides in world X  
+def mirrorGuides(side, mirrorSide, baseName):
+
+    mainGroup = f"{side}_{baseName}_{GUIDES}_{GROUP}"
+
+    mainMirrorGroup = cmds.duplicate(mainGroup)[0]
+
+    print(mainMirrorGroup)
+
+    cmds.select(clear = True)
+    cmds.select(mainMirrorGroup)
+    
+    mel.eval('searchReplaceNames "{}_" "{}_" "hierarchy"'.format(side, mirrorSide))
+    mainMirrorGroup = cmds.rename(f"{mirrorSide}_{baseName}_{GUIDES}_{GROUP}1", f"{mirrorSide}_{baseName}_{GUIDES}_{GROUP}")
+
+    print(mainMirrorGroup)
+
+    tmpMirrorGrp = cmds.createNode("transform", name = f"{baseName}_TmpMirroGrp")
+    cmds.parent(mainMirrorGroup, tmpMirrorGrp)
+
+    cmds.setAttr(f"{tmpMirrorGrp}.scaleX", -1)
+    cmds.parent(mainMirrorGroup, world=True)
+    cmds.delete(tmpMirrorGrp)
+
+#Bind the selected mesh to the deformation Joints
+def SelectDeformationJoints(mirrored, createTweakCtrls, mirroredSide, side, baseName):
+
+    if not mirrored:
+        if createTweakCtrls:
+            skinjoints = cmds.listRelatives(f"{side}_{baseName}_Tweak{CTRL}_{GROUP}")
+            cmds.select(clear = True)
+            cmds.select(skinjoints)
+            cmds.pickWalk(direction="Down")
+            cmds.pickWalk(direction="right")
+        else:
+            skinjoints = cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}")
+            cmds.select(clear = True)
+            cmds.select(skinjoints)
+            cmds.pickWalk(direction="Down")
+            cmds.pickWalk(direction="right")
+    else:
+        if createTweakCtrls:
+            skinJointsSide01 = cmds.listRelatives(f"{side}_{baseName}_Tweak{CTRL}_{GROUP}")
+            skinJointsSide02 = cmds.listRelatives(f"{mirroredSide}_{baseName}_Tweak{CTRL}_{GROUP}")
+
+            cmds.select(clear = True)
+            cmds.select(skinJointsSide01)
+            cmds.select(skinJointsSide02, add = True)
+
+            cmds.pickWalk(direction="Down")
+            cmds.pickWalk(direction="right")
+        else:
+            skinJointsSide01 = cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}")
+            skinJointsSide02 = cmds.listRelatives(f"{mirroredSide}_{baseName}_Pin_{GROUP}")
+
+            cmds.select(clear = True)
+            cmds.select(skinJointsSide01)
+            cmds.select(skinJointsSide02, add = True)
+            cmds.pickWalk(direction="Down")
+            cmds.pickWalk(direction="right")
+
+def bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, mirrorSide, side, baseName):
+
+    SelectDeformationJoints(doMirrorRibbon, createTweakCtrls, mirrorSide, side, baseName)
+
+    cmds.select(bindMesh, add=True)
+
+    skinCluster = maya.internal.common.cmd.base.executeCommand('skincluster.cmd_create')
+
+    cmds.select(clear=True)
+
+def addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, mirroredSide):
+
+    cmds.addAttr(f"{side}_{baseName}_Rig_{GROUP}", at= "float", ln = f"{baseName}_MechanismVisibility", min = 0, max = 1, dv = 0)
+    cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{side}_{baseName}_{CURVE}_{GROUP}.visibility")
+
+    cmds.select(clear=True)
+    SelectDeformationJoints(doMirrorRibbon, createTweakCtrls, mirroredSide, side, baseName)
+
+    deformationJoints = cmds.ls(selection=True)
+    cmds.select(clear=True)
+
+    for jnt in deformationJoints:
+        cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{jnt}.visibility")
+
+    pins = cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}")
+
+    for pin in pins:
+        cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{pin}.visibility")
+
+    if doMirrorRibbon:
+
+        cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{mirroredSide}_{baseName}_{CURVE}_{GROUP}.visibility")
+
+        pins = cmds.listRelatives(f"{mirroredSide}_{baseName}_Pin_{GROUP}")
+
+        for pin in pins:
+            cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{pin}.visibility")
+

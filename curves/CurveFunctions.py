@@ -64,7 +64,9 @@ def createLinearCurveFromSelection(_objSelection, _crvName = "curve"):
         #add Knot into Knot list
         knots.append(i)
     
+    print(_crvName)
     newCurve = cmds.curve(d=1, p=pointPositions, k=knots, n = _crvName)
+    print(newCurve)
     cmds.rename(cmds.listRelatives(newCurve, shapes=True), _crvName + "Shape")
 
     return newCurve, knots
