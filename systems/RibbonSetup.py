@@ -79,6 +79,16 @@ def guidedRibbonUI():
     #Space Divider
     cmds.text(label="", height=10)
 
+    setCustomTweakCtrl = cmds.checkBox(label = "Custom Tweak Control Object", value = False, changeCommand = lambda _: toggleAutoBindMesh(customTweakCtrlBtn))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    customTweakCtrlBtn = cmds.button(label="Set Custom Tweak Ctrl", height = 30, command = lambda _: updateBindMeshButton(customTweakCtrlBtn), enable = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
     #DO Auto Bind Checkbox
     doAutoBind = cmds.checkBox(label="Bind to Mesh", value = False, changeCommand = lambda _: toggleAutoBindMesh(autoBindMeshBtn))
 
@@ -95,6 +105,16 @@ def guidedRibbonUI():
     #Space Divider
     cmds.text(label="", height=10)
 
+    setCustomCtrl = cmds.checkBox(label = "Custom Control Object", value = False, changeCommand = lambda _: toggleAutoBindMesh(customCtrlBtn))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    customCtrlBtn = cmds.button(label="Set Custom Ctrl", height = 30, command = lambda _: updateBindMeshButton(customCtrlBtn), enable = False)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
     #Build Ribbon Label
     buildRibbonLabel = cmds.text(label="Create Guided Ribbon", height = 20, backgroundColor = [.3, .3, .3])
 
@@ -104,7 +124,11 @@ def guidedRibbonUI():
                                                                                                          cmds.checkBox(createTweakCtrls, query = True, value = True),
                                                                                                          cmds.checkBox(doAutoBind, query = True, value = True),
                                                                                                          cmds.checkBox(doMirrorRibbon, query = True, value = True), 
-                                                                                                         cmds.button(autoBindMeshBtn, query = True, label = True)))
+                                                                                                         cmds.button(autoBindMeshBtn, query = True, label = True),
+                                                                                                         cmds.checkBox(setCustomCtrl, query = True, value = True), 
+                                                                                                         cmds.button(customCtrlBtn, query = True, label = True),
+                                                                                                         cmds.checkBox(setCustomTweakCtrl, query = True, value = True), 
+                                                                                                         cmds.button(customTweakCtrlBtn, query = True, label = True)))
 
     cmds.showWindow(configWindow)
 
@@ -153,12 +177,12 @@ def toggleAutoBindMesh(button):
     cmds.button(button, edit = True, enable = not buttonState)
 
 #Build the Ribbon
-def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibbon, bindMesh):
+def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibbon, bindMesh, doCustomCtrl, customCtrlObject, doCustomTweakCtrl, customTweakCtrlObject):
 
     createRibbonHirarchy(side, baseName, createTweakCtrls)
     ribbonPatch = createRibbonCurve(side, baseName)
-    createRibbonDeformJoints(side, baseName, createTweakCtrls)
-    createRibbonControls(side, baseName, ribbonPatch)
+    createRibbonDeformJoints(side, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
+    createRibbonControls(side, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
 
     if doMirrorRibbon:
         mirroredSide = defineMirroredSideLabel(side)
@@ -166,8 +190,9 @@ def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibb
 
         createRibbonHirarchy(mirroredSide, baseName, createTweakCtrls)
         ribbonPatch = createRibbonCurve(mirroredSide, baseName)
-        createRibbonDeformJoints(mirroredSide, baseName, createTweakCtrls)
-        createRibbonControls(mirroredSide, baseName, ribbonPatch)
+        createRibbonDeformJoints(mirroredSide, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
+        createRibbonControls(mirroredSide, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
+        cleanMirroredCtrlJoints(mirroredSide, baseName)
 
     if doBindMesh:
         bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, defineMirroredSideLabel(side), side, baseName)
@@ -268,7 +293,7 @@ def createRibbonCurve(side, baseName):
     return ribbonSurfacePatch
 
 # create and organize the deformation joints of the ribbon
-def createRibbonDeformJoints(side, baseName, createTweakCtrls):
+def createRibbonDeformJoints(side, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject):
 
     pins = cmds.listRelatives(f"{side}_{baseName}_Pin_{GROUP}")
 
@@ -282,7 +307,16 @@ def createRibbonDeformJoints(side, baseName, createTweakCtrls):
         else:
             pinMatrix = cmds.xform(pin, q = True, m = True, worldSpace = True)
 
-            newCtrl = cmds.circle(name = f"{side}_{baseName}Tweak{index:02d}_{CTRL}")[0]
+            if doCustomTweakCtrl:
+                newCtrl = cmds.duplicate(customTweakCtrlObject, name = f"{side}_{baseName}Tweak{index:02d}_{CTRL}")[0]
+
+                for channel in "XYZ":
+                    cmds.setAttr(f"{newCtrl}.translate{channel}", 0)
+                    cmds.setAttr(f"{newCtrl}.rotate{channel}", 0)
+                    cmds.setAttr(f"{newCtrl}.scale{channel}", 1)
+            else:
+                newCtrl = cmds.circle(name = f"{side}_{baseName}Tweak{index:02d}_{CTRL}")[0]
+
             cmds.xform(newCtrl, m = pinMatrix, worldSpace=True)
             cmds.parent(newCtrl, pin)
 
@@ -304,7 +338,7 @@ def createRibbonDeformJoints(side, baseName, createTweakCtrls):
             newSkinJoint = cmds.joint(name = f"{side}_{baseName}{index:02d}_{SKIN}")
 
 #create the ctrl Joints, transforms and ctrls
-def createRibbonControls(side, baseName, surfacePatch):
+def createRibbonControls(side, baseName, surfacePatch, doCustomCtrl, customCtrlObject):
     ctrlGuides = cmds.listRelatives(f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}")
 
     ctrlJoints = list()
@@ -318,7 +352,16 @@ def createRibbonControls(side, baseName, surfacePatch):
         cmds.setAttr(f"{newCtrlJoint}.radius", 1.5)
         ctrlJoints.append(newCtrlJoint)
 
-        newCtrl = cmds.circle(name = f"{side}_{baseName}{index:02d}_{CTRL}")[0]
+        if doCustomCtrl:
+            newCtrl = cmds.duplicate(customCtrlObject, name = f"{side}_{baseName}{index:02d}_{CTRL}")[0]
+
+            for channel in "XYZ":
+                cmds.setAttr(f"{newCtrl}.translate{channel}", 0)
+                cmds.setAttr(f"{newCtrl}.rotate{channel}", 0)
+                cmds.setAttr(f"{newCtrl}.scale{channel}", 1)
+        else:
+            newCtrl = cmds.circle(name = f"{side}_{baseName}{index:02d}_{CTRL}")[0]
+
         cmds.parent(newCtrlJoint, newCtrl)
         cmds.xform(newCtrl, m = guideMatrix, ws = True)
         cmds.parent(newCtrl, f"{side}_{baseName}_{CTRL}_{GROUP}")
@@ -373,7 +416,7 @@ def mirrorGuides(side, mirrorSide, baseName):
     cmds.parent(mainMirrorGroup, world=True)
     cmds.delete(tmpMirrorGrp)
 
-#Bind the selected mesh to the deformation Joints
+#selecte the Deformation Joints
 def SelectDeformationJoints(mirrored, createTweakCtrls, mirroredSide, side, baseName):
 
     if not mirrored:
@@ -410,6 +453,7 @@ def SelectDeformationJoints(mirrored, createTweakCtrls, mirroredSide, side, base
             cmds.pickWalk(direction="Down")
             cmds.pickWalk(direction="right")
 
+#bin selected Geometry to the Deformation Joints
 def bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, mirrorSide, side, baseName):
 
     SelectDeformationJoints(doMirrorRibbon, createTweakCtrls, mirrorSide, side, baseName)
@@ -420,6 +464,7 @@ def bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, mirr
 
     cmds.select(clear=True)
 
+#adding extra attribute to main Group and Hide all mechanism parts of the ribbon
 def addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, mirroredSide):
 
     cmds.addAttr(f"{side}_{baseName}_Rig_{GROUP}", at= "float", ln = f"{baseName}_MechanismVisibility", min = 0, max = 1, dv = 0)
@@ -439,6 +484,12 @@ def addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, mi
     for pin in pins:
         cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{pin}.visibility")
 
+
+    ctrlJointsMainSide = getCtrlJoints(side, baseName)
+    for jnt in ctrlJointsMainSide:
+        cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{jnt}.visibility")
+
+
     if doMirrorRibbon:
 
         cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{mirroredSide}_{baseName}_{CURVE}_{GROUP}.visibility")
@@ -447,4 +498,41 @@ def addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, mi
 
         for pin in pins:
             cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{pin}.visibility")
+        
+        ctrlJointsMirroredSide = getCtrlJoints(mirroredSide, baseName)
 
+        for jnt in ctrlJointsMirroredSide:
+            cmds.connectAttr(f"{side}_{baseName}_Rig_{GROUP}.{baseName}_MechanismVisibility", f"{jnt}.visibility")
+    
+#get all the Ctrl Joints in the Ribbon
+def getCtrlJoints(side, baseName):
+
+    ctrlJoints = list()
+
+    ctrlHirarchysMainSide = cmds.listRelatives(f"{side}_{baseName}_{CTRL}_{GROUP}")
+
+    for obj in ctrlHirarchysMainSide:
+        ctrlJoints.append(cmds.listRelatives(obj, allDescendents=True)[1])
+
+    return ctrlJoints
+
+#set the Rotation value for ctrl and Constraint node to 0
+def cleanMirroredCtrlJoints(side, baseName):
+
+    ctrlsNode = list()
+    constNode = list()
+
+    ctrlHirarchysMainSide = cmds.listRelatives(f"{side}_{baseName}_{CTRL}_{GROUP}")
+
+    for obj in ctrlHirarchysMainSide:
+        ctrlsNode.append(cmds.listRelatives(obj, allDescendents=True)[2])
+        constNode.append(cmds.listRelatives(obj, allDescendents=True)[-1])
+
+    print(ctrlsNode, constNode)
+    for index, node in enumerate(ctrlsNode):
+        cmds.setAttr(f"{node}.rotateZ", 0) ############## Needs adjustment if Mirror side ever should change from Mirror X to Y OR Z
+        cmds.setAttr(f"{constNode[index]}.rotateZ", 0) ############## Needs adjustment if Mirror side ever should change from Mirror X to Y OR Z
+
+
+##TODO
+##Forward Visibility Attribute for Tweak and Main Ctrls to Main Grp
