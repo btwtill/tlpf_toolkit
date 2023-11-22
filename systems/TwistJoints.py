@@ -29,20 +29,37 @@ def twistSetupConfigInterface():
     #create slider for twist joint amount selection by user
     slider = cmds.floatSlider(min=0, max=30, value=0, step=1, changeCommand=update_label)
 
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    setCustomCtrl = cmds.checkBox(label = "Custom Control Object", value = False, changeCommand = lambda _: toggleButtonState(customCtrlBtn))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    customCtrlBtn = cmds.button(label="Set Custom Ctrl", height = 30, command = lambda _: updateButtonToSelection(customCtrlBtn), enable = False)
+
     #button for executing the function to build the twist joints
-    cmds.button(label="Create Twist Joints", command=lambda _:createTwistSetup(cmds.floatSlider(slider, query=True, value=True)))
+    cmds.button(label="Create Twist Joints", command=lambda _:createTwistSetup(cmds.floatSlider(slider, query=True, value=True),
+                                                                               cmds.checkBox(setCustomCtrl, query = True, value = True),
+                                                                               cmds.button(customCtrlBtn, query = True, label = True)))
 
     #build and show the window
     cmds.showWindow(configWindow)
 
+def toggleButtonState(button):
+    buttonState = cmds.button(button, query = True, enable = True)
+    cmds.button(button, edit = True, enable = not buttonState)
 
+def updateButtonToSelection(button):
+    cmds.button(button, edit = True, label= cmds.ls(selection=True)[0], backgroundColor = [0, 0.5, 0])
 
 #function to set the new user input into the label of how many twist joints are selected
 def update_label(value):
     cmds.text(label, edit=True, label=str(int(value)))
 
 #main function to order the creation of the twist joints
-def createTwistSetup(_numberOfJoints):
+def createTwistSetup(_numberOfJoints, doCustomCtrl, ctrlObject):
 
     #store user selection number of twist joint in local variable
     numberOfJoints = int(_numberOfJoints)
@@ -57,18 +74,44 @@ def createTwistSetup(_numberOfJoints):
     #store parent name string
     name = "".join(p1)
 
-    #create the Individual twist joint and store there returned selector list in a variable
-    twistJoints = createJoints(numberOfJoints, name, p1)
+    if doCustomCtrl:
+        twistObj = createCtrls(name, p1, numberOfJoints, ctrlObject)
+    else:
+        #create the Individual twist joint and store there returned selector list in a variable
+        twistObj = createJoints(numberOfJoints, name, p1)
 
     #create two lists with the different weight values to later drive the constraint nodes weights
     weights01 , weights02 = getWeights(numberOfJoints)
 
     #create the constraints for each twist joint
-    createTwistJointPointConstraints(twistJoints, p1, p2, weights01, weights02)
+    createTwistJointPointConstraints(twistObj, p1, p2, weights01, weights02)
 
     #parent the twist joint under the Parent joint
-    parentTwistJoints(twistJoints, p1)
+    parentTwistJoints(twistObj, p1)
 
+def createCtrls(_name, _p1, _numberOfJoints, ctrlObject):
+    twistCtrls = list()
+
+    for ctrl in range(_numberOfJoints):
+        newCtrl = cmds.duplicate(ctrlObject, name = _name + "_Twist_ctrl")[0]
+
+        for channel in "XYZ":
+                cmds.setAttr(f"{newCtrl}.translate{channel}", 0)
+                cmds.setAttr(f"{newCtrl}.rotate{channel}", 0)
+                cmds.setAttr(f"{newCtrl}.scale{channel}", 1)
+
+        cmds.matchTransform(newCtrl, _p1)
+
+        cmds.select(clear=True)
+        cmds.select(newCtrl)
+
+        constraintNode = ZeroOffsetFunction.insertNodeBefore(sfx = "_const")[0]
+
+        cmds.select(clear=True)
+
+        twistCtrls.append(constraintNode)
+
+    return twistCtrls
 
 #Function to parent a list of objects to a different given Object
 def parentTwistJoints(_twistJoinst, _p1):
