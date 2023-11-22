@@ -183,6 +183,7 @@ def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibb
     ribbonPatch = createRibbonCurve(side, baseName)
     createRibbonDeformJoints(side, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
     createRibbonControls(side, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
+    exposeVisibilityAttribute(side, baseName, createTweakCtrls)
 
     if doMirrorRibbon:
         mirroredSide = defineMirroredSideLabel(side)
@@ -193,11 +194,13 @@ def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibb
         createRibbonDeformJoints(mirroredSide, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
         createRibbonControls(mirroredSide, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
         cleanMirroredCtrlJoints(mirroredSide, baseName)
+        exposeVisibilityAttribute(mirroredSide, baseName, createTweakCtrls)
 
     if doBindMesh:
         bindSelectionToRibbonJoints(bindMesh, doMirrorRibbon, createTweakCtrls, defineMirroredSideLabel(side), side, baseName)
 
     addVisibilityAttributes(side, baseName, doMirrorRibbon, createTweakCtrls, defineMirroredSideLabel(side))
+    
 
 #create Guide Hirarchy Function
 def createGuideHirarchy(side, baseName):
@@ -533,6 +536,21 @@ def cleanMirroredCtrlJoints(side, baseName):
         cmds.setAttr(f"{node}.rotateZ", 0) ############## Needs adjustment if Mirror side ever should change from Mirror X to Y OR Z
         cmds.setAttr(f"{constNode[index]}.rotateZ", 0) ############## Needs adjustment if Mirror side ever should change from Mirror X to Y OR Z
 
+#expose the Visibility To the main grp in the Ribbon
+def exposeVisibilityAttribute(side, baseName, createTweakCtrls):
+
+    mainGrp = f"{side}_{baseName}_Rig_{GROUP}"
+    ctrlGrp = f"{side}_{baseName}_{CTRL}_{GROUP}"
+    
+    ctrlVisibilityAttr = cmds.addAttr(mainGrp, ln = "CtrlVisibility", at = "float", min = 0, max = 1, dv = 1)
+    cmds.setAttr(f"{mainGrp}.CtrlVisibility", cb = True)
+    cmds.connectAttr(f"{mainGrp}.CtrlVisibility", f"{ctrlGrp}.visibility")
+
+    if createTweakCtrls:
+        tweakCtrlGrp = f"{side}_{baseName}_Tweak{CTRL}_{GROUP}"
+        tweakCtrlVisibilityAttr = cmds.addAttr(mainGrp, ln = "TweakCtrlVisibility", at = "float", min = 0, max = 1, dv = 1)
+        cmds.setAttr(f"{mainGrp}.TweakCtrlVisibility", cb = True)
+        cmds.connectAttr(f"{mainGrp}.TweakCtrlVisibility", f"{tweakCtrlGrp}.visibility")
 
 ##TODO
 ##Forward Visibility Attribute for Tweak and Main Ctrls to Main Grp
