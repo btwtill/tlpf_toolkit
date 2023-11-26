@@ -55,6 +55,20 @@ def guidedRibbonUI():
 
     cmds.setParent('..')
 
+    cmds.columnLayout(adjustableColumn=True)
+
+    #Manual Guides Label
+    directionLabel = cmds.text(label="Define Direction", height = 20, backgroundColor = [.3, .3, .3])
+
+    cmds.setParent('..')
+
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+
+    setDirectionUpBtn = cmds.button(label="Vertical", width = 150, command = lambda _: toggleButtonColor([setDirectionUpBtn, setDirectionDownBtn], setDirectionUpBtn, [0, 0.5, 0]))
+    setDirectionDownBtn = cmds.button(label="Horizontal", width = 150, command = lambda _: toggleButtonColor([setDirectionUpBtn, setDirectionDownBtn], setDirectionDownBtn, [0, 0.5, 0]))
+
+    cmds.setParent('..')
+
     #Window Layout
     cmds.columnLayout(adjustableColumn=True)
 
@@ -128,7 +142,8 @@ def guidedRibbonUI():
                                                                                                          cmds.checkBox(setCustomCtrl, query = True, value = True), 
                                                                                                          cmds.button(customCtrlBtn, query = True, label = True),
                                                                                                          cmds.checkBox(setCustomTweakCtrl, query = True, value = True), 
-                                                                                                         cmds.button(customTweakCtrlBtn, query = True, label = True)))
+                                                                                                         cmds.button(customTweakCtrlBtn, query = True, label = True),
+                                                                                                         getRibbonDirection(([setDirectionUpBtn, setDirectionDownBtn]))))
 
     cmds.showWindow(configWindow)
 
@@ -176,11 +191,29 @@ def toggleAutoBindMesh(button):
     buttonState = cmds.button(button, query = True, enable = True)
     cmds.button(button, edit = True, enable = not buttonState)
 
+def getRibbonDirection(buttons):
+
+    side = ""
+
+    for i in buttons:
+        buttonColor = cmds.button(i, query = True, backgroundColor= True)
+        buttonColorR = round(buttonColor[0], 1)
+        buttonColorG = round(buttonColor[1], 1)
+        buttonColorB = round(buttonColor[2], 1)
+        buttonColorRound = [buttonColorR, buttonColorG, buttonColorB]
+
+        if buttonColorRound == [0, 0.5, 0]:
+            side = cmds.button(i, query = True, label = True)
+    if side == "Vertical":
+        return "Vertical"
+    else: 
+        return "Horizontal"
+    
 #Build the Ribbon
-def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibbon, bindMesh, doCustomCtrl, customCtrlObject, doCustomTweakCtrl, customTweakCtrlObject):
+def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibbon, bindMesh, doCustomCtrl, customCtrlObject, doCustomTweakCtrl, customTweakCtrlObject, direction):
 
     createRibbonHirarchy(side, baseName, createTweakCtrls)
-    ribbonPatch = createRibbonCurve(side, baseName)
+    ribbonPatch = createRibbonCurve(side, baseName, direction)
     createRibbonDeformJoints(side, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
     createRibbonControls(side, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
     exposeVisibilityAttribute(side, baseName, createTweakCtrls)
@@ -190,7 +223,7 @@ def buildGuidedRibbon(side, baseName, createTweakCtrls, doBindMesh, doMirrorRibb
         mirrorGuides(side, mirroredSide, baseName)
 
         createRibbonHirarchy(mirroredSide, baseName, createTweakCtrls)
-        ribbonPatch = createRibbonCurve(mirroredSide, baseName)
+        ribbonPatch = createRibbonCurve(mirroredSide, baseName, direction)
         createRibbonDeformJoints(mirroredSide, baseName, createTweakCtrls, doCustomTweakCtrl, customTweakCtrlObject)
         createRibbonControls(mirroredSide, baseName, ribbonPatch, doCustomCtrl, customCtrlObject)
         cleanMirroredCtrlJoints(mirroredSide, baseName)
@@ -230,7 +263,7 @@ def createRibbonHirarchy(side, baseName, createTweakCtrls):
         ribbonTweakCtrlsGrp = cmds.createNode("transform", name = f"{side}_{baseName}_Tweak{CTRL}_{GROUP}",  parent = mainRibbonGrp)
 
 # create the Curve used to build the Surface Patch of the Ribbon
-def createRibbonCurve(side, baseName):
+def createRibbonCurve(side, baseName, direction):
 
     guideLocators = cmds.listRelatives(f"{side}_{baseName}_Pin{GUIDES}_{GROUP}")
 
@@ -275,11 +308,18 @@ def createRibbonCurve(side, baseName):
 
     cmds.select(clear=True)
 
-    upperCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}_UpperRibbon_{CURVE}")[0]
-    cmds.setAttr(f"{upperCurve}.translateY", 0.3)
+    if direction == "Vertical":
+        upperCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}_UpperRibbon_{CURVE}")[0]
+        cmds.setAttr(f"{upperCurve}.translateX", 0.3)
 
-    lowerCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}__LowerRibbon_{CURVE}")[0]
-    cmds.setAttr(f"{lowerCurve}.translateY", -0.3)
+        lowerCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}__LowerRibbon_{CURVE}")[0]
+        cmds.setAttr(f"{lowerCurve}.translateX", -0.3)
+    else:
+        upperCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}_UpperRibbon_{CURVE}")[0]
+        cmds.setAttr(f"{upperCurve}.translateY", 0.3)
+
+        lowerCurve  = cmds.duplicate(ribbonCurve, name = f"{side}_{baseName}__LowerRibbon_{CURVE}")[0]
+        cmds.setAttr(f"{lowerCurve}.translateY", -0.3)
 
     ribbonSurfacePatch = cmds.loft(lowerCurve, upperCurve, ch = 1, u = 1, c = 0, ar = 1, d = 3, ss = 1, rn = 0, po = 0, rsn = True, name = f"{side}_{baseName}_SurfacePatch")[0]
     cmds.rebuildSurface(ribbonSurfacePatch, sv = 1, su = len(cmds.listRelatives(f"{side}_{baseName}_ctrl{GUIDES}_{GROUP}")) - 1, du = 3, dv = 1)
