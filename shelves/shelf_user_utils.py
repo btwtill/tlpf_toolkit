@@ -30,6 +30,7 @@ from tlpf_toolkit.utils import MatchTransformFunction
 from tlpf_toolkit.utils import ZeroOffsetFunction
 from tlpf_toolkit.utils import NamingFunctions
 from tlpf_toolkit.utils import MultiConstraintFunction
+from tlpf_toolkit.utils import GeneralFunctions
 
 from tlpf_toolkit.systems import IkFkSwitch
 from tlpf_toolkit.systems import PoleVectorFunction
@@ -126,6 +127,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(utilityMenu, "LRA", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
 
         self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
+
+        self.addMenuItem(utilityMenu, "Parent LegCtrl To bendy", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
@@ -481,6 +484,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(JointMenu, "Move Joint SRT to Matrix", command=lambda _: JointFunctions.MoveJointSRTtoParentMatirxOffset())
 
         self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
+
+        self.addMenuItem(JointMenu, "Corrective System V001", command=lambda _: JointFunctions.correctivejointSystemUI())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")

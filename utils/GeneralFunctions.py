@@ -1,7 +1,7 @@
 #Module import
 import maya.cmds as cmds
 
-
+from tlpf_toolkit.mtrx import MatrixZeroOffset
 
 #=======================================
 ## String Filter Function
@@ -87,3 +87,29 @@ def convertVerteciePositionsToLacators(verteciePos):
 #=======================================
 ## Convert Vertecie List to Locators - END
 #=======================================
+
+
+
+#Tmp Functions used for Baby Groot
+
+def parentVineCtrlToBendy():
+
+    sel  = cmds.ls(selection=True)
+
+    parentGrp = cmds.listRelatives(parent = True)[0]
+    print(parentGrp)
+
+    cmds.parent(sel[0], sel[1])
+
+    cmds.select(clear=True)
+    cmds.select(sel[0]) 
+
+    constraintNode = cmds.pickWalk(direction="down")[0]
+    print(constraintNode)
+
+    MatrixZeroOffset.createMatrixZeroOffset(constraintNode)
+
+    cmds.parent(constraintNode, parentGrp)
+    cmds.select(clear=True)
+
+    
