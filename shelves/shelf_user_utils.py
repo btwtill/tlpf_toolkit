@@ -50,6 +50,7 @@ from tlpf_toolkit.ctrls import CtrlMirror
 
 from tlpf_toolkit.mtrx import MatrixZeroOffset
 from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
+from tlpf_toolkit.mtrx import CorrectiveMatrixSetup
 
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
@@ -127,8 +128,6 @@ class load(shelf_base._shelf):
         self.addMenuItem(utilityMenu, "LRA", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
 
         self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
-
-        self.addMenuItem(utilityMenu, "Parent LegCtrl To bendy", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
@@ -410,6 +409,7 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(MatrixMenu, "Matrix Zero Offset", command=lambda _: MatrixZeroOffset.iterateCreateMatrixZeroOffset())
         self.addMenuItem(MatrixMenu, "Matrix Drv Offset", command=lambda _: MatrixZeroDrvOffset.createMatrixDrvOffset())
+        self.addMenuItem(MatrixMenu, "Ball Corrective Tool", command = lambda _: CorrectiveMatrixSetup.ballJointCorrectiveSystemUI())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
@@ -485,8 +485,6 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
 
-        self.addMenuItem(JointMenu, "Corrective System V001", command=lambda _: JointFunctions.correctivejointSystemUI())
-
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
@@ -542,6 +540,19 @@ class load(shelf_base._shelf):
         self.addMenuItem(curveMenu, "Snap to Closest Curve Point", command=lambda _: CurveFunctions.snapSelectionToClosestCurvePoint())
         
         self.addMenuItem(curveMenu, "Create Curve from Selection", command=lambda _: CurveFunctions.createLinearCurveFromSelectionConfig())
+
+        # Separator
+        self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
+
+        #Curve Menu
+        self.addButton(label="", icon=ICON_DIR + "/V003/rigs.png")
+        rigsMenu = cmds.popupMenu(b=1)
+
+        babyGrootSubMenu = self.addSubMenu(rigsMenu, "BabyGroot")
+
+        self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
+
+        
 
         
 
