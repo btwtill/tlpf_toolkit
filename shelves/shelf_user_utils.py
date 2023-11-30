@@ -129,6 +129,13 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
 
+        self.addMenuItem(utilityMenu, "Parent Replace", command=lambda _: ShapeParentFunction.ShapeReplace())
+
+        utilityNodeInputSubmenu = self.addSubMenu(utilityMenu, "SetNodeInput")
+
+        self.addMenuItem(utilityNodeInputSubmenu, "0", command = lambda _: GeneralFunctions.setNodeInputToZero())
+        self.addMenuItem(utilityNodeInputSubmenu, "1", command = lambda _: GeneralFunctions.setNodeInputToOne())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
@@ -551,6 +558,8 @@ class load(shelf_base._shelf):
         babyGrootSubMenu = self.addSubMenu(rigsMenu, "BabyGroot")
 
         self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
+        self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: GeneralFunctions.connectVisibilityRemap())
+        self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: GeneralFunctions.resetOffsetParentMatrix())
 
         
 
