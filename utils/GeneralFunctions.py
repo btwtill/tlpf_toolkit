@@ -155,12 +155,12 @@ def connectVisibilityRemap():
     cmds.connectAttr(f"{sel[0]}.translateX", f"{stage01Remap}.inputValue")
     cmds.connectAttr(f"{sel[0]}.translateX", f"{stage02Remap}.inputValue")
 
-    cmds.setAttr(f"{stage01Remap}.inputMax", 0.9)
-    cmds.setAttr(f"{stage01Remap}.outputMax", 1)
+    cmds.setAttr(f"{stage01Remap}.inputMax", 3)
+    cmds.setAttr(f"{stage01Remap}.outputMax", 0.5)
 
-    cmds.setAttr(f"{stage02Remap}.inputMin", 0.9)
-    cmds.setAttr(f"{stage02Remap}.inputMax", 1.8)
-    cmds.setAttr(f"{stage02Remap}.outputMax", 1)
+    cmds.setAttr(f"{stage02Remap}.inputMin", 3)
+    cmds.setAttr(f"{stage02Remap}.inputMax", 6)
+    cmds.setAttr(f"{stage02Remap}.outputMax", 0.5)
 
     cmds.connectAttr(f"{stage01Remap}.outValue", f"{sel[1]}.CtrlVisibility")
     cmds.connectAttr(f"{stage02Remap}.outValue", f"{sel[1]}.TweakCtrlVisibility")
