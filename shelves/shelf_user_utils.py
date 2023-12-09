@@ -73,6 +73,9 @@ from tlpf_toolkit.ctrlShapes import transform as ctl_trans
 from tlpf_toolkit.curves import CurveFunctions
 
 
+from tlpf_toolkit.builds.BabyGroot_rig import plates
+
+
 
 
 
@@ -560,6 +563,7 @@ class load(shelf_base._shelf):
         self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
         self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: GeneralFunctions.connectVisibilityRemap())
         self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: GeneralFunctions.resetOffsetParentMatrix())
+        self.addMenuItem(babyGrootSubMenu, "Plate Module", command = lambda _: plates.platesInput())
 
         
 
