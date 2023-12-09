@@ -1,83 +1,122 @@
 import maya.cmds as cmds
 import maya.internal.common.cmd.base
+from tlpf_toolkit.mtrx import MatrixZeroOffset
+from tlpf_toolkit.utils import ZeroOffsetFunction
 
 def createPlatesHirarchy():
     mainGrp = cmds.createNode("transform", name = "cn_TorsoPlates_Rig_grp")
 
     ctrlGrp = cmds.createNode("transform", name = "torsoPlates_Controls_grp", parent = mainGrp)
-    pinGrp = cmds.createNode("transform",  name = "trosoPates_Pins_grp", parent = mainGrp)
-    jointsGrp = cmds.createNode("transform",  name = "trosoPates_joints_grp", parent = mainGrp)
+    pinGrp = cmds.createNode("transform",  name = "torsoPlates_Pins_grp", parent = mainGrp)
+    jointsGrp = cmds.createNode("transform",  name = "torsoPlates_joints_grp", parent = mainGrp)
 
-def createPlatePins(meshTargetList):
-    locators = []
-    for index, i in enumerate(meshTargetList):
+def createPinLocators(guides):
+    pins = []
+    for index, guide in enumerate(guides):
+        pin = cmds.spaceLocator(name = f"{guide.replace('_guide', '_outPin')}")[0]
+        print(pin)
+        guidePos = cmds.xform(guide, query = True, m = True, ws = True)
+        cmds.xform(pin, m = guidePos, ws = True)
+        cmds.parent(pin, "torsoPlates_Pins_grp")
+        pins.append(pin)
+
+    print(pins)
+    return pins
+
+def createPlateCtrls(pins):
+    ctrls = []
+    offsets = []
+
+    for pin in pins:
+        newCtrl = cmds.duplicate("diamond", name = f"{pin.replace('_outPin', '_ctrl')}")[0]
+
+        for channel in "XYZ":
+            cmds.setAttr(f"{newCtrl}.translate{channel}", 0)
+            cmds.setAttr(f"{newCtrl}.rotate{channel}", 0)
+            cmds.setAttr(f"{newCtrl}.scale{channel}", 1)
+
+        pinPos = cmds.xform(pin, query=True, m = True, ws = True)
+        cmds.xform(newCtrl, m = pinPos, ws = True)
+
+        ctrls.append(newCtrl)
+
+        cmds.parent(newCtrl, pin)
         cmds.select(clear=True)
-        cmds.select(i)
-        sel = cmds.ls(sl = True, dag = True, type = "mesh")[0]
-        vtxList = cmds.ls("{}.vtx[:]".format(sel), fl = True)
+        cmds.select(newCtrl)
+        zroNode = ZeroOffsetFunction.insertNodeBefore(sfx = "zro")
         cmds.select(clear=True)
-        # Initialize our cntr_pos variable to "0" to start, these 3 values represent XYZ positions
-        cntr_pos = [0.0, 0.0, 0.0]
+        cmds.select(newCtrl)
+        offsetNode = ZeroOffsetFunction.insertNodeBefore(sfx = "off")[0]
 
-        # Loop through each selection and add it's XYZ position to cntr_pos
-        for j in range(0, len(vtxList)):
-            # Check if node is a transform/joint OR a component vertex/CV
-            # If a transform, we'll use the "piv" flag in the xform command for accuracy
-            if "transform" in cmds.nodeType(vtxList[j]) or "jojnt" in cmds.nodeType(vtxList[j]):
-               
-                pos = cmds.xform(vtxList[j], query=True, worldSpace=True, piv=True)
-
-            # Otherwise, we'll use the "translation" flag for all else, including components
-            else:
-               
-                pos = cmds.xform(vtxList[j], query=True, worldSpace=True, translation=True)
-
-            cntr_pos[0] = pos[0] + cntr_pos[0]
-            cntr_pos[1] = pos[1] + cntr_pos[1]
-            cntr_pos[2] = pos[2] + cntr_pos[2]
-
-        # Now divide the sum of all the positions by the number of selected items
-        cntr_pos[0] = cntr_pos[0] / len(vtxList)
-        cntr_pos[1] = cntr_pos[1] / len(vtxList)
-        cntr_pos[2] = cntr_pos[2] / len(vtxList)
-
-        # Create a locator and set it's position to the final cntr_pos value
-        loc = cmds.spaceLocator(p=[0, 0, 0], name = f"{i}_outPin")
-        locators.append(loc)
-        cmds.setAttr(loc[0] + ".translate", cntr_pos[0], cntr_pos[1], cntr_pos[2])
-        cmds.parent(loc, "trosoPates_Pins_grp")
+        offsets.append(offsetNode)
+        cmds.select(clear=True)
+        cmds.select(offsetNode)
+        MatrixZeroOffset.createMatrixZeroOffset(offsetNode)
     
-    return locators
+    cmds.parent(offsets, "torsoPlates_Controls_grp")
+    return ctrls
 
-def createJoints(pins):
+def createJoints(ctrls):
 
     plateJoints = []
 
-    for pin in pins():
+    for ctrl in ctrls:
         cmds.select(clear=True)
-        newJnt = cmds.joint(name = pin.replace("outPin", "skn"))
-        pinPos = cmds.xform(pin, query = True, m = True, ws = True)
+        print(ctrl)
+        newJnt = cmds.joint(name = ctrl.replace("ctrl", "skn"))
+        pinPos = cmds.xform(ctrl, query = True, m = True, ws = True)
         cmds.xform(newJnt, m = pinPos, ws = True)
-        cmds.parent(newJnt, pin)
+        cmds.parent(newJnt, ctrl)
         cmds.select(clear=True)
-    
+        plateJoints.append(newJnt)
+
+        cmds.select(newJnt)
+        zroNode = ZeroOffsetFunction.insertNodeBefore(sfx = "zro")
+
+        cmds.select(clear=True)
+        cmds.select(newJnt)
+        MatrixZeroOffset.createMatrixZeroOffset(newJnt)
+
+    cmds.parent(plateJoints, "torsoPlates_joints_grp")
     return plateJoints
 
+def createProximityPin(baseModel):
+    pins = cmds.listRelatives("torsoPlates_Pins_grp")
+
+    cmds.select(clear=True)
+    cmds.select(baseModel, add=True)
+    for pin in pins:
+        cmds.select(pin, add=True)
+
+    maya.internal.common.cmd.base.executeCommand('proximitypin.cmd_create')
+
 def platesInput():
-    plateGroup = ["Model_V004:front_plates_grp", "Model_V004:side_plates_grp", "Model_V004:back_plates_grp"]
+
+    guideGrp = "cn_torsoPlates_guides_grp"
+    baseModel = "Model_V004:cn_base_geo"
 
     createPlatesHirarchy()
 
-    pinList = []
+    guides = cmds.listRelatives(guideGrp)
 
-    for grp in plateGroup:
-        meshList = cmds.listRelatives(grp)
-        locators = createPlatePins(meshList)
-        pinList.append(locators)
+    pinList = createPinLocators(guides)
+    print("Successfully created pin Locators")
 
-    plateJoints = createJoints(pinList)
+    ctrls = createPlateCtrls(pinList)
+
+    plateJoints = createJoints(ctrls)
+    print("Successfully created joints")
+
+    createProximityPin(baseModel)
 
 
-#maya.internal.common.cmd.base.executeCommand('proximitypin.cmd_create')
+
     
 
+# cmds.select(clear = True)
+# cmds.select(plateJoints)
+# ZeroOffsetFunction.insertNodeBefore()
+# cmds.select(clear = True)
+# cmds.select(plateJoints)
+# MatrixZeroOffset.iterateCreateMatrixZeroOffset()
+# cmds.parent(plateJoints, "torsoPlates_joints_grp")

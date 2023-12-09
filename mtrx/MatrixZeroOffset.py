@@ -7,10 +7,10 @@ import maya.cmds as cmds
 #=======================================
 def iterateCreateMatrixZeroOffset():
     sel = cmds.ls(selection=True)
-    for i in sel:
+    for index, item in enumerate(sel):
         cmds.select(clear=True)
-        cmds.select(i)
-        createMatrixZeroOffset(sel[i])
+        cmds.select(item)
+        createMatrixZeroOffset(sel[index])
     
 
 
