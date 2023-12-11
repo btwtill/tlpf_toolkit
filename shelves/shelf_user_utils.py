@@ -74,6 +74,7 @@ from tlpf_toolkit.curves import CurveFunctions
 
 
 from tlpf_toolkit.builds.BabyGroot_rig import plates
+from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 
 
 
@@ -133,6 +134,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
 
         self.addMenuItem(utilityMenu, "Parent Replace", command=lambda _: ShapeParentFunction.ShapeReplace())
+
+        self.addMenuItem(utilityMenu, "multiParent", command=lambda _: GeneralFunctions.multiParent())
 
         utilityNodeInputSubmenu = self.addSubMenu(utilityMenu, "SetNodeInput")
 
@@ -560,9 +563,9 @@ class load(shelf_base._shelf):
 
         babyGrootSubMenu = self.addSubMenu(rigsMenu, "BabyGroot")
 
-        self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: GeneralFunctions.parentVineCtrlToBendy())
-        self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: GeneralFunctions.connectVisibilityRemap())
-        self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: GeneralFunctions.resetOffsetParentMatrix())
+        self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: utilityFunctions.parentVineCtrlToBendy())
+        self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: utilityFunctions.connectVisibilityRemap())
+        self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: utilityFunctions.resetOffsetParentMatrix())
         self.addMenuItem(babyGrootSubMenu, "Plate Module", command = lambda _: plates.platesInput())
 
         
