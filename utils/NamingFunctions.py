@@ -51,29 +51,48 @@ def BatchRenameABCUI():
     cmds.text(label="* as Placeholder for incrementation", align = "center", height= 20, backgroundColor = [.2, .2, .2])
     batchRenameInputString = cmds.textField(width = windowWidth, height=20 )
 
-    cmds.button(label="RenameListABC", align = "center", command = lambda _: BatchRenameABC(cmds.textField(batchRenameInputString, query = True, text = True)))
+    cmds.setParent('..')
 
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+
+    cmds.button(label="RenameListABC", align = "center", width = 150, command = lambda _: BatchRenameABC(cmds.textField(batchRenameInputString, query = True, text = True)))
+
+    cmds.button(label="RenameList123", align = "center", width = 150, command = lambda _: BatchRename123(cmds.textField(batchRenameInputString, query = True, text = True)))
+
+    cmds.setParent('..')
+
+    cmds.rowColumnLayout( adjustableColumn=True ) 
+    #Space Divider
     cmds.text(label="", height=10)
-
-    cmds.button(label="RenameList123", align = "center", command = lambda _: BatchRename123(cmds.textField(batchRenameInputString, query = True, text = True)))
-
-    cmds.text(label="", height=20)
 
     cmds.text(label="Replace Sides", height=20, backgroundColor = [.2, .2, .2])
 
-    cmds.button(label="Replace L -> R", command = lambda _: ReplaceLeftForRight())
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
 
+    cmds.button(label="Replace L -> R", width = 150, command = lambda _: ReplaceLeftForRight())
+
+    cmds.button(label="Replace R -> L", width = 150, command = lambda _: ReplaceRightForLeft())
+
+    cmds.setParent('..')
+    cmds.rowColumnLayout( adjustableColumn=True ) 
+
+    #Space Divider
     cmds.text(label="", height=10)
-
-    cmds.button(label="Replace R -> L", command = lambda _: ReplaceRightForLeft())
-
-    cmds.text(label="", height=20)
 
     cmds.text(label="Replace Last", height=20, backgroundColor = [.2, .2, .2])
 
-    cmds.button(label="Delete Last", command = lambda _: ReplaceLast())
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
 
-    cmds.text(label="", height=20)
+    cmds.button(label="Delete Last",width = 150,  command = lambda _: ReplaceLast())
+    cmds.button(label="Delete First", width = 150, command = lambda _: ReplaceFirst())
+
+    cmds.setParent('..')
+    cmds.rowColumnLayout( adjustableColumn=True ) 
+
+    #Space Divider
+    cmds.text(label="", height=10)
 
     cmds.text(label="Suffix", height=20, backgroundColor = [.2, .2, .2])
 
@@ -90,9 +109,43 @@ def BatchRenameABCUI():
 
     cmds.button(label="Prefix Selected", command = lambda _: PrefixSelected(cmds.textField(prefixInputString, query=True, text=True)))
 
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    copyNameLabel = cmds.text(label="Copy Name to Target", height = 20, backgroundColor = [.3, .3, .3])
+    instructionLabel = cmds.text(label = "Selecte Source --> Target")
+
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+    cmds.text(label = "Search Term", width = 150, height = 20, backgroundColor = [.3, .3, .3])
+    cmds.text(label = "replace Term", width = 150, height = 20, backgroundColor = [.3, .3, .3])
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+    searchTermInput = cmds.textField(width=150)
+    replaceTermInput = cmds.textField(width = 150)
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+
+    copyName = cmds.button(label = "Copy Name", width = 150, command = lambda _: copyNameSingle(cmds.textField(searchTermInput, query = True, text = True),
+                                                                                   cmds.textField(replaceTermInput, query = True, text = True)))
+    batchCopyName = cmds.button(label = "Copy Batch Name", width = 150, command = lambda _: copyNameBatch(cmds.textField(searchTermInput, query = True, text = True),
+                                                                                   cmds.textField(replaceTermInput, query = True, text = True)))
+
     cmds.showWindow(batchRenameConfigWindow)
 
-    
+def copyNameBatch(searchTerm, replacement):
+    selection = cmds.ls(sl=True)
+
+    for item1, item2 in zip(selection[::2], selection[1::2]):
+        cmds.rename(item2, f"{item1.replace(searchTerm, replacement)}")
+
+
+def copyNameSingle(searchTerm, replacement):
+
+    sourceNode = cmds.ls(sl = True)[0]
+    targetNode = cmds.ls(sl=True)[1]
+
+    cmds.rename(targetNode, f"{sourceNode.replace(searchTerm, replacement)}")
 
 def PrefixSelected(_prefixInputString):
     selected = cmds.ls(selection=True)
@@ -109,6 +162,11 @@ def ReplaceLast():
     for i in selection:
         cmds.rename(i, i[:-1])
 
+def ReplaceFirst():
+    selection = cmds.ls(selection = True)
+
+    for i in selection:
+        cmds.rename(i, i[1:])
 
 def ReplaceLeftForRight():
     selection = cmds.ls(selection=True)
