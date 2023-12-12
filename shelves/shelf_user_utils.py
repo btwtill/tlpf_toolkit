@@ -136,6 +136,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(utilityMenu, "Parent Replace", command=lambda _: ShapeParentFunction.ShapeReplace())
 
         self.addMenuItem(utilityMenu, "multiParent", command=lambda _: GeneralFunctions.multiParent())
+        
+        self.addMenuItem(utilityMenu, "Select Transformed Objects", command=lambda _: GeneralFunctions.selectNoneZeroTransforms())
 
         utilityNodeInputSubmenu = self.addSubMenu(utilityMenu, "SetNodeInput")
 

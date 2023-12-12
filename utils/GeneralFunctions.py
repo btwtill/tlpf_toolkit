@@ -146,7 +146,8 @@ def cleanRotation(target):
 ## Select None Zero Transform Nodes 
 #=======================================
 
-def selectNoneZeroTransforms(targets):
+def selectNoneZeroTransforms():
+    targets = cmds.ls(sl=True)
     cmds.select(clear=True)
     
     for i in targets:
