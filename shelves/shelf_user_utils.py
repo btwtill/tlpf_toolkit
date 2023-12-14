@@ -424,7 +424,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(MatrixMenu, "Matrix Zero Offset", command=lambda _: MatrixZeroOffset.iterateCreateMatrixZeroOffset())
         self.addMenuItem(MatrixMenu, "Matrix Drv Offset", command=lambda _: MatrixZeroDrvOffset.createMatrixDrvOffset())
-        self.addMenuItem(MatrixMenu, "Ball Corrective Tool", command = lambda _: CorrectiveMatrixSetup.ballJointCorrectiveSystemUI())
+        self.addMenuItem(MatrixMenu, "Ball Joint Corrective Tool", command = lambda _: CorrectiveMatrixSetup.ballJointCorrectiveSystemUI())
+        self.addMenuItem(MatrixMenu, "Hinge Joint Corrective Tool", command = lambda _: CorrectiveMatrixSetup.hingeJointCorrectiveSystemUI())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
