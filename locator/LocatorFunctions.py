@@ -8,6 +8,7 @@
 #=======================================
 
 import logging
+import re
 
 from maya import cmds
 
@@ -228,4 +229,74 @@ def createInbetweenLocators():
 
 #=======================================
 ## Create Locators innbetween Locators - END
+#=======================================
+
+
+#=======================================
+## Create RivetLocator 
+#=======================================
+
+def buildRivet(baseName, orientationObject):
+
+    edgeSelection = cmds.ls(sl=True)[0]
+
+    meshShape = edgeSelection.split(".")[0] + "Shape"
+
+    index = re.search(r"\[([A-Za-z0-9_]+)\]", edgeSelection)
+
+    index = int(index.group(1))
+
+    edgeToCurveNode = cmds.createNode("curveFromMeshEdge", name = baseName + "Rivet_meshEdgeToCurve")
+    cmds.setAttr(f"{edgeToCurveNode}.edgeIndex[0]", index)
+    pciNode = cmds.createNode("pointOnCurveInfo", name = baseName + "Rivet_pci")
+    rivetLocator = cmds.spaceLocator(name = baseName + "Rivet_pos")[0]
+
+    cmds.connectAttr(f"{meshShape}.worldMesh[0]", f"{edgeToCurveNode}.inputMesh")
+    cmds.connectAttr(f"{edgeToCurveNode}.outputCurve", f"{pciNode}.inputCurve")
+    cmds.setAttr(f"{pciNode}.turnOnPercentage", 1)
+    cmds.connectAttr(f"{pciNode}.position", f"{rivetLocator}.translate")
+    cmds.orientConstraint(orientationObject, rivetLocator)
+
+def setOrientObject(button):
+    selection = cmds.ls(sl=True)[0]
+    cmds.button(button, edit = True, label = selection)
+    cmds.button(button, edit = True, backgroundColor = [0, 0.5, 0])
+
+def buildRivetUIConfig():
+    configWindow = cmds.window(title="RivetLocator", iconName='Rivet', widthHeight=(200, 55), sizeable=True)
+
+    #Window Layout
+    cmds.columnLayout(adjustableColumn=True)
+
+    #Title Text
+    titleText = cmds.text(label="Rivet Locator Tool", height = 30, backgroundColor = [.5, .5, .5])
+
+    #BaseName 
+    baseNameLabel = cmds.text(label="Define BaseName", height = 20, backgroundColor = [.3, .3, .3])
+
+    #BaseName TextField
+    baseName = cmds.textField()
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #define Orientation Obeject
+    cmds.text(label = "Orientation Object")
+
+    orientationObj = cmds.button(label = "Set Object", command = lambda _: setOrientObject(orientationObj))
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    #Build Button Label
+    buildRivetLabel = cmds.text(label="Create Rivet Locator", height = 20, backgroundColor = [.3, .3, .3])
+
+    #Build Button
+    buildButton = cmds.button(label = "Build", height = 40, command = lambda _: buildRivet(cmds.textField(baseName, query = True, text = True),
+                                                                                                            cmds.button(orientationObj, query = True, label = True)))
+    
+    cmds.showWindow(configWindow)
+
+#=======================================
+## Create RivetLocator - END
 #=======================================

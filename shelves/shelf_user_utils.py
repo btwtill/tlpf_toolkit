@@ -488,6 +488,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(LocatorMenu, "Create Loc at Loc/Rot", command=lambda _: LocatorFunctions.create_locator_snap())
 
         self.addMenuItem(LocatorMenu, "Add Inbetween Locators", command=lambda _: LocatorFunctions.createInbetweenLocators())
+        
+        self.addMenuItem(LocatorMenu, "Rivet Locator", command=lambda _: LocatorFunctions.buildRivetUIConfig())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
