@@ -173,3 +173,15 @@ def multiParent():
 #=======================================
 ## Multi Parent - END
 #=======================================
+        
+#=======================================
+## Set Display Type
+#=======================================
+
+def setSelectionDisplayTypeNormal():
+    for i in cmds.ls(sl=True):
+        cmds.setAttr(f"{i}.overrideDisplayType", 0)
+
+#=======================================
+## Set Display Type - END
+#=======================================

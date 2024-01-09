@@ -138,6 +138,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(utilityMenu, "multiParent", command=lambda _: GeneralFunctions.multiParent())
         
         self.addMenuItem(utilityMenu, "Select Transformed Objects", command=lambda _: GeneralFunctions.selectNoneZeroTransforms())
+        
+        self.addMenuItem(utilityMenu, "Set Display Type to Normal ", command=lambda _: GeneralFunctions.setSelectionDisplayTypeNormal())
 
         utilityNodeInputSubmenu = self.addSubMenu(utilityMenu, "SetNodeInput")
 
