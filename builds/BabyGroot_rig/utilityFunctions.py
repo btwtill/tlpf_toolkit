@@ -53,3 +53,14 @@ def connectVisibilityRemap():
 
     cmds.connectAttr(f"{stage01Remap}.outValue", f"{sel[1]}.CtrlVisibility")
     cmds.connectAttr(f"{stage02Remap}.outValue", f"{sel[1]}.TweakCtrlVisibility")
+
+
+
+
+
+def ConnectMainModuleGeoVisibilityToMeshGroup():
+    inputAttributes = [["L_Arm_Roots", "l_arm_roots"], ["R_Arm_Roots", "r_arm_roots"], ["L_Leg_Roots", "l_leg_roots"]]
+
+
+
+
