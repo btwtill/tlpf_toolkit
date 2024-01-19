@@ -75,6 +75,7 @@ from tlpf_toolkit.curves import CurveFunctions
 
 from tlpf_toolkit.builds.BabyGroot_rig import plates
 from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
+from tlpf_toolkit.builds.BabyGroot_rig import build
 
 
 
@@ -570,6 +571,7 @@ class load(shelf_base._shelf):
 
         babyGrootSubMenu = self.addSubMenu(rigsMenu, "BabyGroot")
 
+        self.addMenuItem(babyGrootSubMenu, "Build BabyGroot", command= lambda _: build.build_BabyGroot_Rig())
         self.addMenuItem(babyGrootSubMenu, "Parent Ctrl via Mtrx", command= lambda _: utilityFunctions.parentVineCtrlToBendy())
         self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: utilityFunctions.connectVisibilityRemap())
         self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: utilityFunctions.resetOffsetParentMatrix())
