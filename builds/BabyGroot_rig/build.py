@@ -5,6 +5,8 @@ import os
 import re
 import subprocess
 
+from tlpf_toolkit.joint import JointFunctions
+
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -24,8 +26,10 @@ PROJ_PATH = cmds.workspace(query = True, rd = True)
 BUILDFILE = "BabyGroot_Build_V001"
 PUBLISHFILE = "BabyGroot_Publish_V001"
 PUBLISHDIR = "scenes/RigBuildDir/Publish"
+SOURCEDIR = f"{PROJ_PATH}scenes/RigBuildDir/Sources/"
 
 CTRLFILENAME = "BabyGroot_Ctrl_Publish_V001.ma"
+GUIDEFILENAME = "BabyGroot_Guides_Publish_V002.ma"
 
 def createRigHirachy():
     #Top Level Node
@@ -155,31 +159,85 @@ def sortCtrlsHirarchy():
     cmds.parent(oldMainCtrlHRC, f"{MID}_root_controls")
 
     headControlsContent = cmds.listRelatives(oldHeadCtrlHRC, c = True)
-    cmds.parent(oldHeadCtrlHRC, f"{MID}_head_controls")
+    cmds.parent(headControlsContent, f"{MID}_head_controls")
+
 
     cmds.delete(oldRightArmCtrlHRC, 
                 oldLeftArmCtrlHRC, 
                 oldSpineCtrlHRC,
                 oldLeftLegCtrlHRC,
                 oldRightLegCtrlHRC,
-                oldMainCtrlHRC,
                 oldHeadCtrlHRC)
 
 
     return True
 
+def buildBabyGrootSkeleton():
+    #Build Left Arm Skeleton
+
+    #Left Arm Guides
+    leftClavicleGuide = "L_clavicle_guide"
+    leftArmGuide = "L_arm_guide"
+    leftElbowGuide = "L_elbow_guide"
+    leftWristGuide = "L_wrist_guide"
+    
+    leftArmGuideNameList = [leftClavicleGuide, leftArmGuide, leftElbowGuide, leftWristGuide]
+
+    leftClavicleWorldMatrix = cmds.xform(leftClavicleGuide, query = True, m = True, ws = True)
+    leftArmWorldMatrix = cmds.xform(leftArmGuide, query = True, m = True, ws = True)
+    leftElbowWorldMatrix = cmds.xform(leftElbowGuide, query = True, m = True, ws = True)
+    leftWristWorldMatrix = cmds.xform(leftWristGuide, query = True, m = True, ws = True)
+
+    leftArmWorldMatrixList = [leftClavicleWorldMatrix, leftArmWorldMatrix, leftElbowWorldMatrix, leftWristWorldMatrix]
+    leftArmJointsList = []
+
+    for index, matrix in enumerate(leftArmWorldMatrixList):
+        if index == 0:
+            newJoint = cmds.joint(name = leftArmGuideNameList[index].replace("_guide", "_skn"))
+        else:
+            newJoint = cmds.joint(name = leftArmGuideNameList[index].replace("_guide", "_jnt"))
+
+        cmds.select(clear = True)
+        cmds.xform(newJoint, m = matrix, ws = True)
+        leftArmJointsList.append(newJoint)
+
+    JointFunctions.buildForwardJointChain(leftArmJointsList, True)
+
+    cmds.parent(leftArmJointsList[0], f"{LEFT}_arm_deform")
+
+    if len(leftArmJointsList) != 0:
+        return True
+    else:
+        return False
+
 def build_BabyGroot_Rig():
+
+    #Start Building the Rig
+    log.info("############")
+    log.info("BabyGroot Rig Build Start!!!")
+    log.info("############")
+
     #create Rig Hirarchy
     isRigHirarchyCreated = createRigHirachy()
     log.info(f"Current Workspace Direcotry: {PROJ_PATH}")
     log.info(f"Rig Hirarchy created: {isRigHirarchyCreated}")
 
     #Import Ctrl Rig
-    log.info(f"Ctrl Rig File Location: {PROJ_PATH}scenes/RigBuildDir/Sources/Ctrls/Publish/{CTRLFILENAME}")
-    isRigCtrlsImported = cmds.file(f"{PROJ_PATH}scenes/RigBuildDir/Sources/Ctrls/Publish/{CTRLFILENAME}", i = True)
-    log.info(f"Imported Rig Ctrls: {isRigCtrlsImported}")
+    CtrlRigFilePath = f"{SOURCEDIR}Ctrls/Publish/{CTRLFILENAME}"
+    log.info(f"Ctrl Rig File Location: {CtrlRigFilePath}")
+    cmds.file(f"{CtrlRigFilePath}", i = True)
+    log.info(f"Successfully imported Rig Ctrls")
 
     #Sort Contorls into Rig Hirarchy
     isRigCtrlsSorted = sortCtrlsHirarchy()
     log.info(f"Rig Ctrl Sorting: {isRigCtrlsSorted}")
     
+    #Import Guids into the scene
+    rigGuidesFilePath = f"{SOURCEDIR}Guides/Publish/{GUIDEFILENAME}"
+    log.info(f"Rig Guides file Location: {rigGuidesFilePath}")
+    cmds.file(f"{rigGuidesFilePath}", i = True)
+    log.info(f"Successfully imported Guides File")
+
+    #build Skeleton From Guides
+    isSkeletonBuild = buildBabyGrootSkeleton()
+    log.info(f"Skeleton Build: {isSkeletonBuild}")

@@ -73,3 +73,20 @@ def ClearJointOrientValues():
 #=======================================
 ## Clear Joint Orient Values - END
 #=======================================
+            
+#=======================================
+## Build Forward Joint Chain form Selection 
+#=======================================
+            
+def buildForwardJointChain(joints, doFreeze):
+
+    for index, jnt in enumerate(joints):
+        if index != 0:
+            cmds.parent(jnt, joints[index - 1])
+    if doFreeze:
+        for i in joints:
+            cmds.makeIdentity(i, apply =True, pn =True, n = True)
+
+#=======================================
+## Build Forward Joint Chain form Selection - End
+#=======================================
