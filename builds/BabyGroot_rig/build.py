@@ -381,7 +381,6 @@ def buildBabyGrootSkeleton():
 
     return True
 
-
 def build_BabyGroot_Rig():
 
     #Start Building the Rig
@@ -404,6 +403,8 @@ def build_BabyGroot_Rig():
     ModelFilePath = f"{SOURCEDIR}Model/Publish/{MODELFILENAME}"
     cmds.file(f"{ModelFilePath}", i = True)
     log.info(f"Mesh File Location {ModelFilePath}")
+
+    cmds.parent("BabyGroot_Mesh_hrc", "BabyGroot_hrc")
 
     #Sort Contorls into Rig Hirarchy
     isRigCtrlsSorted = sortCtrlsHirarchy()
