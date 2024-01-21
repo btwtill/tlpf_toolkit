@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 from tlpf_toolkit.mtrx import MatrixZeroOffset
+from tlpf_toolkit.systems import TwistJoints
 
 def parentVineCtrlToBendy():
 
@@ -54,13 +55,18 @@ def connectVisibilityRemap():
     cmds.connectAttr(f"{stage01Remap}.outValue", f"{sel[1]}.CtrlVisibility")
     cmds.connectAttr(f"{stage02Remap}.outValue", f"{sel[1]}.TweakCtrlVisibility")
 
-
-
-
-
 def ConnectMainModuleGeoVisibilityToMeshGroup():
     inputAttributes = [["L_Arm_Roots", "l_arm_roots"], ["R_Arm_Roots", "r_arm_roots"], ["L_Leg_Roots", "l_leg_roots"]]
 
 
-
-
+def BuildTwistJoints(parentJoint, childJoint, side, suffix, limb):
+    cmds.select(clear=True)
+    cmds.select(parentJoint)
+    cmds.select(childJoint, add=True)
+    twistJoints = TwistJoints.createTwistSetup(3, False, "NONE")
+    #rename and Parent Joints
+    for index, twistJnt in enumerate(twistJoints):
+        twistJoints[index] = cmds.rename(twistJnt, twistJnt.replace(suffix, "_skn"))
+        cmds.parent(twistJoints[index], f"{side}_{limb}_deform")
+    cmds.select(clear=True)
+    return twistJoints

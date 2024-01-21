@@ -4,9 +4,9 @@ import logging
 import os
 import re
 import subprocess
-
+from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 from tlpf_toolkit.joint import JointFunctions
-
+from tlpf_toolkit.systems import TwistJoints
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ PUBLISHFILE = "BabyGroot_Publish_V001"
 PUBLISHDIR = "scenes/RigBuildDir/Publish"
 SOURCEDIR = f"{PROJ_PATH}scenes/RigBuildDir/Sources/"
 
-CTRLFILENAME = "BabyGroot_Ctrl_Publish_V001.ma"
-GUIDEFILENAME = "BabyGroot_Guides_Publish_V002.ma"
+CTRLFILENAME = "BabyGroot_Ctrl_Publish_V002.ma"
+GUIDEFILENAME = "BabyGroot_Guides_Publish_V004.ma"
 
 def createRigHirachy():
     #Top Level Node
@@ -47,10 +47,14 @@ def createRigHirachy():
     leftArmSystems = cmds.createNode("transform", name = f"{LEFT}_arm_systems", parent = leftArmComponent)
     # Arm Deform Group
     leftArmDeform = cmds.createNode("transform", name = f"{LEFT}_arm_deform", parent = leftArmComponent)
+    # Arm Driver Group
+    leftArmDriver = cmds.createNode("transform", name = f"{LEFT}_arm_driver", parent = leftArmComponent)
     # Arm Subcomponents Group
     leftArmSubcomponents = cmds.createNode("transform", name = f"{LEFT}_arm_sub{COMPONENT}", parent = leftArmComponent)
     # Arm Hand Subcomponent 
     leftHandSubcomponent = cmds.createNode("transform", name = f"{LEFT}_hand_{COMPONENT}", parent = leftArmSubcomponents)
+    # Arm Hand deform 
+    leftHandSubcomponentDeform = cmds.createNode("transform", name = f"{LEFT}_hand_deform", parent = leftHandSubcomponent)
 
     #Right Arm Component
     rightArmComponent = cmds.createNode("transform", name = f"{RIGHT}_arm_{COMPONENT}", parent = topLevelNode)
@@ -64,6 +68,14 @@ def createRigHirachy():
     rightArmSystems = cmds.createNode("transform", name = f"{RIGHT}_arm_systems", parent = rightArmComponent)
     # Arm Deform Group
     rightArmDeform = cmds.createNode("transform", name = f"{RIGHT}_arm_deform", parent = rightArmComponent)
+    # Arm Driver Group
+    rightArmDriver = cmds.createNode("transform", name = f"{RIGHT}_arm_driver", parent = rightArmComponent)
+    # Arm Subcomponents Group
+    rightArmSubcomponents = cmds.createNode("transform", name = f"{RIGHT}_arm_sub{COMPONENT}", parent = rightArmComponent)
+    # Arm Hand Subcomponent 
+    rightHandSubcomponent = cmds.createNode("transform", name = f"{RIGHT}_hand_{COMPONENT}", parent = rightArmSubcomponents)
+    # Arm Hand deform 
+    rightHandSubcomponentDeform = cmds.createNode("transform", name = f"{RIGHT}_hand_deform", parent = rightHandSubcomponent)
 
     #Left leg Component
     leftlegComponent = cmds.createNode("transform", name = f"{LEFT}_leg_{COMPONENT}", parent = topLevelNode)
@@ -77,6 +89,8 @@ def createRigHirachy():
     leftlegSystems = cmds.createNode("transform", name = f"{LEFT}_leg_systems", parent = leftlegComponent)
     # leg Deform Group
     leftlegDeform = cmds.createNode("transform", name = f"{LEFT}_leg_deform", parent = leftlegComponent)
+    # leg Driver Group
+    leftlegDriver = cmds.createNode("transform", name = f"{LEFT}_leg_driver", parent = leftlegComponent)
 
     #Right leg Component
     rightlegComponent = cmds.createNode("transform", name = f"{RIGHT}_leg_{COMPONENT}", parent = topLevelNode)
@@ -90,6 +104,8 @@ def createRigHirachy():
     rightlegSystems = cmds.createNode("transform", name = f"{RIGHT}_leg_systems", parent = rightlegComponent)
     # leg Deform Group
     rightlegDeform = cmds.createNode("transform", name = f"{RIGHT}_leg_deform", parent = rightlegComponent)
+    # leg Driver Group
+    rightlegDriver = cmds.createNode("transform", name = f"{RIGHT}_leg_driver", parent = rightlegComponent)
 
     #Spine Component
     spineComponent = cmds.createNode("transform", name = f"{MID}_spine_{COMPONENT}", parent = topLevelNode)
@@ -103,6 +119,8 @@ def createRigHirachy():
     spineComponentSystems = cmds.createNode("transform", name = f"{MID}_spine_systems", parent = spineComponent)
     # spine Deform Group
     spineComponentDeform = cmds.createNode("transform", name = f"{MID}_spine_deform", parent = spineComponent)
+    # spine Driver Group
+    spineComponentDriver = cmds.createNode("transform", name = f"{MID}_spine_driver", parent = spineComponent)
 
     #head Component
     headComponent = cmds.createNode("transform", name = f"{MID}_head_{COMPONENT}", parent = topLevelNode)
@@ -173,42 +191,195 @@ def sortCtrlsHirarchy():
     return True
 
 def buildBabyGrootSkeleton():
-    #Build Left Arm Skeleton
+    #Build Driver Skeleton
 
-    #Left Arm Guides
+    drivenSuffix = "_drvIkfk"
+
+    #arm
     leftClavicleGuide = "L_clavicle_guide"
     leftArmGuide = "L_arm_guide"
     leftElbowGuide = "L_elbow_guide"
     leftWristGuide = "L_wrist_guide"
     
     leftArmGuideNameList = [leftClavicleGuide, leftArmGuide, leftElbowGuide, leftWristGuide]
+    leftArmJoints = JointFunctions.convertGuidesToJointChain(leftArmGuideNameList, drivenSuffix)
 
-    leftClavicleWorldMatrix = cmds.xform(leftClavicleGuide, query = True, m = True, ws = True)
-    leftArmWorldMatrix = cmds.xform(leftArmGuide, query = True, m = True, ws = True)
-    leftElbowWorldMatrix = cmds.xform(leftElbowGuide, query = True, m = True, ws = True)
-    leftWristWorldMatrix = cmds.xform(leftWristGuide, query = True, m = True, ws = True)
+    cmds.parent(leftArmJoints[0], f"{LEFT}_arm_driver")
 
-    leftArmWorldMatrixList = [leftClavicleWorldMatrix, leftArmWorldMatrix, leftElbowWorldMatrix, leftWristWorldMatrix]
-    leftArmJointsList = []
+    cmds.select(clear=True)
+    #leg
+    leftLegGuide = "L_Leg_guide"
+    leftKneeGuide = "L_Knee_guide"
+    leftFootGuide = "L_Foot_guide"
 
-    for index, matrix in enumerate(leftArmWorldMatrixList):
-        if index == 0:
-            newJoint = cmds.joint(name = leftArmGuideNameList[index].replace("_guide", "_skn"))
-        else:
-            newJoint = cmds.joint(name = leftArmGuideNameList[index].replace("_guide", "_jnt"))
+    leftLegGuideNameList = [leftLegGuide, leftKneeGuide, leftFootGuide]
+    leftLegJoints = JointFunctions.convertGuidesToJointChain(leftLegGuideNameList, drivenSuffix)
 
-        cmds.select(clear = True)
-        cmds.xform(newJoint, m = matrix, ws = True)
-        leftArmJointsList.append(newJoint)
+    cmds.parent(leftLegJoints[0], f"{LEFT}_leg_driver")
 
-    JointFunctions.buildForwardJointChain(leftArmJointsList, True)
+    #spine
+    spineGuides = cmds.listRelatives("M_Spine_guides")
+    spineJoints = JointFunctions.convertGuidesToJointChain(spineGuides, drivenSuffix)
 
-    cmds.parent(leftArmJointsList[0], f"{LEFT}_arm_deform")
+    cmds.parent(spineJoints[0], f"{MID}_spine_driver")
 
-    if len(leftArmJointsList) != 0:
-        return True
-    else:
-        return False
+    #neck
+    cmds.select(clear=True)
+    neckGuide = "M_Neck_guide"
+    headGuide = "M_Head_guide"
+
+    headGuidesList = [neckGuide, headGuide]
+
+    headJoints = JointFunctions.convertGuidesToJointChain(headGuidesList, drivenSuffix)
+
+    cmds.parent(headJoints[0], f"{MID}_head_deform")
+
+    cmds.select(clear=True)
+
+
+    #Build Deformation Skeleton
+
+    #fingers
+    topLevelFinger = cmds.listRelatives("L_Finger_Guides", c = True)
+
+    middleFingerGuides = cmds.listRelatives(topLevelFinger[0], c = True, ad =True, typ = 'transform')
+    middleFingerGuides = list(reversed(middleFingerGuides))
+    middleFingerGuides.insert(0, topLevelFinger[0])
+
+    leftMiddleFingerJoints = JointFunctions.convertGuidesToJointChain(middleFingerGuides, "_skn")
+    cmds.select(clear=True)
+    
+    pinkyFingerGuides = cmds.listRelatives(topLevelFinger[1], c = True, ad =True, typ = 'transform')
+    pinkyFingerGuides = list(reversed(pinkyFingerGuides))
+    pinkyFingerGuides.insert(0, topLevelFinger[1]) 
+
+    leftPinkyFingerJoints = JointFunctions.convertGuidesToJointChain(pinkyFingerGuides, "_skn")
+    cmds.select(clear=True)
+
+    indexFingerGuides = cmds.listRelatives(topLevelFinger[2], c = True, ad =True, typ = 'transform')
+    indexFingerGuides = list(reversed(indexFingerGuides))
+    indexFingerGuides.insert(0, topLevelFinger[2])
+
+    leftIndexFingerJoints = JointFunctions.convertGuidesToJointChain(indexFingerGuides, "_skn")
+    cmds.select(clear=True)
+
+    ringFingerGuides = cmds.listRelatives(topLevelFinger[3], c = True, ad =True, typ = 'transform')
+    ringFingerGuides = list(reversed(ringFingerGuides))
+    ringFingerGuides.insert(0, topLevelFinger[3])
+
+    leftRingFingerJoints = JointFunctions.convertGuidesToJointChain(ringFingerGuides, "_skn")
+    cmds.select(clear=True)
+
+    thumbGuides = cmds.listRelatives(topLevelFinger[4], c = True, ad =True, typ = 'transform')
+    thumbGuides = list(reversed(thumbGuides))
+    thumbGuides.insert(0, topLevelFinger[4])
+
+    leftThumbJoints = JointFunctions.convertGuidesToJointChain(thumbGuides, "_skn")
+    cmds.select(clear=True)
+
+    cmds.parent([leftMiddleFingerJoints[0], leftPinkyFingerJoints[0], leftIndexFingerJoints[0], leftRingFingerJoints[0], leftThumbJoints[0], f"{LEFT}_hand_deform"])
+
+    cmds.select(clear=True)
+    #Deformation Wrist Joint
+    leftDeformWristJoint = cmds.duplicate(leftArmJoints[-1], name = leftArmJoints[-1].replace(drivenSuffix, "_jnt"))[0]
+    cmds.parent(leftDeformWristJoint, f"{LEFT}_arm_deform")
+
+    cmds.select(clear=True)
+    #Deformation Foot Joint
+    leftDeformFootJoint = cmds.duplicate(leftLegJoints[-1], name = leftLegJoints[-1].replace(drivenSuffix, "_jnt"))[0]
+    cmds.parent(leftDeformFootJoint, f"{LEFT}_leg_deform")
+
+    cmds.select(clear=True)
+    #Mirror Joints
+    #arms
+    rightArmJoints = cmds.mirrorJoint(leftArmJoints[0],  mb = True, myz = True, sr = ('L_', 'R_'))
+    cmds.parent(rightArmJoints[0], f"{RIGHT}_arm_driver")
+
+    cmds.select(clear=True)
+    rightDeformWristJoint = cmds.mirrorJoint(leftDeformWristJoint, mb = True, myz = True, sr = ('L_', 'R_'))
+    cmds.parent(rightDeformWristJoint, f"{RIGHT}_arm_deform")
+
+    cmds.select(clear=True)
+    #legs
+    rightLegJoints = cmds.mirrorJoint(leftLegJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+    cmds.parent(rightLegJoints[0], f"{RIGHT}_leg_driver")
+
+    cmds.select(clear=True)
+    rightDeformFootJoint = cmds.mirrorJoint(leftDeformFootJoint, mb = True, myz = True, sr = ('L_', 'R_'))
+    cmds.parent(rightDeformFootJoint, f"{RIGHT}_leg_deform")
+
+    cmds.select(clear=True)
+
+    #finger
+    rightMiddleFingerJoints = cmds.mirrorJoint(leftMiddleFingerJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+    rightPinkyFingerJoints = cmds.mirrorJoint(leftPinkyFingerJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+    rightIndexFingerJoints = cmds.mirrorJoint(leftIndexFingerJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+    rightRingFingerJoints = cmds.mirrorJoint(leftRingFingerJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+    rightThumbJoints = cmds.mirrorJoint(leftThumbJoints[0], mb = True, myz = True, sr = ('L_', 'R_'))
+
+    cmds.parent([rightMiddleFingerJoints[0], rightPinkyFingerJoints[0], rightIndexFingerJoints[0], rightRingFingerJoints[0], rightThumbJoints[0]], f"{RIGHT}_hand_deform")
+
+    cmds.select(clear=True)
+    #connectDeform Joints
+    deformJointPairs = [[leftArmJoints[-1], leftDeformWristJoint], 
+                        [leftLegJoints[-1], leftDeformFootJoint], 
+                        [rightArmJoints[-1], rightDeformWristJoint[0]], 
+                        [rightLegJoints[-1], rightDeformFootJoint[0]]]
+    
+    log.info(f"Deform Joints paired: {deformJointPairs}")
+
+    for pair in deformJointPairs:
+        cmds.connectAttr(f"{pair[0]}.worldMatrix[0]", f"{pair[1]}.offsetParentMatrix")
+        for channel in "XYZ":
+            cmds.setAttr(f"{pair[1]}.translate{channel}", 0)
+            cmds.setAttr(f"{pair[1]}.rotate{channel}", 0)
+            cmds.setAttr(f"{pair[1]}.jointOrient{channel}", 0)
+
+
+    #Twist Joints
+    leftUpperArmTwistJoints = utilityFunctions.BuildTwistJoints(leftArmJoints[1], leftArmJoints[2], LEFT, drivenSuffix, "arm")
+    leftLowerArmTwistJoints = utilityFunctions.BuildTwistJoints(leftArmJoints[2], leftArmJoints[3], LEFT, drivenSuffix, "arm")
+    leftUpperLegTwistJoints = utilityFunctions.BuildTwistJoints(leftLegJoints[0], leftLegJoints[1], LEFT, drivenSuffix, "leg")
+    leftLowerLegTwistJoints = utilityFunctions.BuildTwistJoints(leftLegJoints[1], leftLegJoints[2], LEFT, drivenSuffix, "leg")
+
+    rightUpperArmTwistJoints = utilityFunctions.BuildTwistJoints(rightArmJoints[1], rightArmJoints[2], RIGHT, drivenSuffix, "arm")
+    rightLowerArmTwistJoints = utilityFunctions.BuildTwistJoints(rightArmJoints[2], rightArmJoints[3], RIGHT, drivenSuffix, "arm")
+    rightUpperLegTwistJoints = utilityFunctions.BuildTwistJoints(rightLegJoints[0], rightLegJoints[1], RIGHT, drivenSuffix, "leg")
+    rightLowerLegTwistJoints = utilityFunctions.BuildTwistJoints(rightLegJoints[1], rightLegJoints[2], RIGHT, drivenSuffix, "leg")
+
+    #cmds.connectAttr(f"{parentJoint}.worldMatrix[0]", f"{twistJoints[index]}.offsetParentMatrix")
+        # for channel in "XYZ":
+        #     cmds.setAttr(f"{twistJoints[index]}.jointOrient{channel}", 0)
+
+
+    #torso Plate Joints
+    torsoPlateGuides = cmds.listRelatives("M_torsoPlates_Guides", c = True)
+
+    for guide in torsoPlateGuides:
+        guideWorldMatrix = cmds.xform(guide, query = True, m = True, ws = True)
+        cmds.select(clear=True)
+        newJoint = cmds.joint(name = guide.replace("_guide", "_skn"))
+        cmds.xform(newJoint, m = guideWorldMatrix, ws = True)
+        cmds.parent(newJoint, f"{MID}_spine_deform")
+
+    log.info(f"Left Arm Driver Joints: {leftArmJoints}")
+    log.info(f"Right Arm Driver Joints: {rightArmJoints}")
+    log.info(f"Left Leg Driver Joints: {leftLegJoints}")
+    log.info(f"Right Leg Driver Joints: {rightLegJoints}")
+    log.info(f"Finger Joints:")
+    log.info(f"Thumb Joints: {leftThumbJoints, rightThumbJoints}")
+    log.info(f"Index Finger Joints: {leftIndexFingerJoints, rightIndexFingerJoints}")
+    log.info(f"Middle Finger Joints: {leftMiddleFingerJoints, rightMiddleFingerJoints}")
+    log.info(f"Ring Finger Joints: {leftRingFingerJoints, rightRingFingerJoints}")
+    log.info(f"Pinky Finger Joints: {leftPinkyFingerJoints, rightPinkyFingerJoints}")
+    
+    log.info(f"Upper Arm Twist Joints: {leftUpperArmTwistJoints, rightUpperArmTwistJoints}")
+    log.info(f"Lower Arm Twist Joints: {leftLowerArmTwistJoints, rightLowerArmTwistJoints}")
+    log.info(f"Upper Leg Twist Joints: {leftUpperLegTwistJoints, rightUpperLegTwistJoints}")
+    log.info(f"Lower Leg Twist Joints: {leftLowerLegTwistJoints, rightLowerLegTwistJoints}")
+
+    return True
+
 
 def build_BabyGroot_Rig():
 

@@ -38,7 +38,7 @@ def CreateJointsOnSelected():
 ## Move Joints Tranforms to Parent Matrix Offset
 #=======================================
 
-def MoveJointSRTtoParentMatirxOffset():
+def MoveJointSRTtoParentMatrixOffset():
     sel = cmds.ls(selection =True)
 
     for i in sel:
@@ -89,4 +89,26 @@ def buildForwardJointChain(joints, doFreeze):
 
 #=======================================
 ## Build Forward Joint Chain form Selection - End
+#=======================================
+            
+#=======================================
+## Convert Guides to Joint Chain
+#=======================================
+            
+def convertGuidesToJointChain(guides, replaceTerm = "_drv", searchTerm = "_guide"):
+    newJoints = []
+    for index, guide in enumerate(guides):
+        newJointMatrix = cmds.xform(guide, query = True, m =True, ws = True)
+        newJoint = cmds.joint(name = guide.replace(searchTerm, replaceTerm))
+
+        cmds.select(clear = True)
+        cmds.xform(newJoint, m = newJointMatrix, ws = True)
+        newJoints.append(newJoint)
+    
+    buildForwardJointChain(newJoints, True)
+
+    return newJoints
+
+#=======================================
+## Convert Guides to Joint Chain -END
 #=======================================

@@ -89,6 +89,8 @@ def createTwistSetup(_numberOfJoints, doCustomCtrl, ctrlObject):
     #parent the twist joint under the Parent joint
     parentTwistJoints(twistObj, p1)
 
+    return twistObj
+
 def createCtrls(_name, _p1, _numberOfJoints, ctrlObject):
     twistCtrls = list()
 
