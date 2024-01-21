@@ -6,7 +6,6 @@ import re
 import subprocess
 from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 from tlpf_toolkit.joint import JointFunctions
-from tlpf_toolkit.systems import TwistJoints
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -399,6 +398,8 @@ def build_BabyGroot_Rig():
     cmds.file(f"{CtrlRigFilePath}", i = True)
     log.info(f"Successfully imported Rig Ctrls")
 
+    #Import Mesh into scene
+
     #Sort Contorls into Rig Hirarchy
     isRigCtrlsSorted = sortCtrlsHirarchy()
     log.info(f"Rig Ctrl Sorting: {isRigCtrlsSorted}")
@@ -412,3 +413,21 @@ def build_BabyGroot_Rig():
     #build Skeleton From Guides
     isSkeletonBuild = buildBabyGrootSkeleton()
     log.info(f"Skeleton Build: {isSkeletonBuild}")
+
+    #Build Spine
+
+    #Build Left Arm
+
+    #Build Right Arm
+
+    #Build Left Leg
+
+    #Build Right Leg
+
+    #Build Plate System
+
+    #Build Face System
+
+    #Skin Meshes
+
+    
