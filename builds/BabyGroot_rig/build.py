@@ -6,6 +6,7 @@ import re
 import subprocess
 from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 from tlpf_toolkit.joint import JointFunctions
+from tlpf_toolkit.builds.BabyGroot_rig import spine
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ SOURCEDIR = f"{PROJ_PATH}scenes/RigBuildDir/Sources/"
 
 CTRLFILENAME = "BabyGroot_Ctrl_Publish_V002.ma"
 GUIDEFILENAME = "BabyGroot_Guides_Publish_V004.ma"
+MODELFILENAME = "BabyGroot_Model_Publish_V001.ma"
 
 def createRigHirachy():
     #Top Level Node
@@ -399,6 +401,9 @@ def build_BabyGroot_Rig():
     log.info(f"Successfully imported Rig Ctrls")
 
     #Import Mesh into scene
+    ModelFilePath = f"{SOURCEDIR}Model/Publish/{MODELFILENAME}"
+    cmds.file(f"{ModelFilePath}", i = True)
+    log.info(f"Mesh File Location {ModelFilePath}")
 
     #Sort Contorls into Rig Hirarchy
     isRigCtrlsSorted = sortCtrlsHirarchy()
@@ -415,6 +420,7 @@ def build_BabyGroot_Rig():
     log.info(f"Skeleton Build: {isSkeletonBuild}")
 
     #Build Spine
+    spine.buildSpine()
 
     #Build Left Arm
 
