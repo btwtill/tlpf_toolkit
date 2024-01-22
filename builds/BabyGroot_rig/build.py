@@ -28,8 +28,8 @@ PUBLISHFILE = "BabyGroot_Publish_V001"
 PUBLISHDIR = "scenes/RigBuildDir/Publish"
 SOURCEDIR = f"{PROJ_PATH}scenes/RigBuildDir/Sources/"
 
-CTRLFILENAME = "BabyGroot_Ctrl_Publish_V002.ma"
-GUIDEFILENAME = "BabyGroot_Guides_Publish_V004.ma"
+CTRLFILENAME = "BabyGroot_Ctrl_Publish_V003.ma"
+GUIDEFILENAME = "BabyGroot_Guides_Publish_V005.ma"
 MODELFILENAME = "BabyGroot_Model_Publish_V001.ma"
 
 def createRigHirachy():
@@ -120,6 +120,10 @@ def createRigHirachy():
     spineComponentSystems = cmds.createNode("transform", name = f"{MID}_spine_systems", parent = spineComponent)
     # spine Deform Group
     spineComponentDeform = cmds.createNode("transform", name = f"{MID}_spine_deform", parent = spineComponent)
+    # spine Deform Torso Group
+    spineComponentDeformTorso = cmds.createNode("transform", name = f"{MID}_spine_deformTorso_hrc", parent = spineComponentDeform)
+    # spine Deform Plates Group
+    spineComponentDeformPlates = cmds.createNode("transform", name = f"{MID}_spine_deformPlates_hrc", parent = spineComponentDeform)
     # spine Driver Group
     spineComponentDriver = cmds.createNode("transform", name = f"{MID}_spine_driver", parent = spineComponent)
 
@@ -154,11 +158,11 @@ def sortCtrlsHirarchy():
 
     oldRightArmCtrlHRC = "r_Arm_Controls_grp"
     oldLeftArmCtrlHRC = "l_Arm_Controls_grp"
-    oldSpineCtrlHRC = "cn_spine_constrols"
+    oldSpineCtrlHRC = "M_spine_constrols"
     oldLeftLegCtrlHRC = "l_leg_controls"
     oldRightLegCtrlHRC = "r_leg_controls"
-    oldMainCtrlHRC = "cn_main_ctrl"
-    oldHeadCtrlHRC = "cn_head_controls"
+    oldMainCtrlHRC = "M_main_ctrl"
+    oldHeadCtrlHRC = "M_head_control"
 
     rightArmControlsContent = cmds.listRelatives(oldRightArmCtrlHRC, c = True)
     cmds.parent(rightArmControlsContent, f"{RIGHT}_arm_controls")
@@ -291,6 +295,17 @@ def buildBabyGrootSkeleton():
     cmds.parent(leftDeformFootJoint, f"{LEFT}_leg_deform")
 
     cmds.select(clear=True)
+
+    deformSpineJoints = []
+    #Deformation Spine Joints
+    for joint in spineJoints:
+        deformSpineJoint = cmds.duplicate(joint, po = True, name = joint.replace(drivenSuffix, "_skn"))[0]
+        cmds.parent(deformSpineJoint, f"{MID}_spine_deformTorso_hrc")
+        cmds.setAttr(f"{deformSpineJoint}.radius", 1.2)
+        deformSpineJoints.append(deformSpineJoint)
+
+    log.info(f"Spine Deform Joints: {deformSpineJoints}")
+
     #Mirror Joints
     #arms
     rightArmJoints = cmds.mirrorJoint(leftArmJoints[0],  mb = True, myz = True, sr = ('L_', 'R_'))
@@ -361,7 +376,7 @@ def buildBabyGrootSkeleton():
         cmds.select(clear=True)
         newJoint = cmds.joint(name = guide.replace("_guide", "_skn"))
         cmds.xform(newJoint, m = guideWorldMatrix, ws = True)
-        cmds.parent(newJoint, f"{MID}_spine_deform")
+        cmds.parent(newJoint, f"{MID}_spine_deformPlates_hrc")
 
     log.info(f"Left Arm Driver Joints: {leftArmJoints}")
     log.info(f"Right Arm Driver Joints: {rightArmJoints}")
@@ -417,12 +432,20 @@ def build_BabyGroot_Rig():
     log.info(f"Successfully imported Guides File")
 
     #build Skeleton From Guides
+
+    log.info("################")
+    log.info("Build Skeleton")
+    log.info("################")
+
     isSkeletonBuild = buildBabyGrootSkeleton()
     log.info(f"Skeleton Build: {isSkeletonBuild}")
 
     #Build Spine
+    log.info("################")
+    log.info("Build Spine")
+    log.info("################")
     spine.buildSpine()
-
+    log.info("Spine Build Complete!")
     #Build Left Arm
 
     #Build Right Arm

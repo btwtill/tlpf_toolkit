@@ -185,3 +185,18 @@ def setSelectionDisplayTypeNormal():
 #=======================================
 ## Set Display Type - END
 #=======================================
+        
+#=======================================
+## Clear Transforms 
+#=======================================
+        
+def clearTransforms(items):
+     for item in items:
+          for channel in "XYZ":
+               cmds.setAttr(f"{item}.translate{channel}", 0)
+               cmds.setAttr(f"{item}.rotate{channel}", 0)
+               cmds.setAttr(f"{item}.scale{channel}", 1)
+
+#=======================================
+## Clear Transforms - End
+#=======================================

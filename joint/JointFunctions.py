@@ -112,3 +112,25 @@ def convertGuidesToJointChain(guides, replaceTerm = "_drv", searchTerm = "_guide
 #=======================================
 ## Convert Guides to Joint Chain -END
 #=======================================
+
+
+#=======================================
+## Convert Guides to individual Joints
+#=======================================
+
+def convertGuidesToIndividualJoints(guides, targetLocation = "World",searchTerm = "_guide", replaceTerm = "_skn", radius = 1):
+    joints = []
+    
+    for guide in guides:
+        worldMatrix = cmds.xform(guide, query = True, ws = True, m =True)
+        cmds.select(clear=True)
+        newJoint = cmds.joint(name = guide.replace(searchTerm, replaceTerm))
+        cmds.xform(newJoint, m = worldMatrix, ws = True)
+        cmds.setAttr(f"{newJoint}.radius", radius)
+        cmds.parent(newJoint, targetLocation)
+        joints.append(newJoint)
+    return joints
+
+#=======================================
+## Convert Guides to individual Joints - END
+#=======================================
