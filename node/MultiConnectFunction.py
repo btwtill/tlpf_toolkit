@@ -27,6 +27,15 @@ def ConnectOneToNNodes(_outputNodeAttribute, _inputNodeAttribute):
         cmds.connectAttr(outputName, i + "." + _inputNodeAttribute)
 
 
+def ConnectNodesMulti(sourceAttribute, targetAttribute, source, targets):
+
+    #get the string for the output Attribute on the output Node
+    outputConnectionSocket = source + "." + sourceAttribute
+    
+    #loop over the selected Input nodes and connect the selected output to the input sockets
+    for index, item in enumerate(targets):
+        cmds.connectAttr(outputConnectionSocket, f"{targets[index]}.{targetAttribute}")
+
 
 #Configuration Interface to let the user decide what Output Attribute should be used to connect to all the selected Input Nodes
 def MultiConnectOneToNConfigurationInterfaceFiltered():  

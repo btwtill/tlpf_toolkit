@@ -3,7 +3,7 @@ import logging
 
 from tlpf_toolkit.joint import JointFunctions
 from tlpf_toolkit.utils import GeneralFunctions
-
+from tlpf_toolkit.node import MultiConnectFunction
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -97,8 +97,61 @@ def buildSpine():
     cmds.connectAttr(f"{MID}_chest_ctrl.worldMatrix[0]", f"{spineIKHandle[0]}.dWorldUpMatrixEnd")
 
     #Implement Stretch
+    spineIKCurveLengthInfoNode = cmds.createNode("curveInfo", name = f"{MID}_spine_splineIKCurveLengthInfo_fNode")
+    cmds.connectAttr(f"{MID}_spine_splineIKCurve_srtShape.local", f"{spineIKCurveLengthInfoNode}.inputCurve")
 
+    #Multiply divide node to calculate the stetch value of the curve
+    spineIKCurveLengthStretchFactorMultiplyNode = cmds.createNode("multiplyDivide", name = f"{MID}_spine_splineIKStretchFactorMultiply_fNode")
+    cmds.connectAttr(f"{spineIKCurveLengthInfoNode}.arcLength", f"{spineIKCurveLengthStretchFactorMultiplyNode}.input1X")
+    spineIKCurveRestLengthValue = cmds.getAttr(f"{spineIKCurveLengthInfoNode}.arcLength")
+    cmds.setAttr(f"{spineIKCurveLengthStretchFactorMultiplyNode}.input2X", spineIKCurveRestLengthValue)
+    cmds.setAttr(f"{spineIKCurveLengthStretchFactorMultiplyNode}.operation", 2)
 
-    #Implement Squash plus Switch for Squash and Multiplyiers
+    #Spine Sretch Condition Node
+    spineStretchTypeMainConditionNode = cmds.createNode("condition", name = f"{MID}_spine_splineIKStretchtypeMainCondition_fNode")
+    cmds.setAttr(f"{spineStretchTypeMainConditionNode}.secondTerm", 1)
+    cmds.setAttr(f"{spineStretchTypeMainConditionNode}.colorIfFalseG", 1)
+    cmds.connectAttr(f"{spineIKCurveLengthStretchFactorMultiplyNode}.outputX", f"{spineStretchTypeMainConditionNode}.colorIfTrueR")
+    cmds.connectAttr(f"{spineIKCurveLengthStretchFactorMultiplyNode}.outputX", f"{spineStretchTypeMainConditionNode}.firstTerm")
 
+    #Create and Connect a Plus minus Average node to get set the right operation for the condition node for selection the spine stretch type
+    spineStretchTypeOffsetAdditionNode = cmds.createNode("plusMinusAverage", name = f"{MID}_spine_splineIKFKStretchTypeOffsetAddition_fNode")
+    cmds.setAttr(f"{spineStretchTypeOffsetAdditionNode}.input1D[0]", 1)
+    cmds.connectAttr(f"{MID}_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[1]")
+    cmds.connectAttr(f"{MID}_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[2]")
+    cmds.connectAttr(f"{spineStretchTypeOffsetAdditionNode}.output1D", f"{spineStretchTypeMainConditionNode}.operation")
+
+    #blend between using the volume preservation or not using the attribute on the Chest Ctrl
+    spineStretchVolumePreservationBlendNode = cmds.createNode("blendTwoAttr", name = f"{MID}_spine_splineVolumePreservationBlend_fNode")
+    cmds.connectAttr(f"{MID}_chest_ctrl.VolumePreservation", f"{spineStretchVolumePreservationBlendNode}.attributesBlender")
+    cmds.setAttr(f"{spineStretchVolumePreservationBlendNode}.input[0]", 1)
+    cmds.connectAttr(f"{spineStretchTypeMainConditionNode}.outColorR", f"{spineStretchVolumePreservationBlendNode}.input[1]")
+    
+    #connect the calculated value to the joints scaleY inputs
+    MultiConnectFunction.ConnectNodesMulti("outColorR", "scaleY", spineStretchTypeMainConditionNode, spineDriverJoints)
+    
+    #Multiply Divide not to calculate the volume Preservation Value for the other scale channels for the joints
+    spineIKSquashFactorMultiplyNode = cmds.createNode("multiplyDivide", name = f"{MID}_spine_splineIKSquashFactorMultiply_fNode")
+    cmds.connectAttr(f"{spineStretchVolumePreservationBlendNode}.output", f"{spineIKSquashFactorMultiplyNode}.input1X")
+    cmds.setAttr(f"{spineIKSquashFactorMultiplyNode}.input2X", -1)
+    cmds.setAttr(f"{spineIKSquashFactorMultiplyNode}.operation", 3)
+    
+    #animatable attributes to change the Volume Preservation Factors for each joint
+    spineSquashFactorAttributes = ["HipSquashFactor", "Spine01SquashFactor", "Spine02SquashFactor", "Spine03SquashFactor", "ChestSquashFactor"]
+
+    for index, node in enumerate(spineDriverJoints):
+        newMultDoubleNode = cmds.createNode("multDoubleLinear", name = f"{MID}_spine_{node}SquashMulti_fNode")
+        cmds.connectAttr(f"{spineIKSquashFactorMultiplyNode}.outputX", f"{newMultDoubleNode}.input1")
+        newSquashFactorBlendNode = cmds.createNode(f"blendTwoAttr", name = f"{MID}_spine_{node}blendStretchType_fNode")
+        cmds.connectAttr(f"{MID}_chest_ctrl.VolumePreservation", f"{newSquashFactorBlendNode}.attributesBlender")
+        cmds.setAttr(f"{newSquashFactorBlendNode}.input[0]", 1)
+        cmds.connectAttr(f"{MID}_chest_ctrl.{spineSquashFactorAttributes[index]}", f"{newSquashFactorBlendNode}.input[1]")
+        cmds.connectAttr(f"{newSquashFactorBlendNode}.output", f"{newMultDoubleNode}.input2")
+        cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleX")
+        cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleZ")
+    
     return True
+
+
+
+
