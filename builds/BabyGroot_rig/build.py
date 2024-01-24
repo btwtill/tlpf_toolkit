@@ -7,6 +7,7 @@ import subprocess
 from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 from tlpf_toolkit.joint import JointFunctions
 from tlpf_toolkit.builds.BabyGroot_rig import spine
+from tlpf_toolkit.builds.BabyGroot_rig import arms
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -446,8 +447,14 @@ def build_BabyGroot_Rig():
     log.info("################")
     spine.buildSpine()
     log.info("Spine Build Complete!")
-    #Build Left Arm
 
+    #Build Left Arm
+    log.info("################")
+    log.info("Build Left Arm")
+    log.info("################")
+    arms.buildLeftArm()
+    log.info("Left Arm Build Complete!")
+    
     #Build Right Arm
 
     #Build Left Leg

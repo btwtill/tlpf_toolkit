@@ -1,9 +1,12 @@
 import maya.cmds as cmds
 import logging
+import re
 
 from tlpf_toolkit.joint import JointFunctions
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.node import MultiConnectFunction
+from tlpf_toolkit.systems import RibbonSetup
+
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -17,6 +20,12 @@ MID = "M"
 LEFT = "L"
 RIGHT = "R"
 
+def getBaseName(pattern, inputString):
+    baseNameMatch = re.search(pattern, inputString)
+    return baseNameMatch.group(1)
+
+def check_multiple_strings(main_string, substrings):
+    return any(substring in main_string for substring in substrings)
 
 def buildSpine():
 
@@ -38,7 +47,12 @@ def buildSpine():
     #build IK Spline
     spineDriverJoints = cmds.listRelatives(f"{MID}_spine_driver", ad = True, c = True)
     spineDriverJoints = list(reversed(spineDriverJoints))
+    spineDeformJoints = cmds.listRelatives("M_spine_deformTorso_hrc", c = True)
+
     log.info(f"Spine Driver Joints: {spineDriverJoints}")
+    log.info(f"Spine Deform Joints: {spineDeformJoints}")
+
+    
 
     cmds.select(clear = True)
 
@@ -73,6 +87,7 @@ def buildSpine():
 
     GeneralFunctions.clearTransforms(spineCurveDriverJoints)
 
+    #connectChest Driver joint to deform Joint
     steadyChestpointConstraint  = cmds.pointConstraint(f"{MID}_chest_drvIkfk", f"{MID}_chest_ctrlDriver", f"{MID}_chest_skn")[0]
 
     steadyChestAttributeReverseNode = cmds.createNode("reverse", name = f"{MID}_Spine_steadyChestAttributeRevesre_fNode")
@@ -85,6 +100,29 @@ def buildSpine():
     cmds.connectAttr(f"{MID}_chest_ctrl.worldMatrix[0]", f"{chestCtrlWorldSpaceRotationDecomposeNode}.inputMatrix")
     for channel in "XYZ":
         cmds.connectAttr(f"{chestCtrlWorldSpaceRotationDecomposeNode}.outputRotate{channel}", f"{MID}_chest_skn.rotate{channel}")
+
+    #connect Hip Driver joints to deform Joint
+    hipDeformJointRotationBlendNode = cmds.createNode("pairBlend", name = f"{MID}_spine_steadyHipRotationBlend_fNode")
+    
+    for channel in "XYZ":
+        cmds.connectAttr(f"{spineDriverJoints[0]}.translate{channel}", f"{MID}_hip_skn.translate{channel}")
+    
+    spineHipDriverJointWorldDCMNode = cmds.createNode("decomposeMatrix", name = f"{MID}_spine_hipCtrlDriverJointDCM_fNode")
+    cmds.connectAttr(f"{MID}_hip_ctrlDriver.worldMatrix[0]", f"{spineHipDriverJointWorldDCMNode}.inputMatrix")
+    spineDrvIKFKJointWorldDCMNode = cmds.createNode("decomposeMatrix", name = f"{MID}_spine_hipdrvIkfkJointDCM_fNode")
+    cmds.connectAttr(f"{MID}_hip_drvIkfk.worldMatrix[0]", f"{spineDrvIKFKJointWorldDCMNode}.inputMatrix")
+
+    for channel in "XYZ":
+        cmds.connectAttr(f"{spineHipDriverJointWorldDCMNode}.outputRotate{channel}", f"{hipDeformJointRotationBlendNode}.inRotate{channel}2")
+        cmds.connectAttr(f"{spineDrvIKFKJointWorldDCMNode}.outputRotate{channel}", f"{hipDeformJointRotationBlendNode}.inRotate{channel}1")
+        cmds.connectAttr(f"{hipDeformJointRotationBlendNode}.outRotate{channel}", f"{spineDeformJoints[0]}.rotate{channel}")
+
+    cmds.connectAttr(f"{MID}_hips_ctrl.SteadyHip", f"{hipDeformJointRotationBlendNode}.weight")
+
+    for index in [1, 2, 3]:
+        cmds.connectAttr(f"{spineDriverJoints[index]}.worldMatrix[0]", f"{spineDeformJoints[index]}.offsetParentMatrix")
+        GeneralFunctions.clearTransforms([spineDeformJoints[index]])
+
 
     #configure Spine Twist Ctrl
     cmds.setAttr(f"{spineIKHandle[0]}.dTwistControlEnable", 1)
@@ -150,8 +188,66 @@ def buildSpine():
         cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleX")
         cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleZ")
     
+
+    #Build the Torso Vines 
+    #Torso Vines System Group
+    torsoVinesSystem = cmds.createNode("transform", name = f"{MID}_spine_torsoVineSystem", parent = f"{MID}_spine_systems")
+
+    #create Actual Vine Ribbons
+    
+    vineGuideGroups = cmds.listRelatives(f"{MID}_ChestGuides", c = True)
+    horizontalVines = ["torsoVineD01", "torsoVineF", "torsoVineH", "torsoVineI"]
+
+
+    for vineGuide in vineGuideGroups:
+
+        
+        cmds.select(clear=True)
+        log.info(f"#####")
+        log.info(f"Current Vine Guide: {vineGuide}")
+        baseNamePattern = r'_(.*?)_'
+        baseName = getBaseName(baseNamePattern, vineGuide)
+        
+        if baseName:
+            log.info(f"Current Vine Base Name: {baseName}")
+        else:
+            log.info(f"Base Name could not be found Check your Guides Naming Convention.")
+        log.info(f"Current Vine Side: {MID}")
+        
+        isHorzontal = check_multiple_strings(vineGuide, horizontalVines)
+        direction = 'Horizontal' if isHorzontal else 'Vertical'
+        log.info(f"Current Vine Direction: {direction}")
+
+        RibbonSetup.buildGuidedRibbon(MID, baseName, True, False, False, "", True, "sphere_orange", True, "diamond_orange", direction)
+
+        cmds.select(clear=True)
+        vineRigGroupName = f"{MID}_{baseName}_Rig_grp"
+        cmds.parent(vineRigGroupName, torsoVinesSystem)
+
+        vineLetter = baseName.replace("torsoVine", "")
+        vineLetter = vineLetter[0]
+        activationButton = f"{MID}_chestVine{vineLetter}_innerButton"
+
+        ctrlRemapName = f"{activationButton}_ctrlVisRemap_fNode"
+        tweakCtrlRemapName = f"{activationButton}_tweakCtrlVisRemap_fNode"
+
+        if cmds.objExists(ctrlRemapName):
+            cmds.connectAttr(f"{ctrlRemapName}.outValue",  f"{vineRigGroupName}.CtrlVisibility")
+            cmds.connectAttr(f"{tweakCtrlRemapName}.outValue", f"{vineRigGroupName}.TweakCtrlVisibility")
+        else:
+            ctrlRemapNode = cmds.createNode("remapValue", name = ctrlRemapName)
+            cmds.setAttr(f"{ctrlRemapNode}.inputMax", 3)
+            cmds.setAttr(f"{ctrlRemapNode}.outputMax", 0.5)
+            cmds.connectAttr(f"{activationButton}.translateX", f"{ctrlRemapNode}.inputValue")
+            cmds.connectAttr(f"{ctrlRemapNode}.outValue",  f"{vineRigGroupName}.CtrlVisibility")
+            
+            tweakctrlRemapNode = cmds.createNode("remapValue", name = tweakCtrlRemapName)
+            cmds.setAttr(f"{tweakctrlRemapNode}.inputMin", 3)
+            cmds.setAttr(f"{tweakctrlRemapNode}.inputMax", 6)
+            cmds.setAttr(f"{tweakctrlRemapNode}.outputMax", 0.5)
+            cmds.connectAttr(f"{activationButton}.translateX", f"{tweakctrlRemapNode}.inputValue")
+            cmds.connectAttr(f"{tweakctrlRemapNode}.outValue", f"{vineRigGroupName}.TweakCtrlVisibility")
+
+        log.info(f"Vine ActivationButton: {activationButton}")
+
     return True
-
-
-
-
