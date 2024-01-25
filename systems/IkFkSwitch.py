@@ -337,6 +337,8 @@ def CreateSinglePairBlend(ikJoint, fkJoint, targtJoint):
     for i in "XYZ":
         cmds.connectAttr(pairBlend + ".outTranslate" + i, targtJoint + ".translate" + i)
 
+    return pairBlend
+
     
 
 def CreateMultiPairBlends():

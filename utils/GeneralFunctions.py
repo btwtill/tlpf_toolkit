@@ -1,7 +1,14 @@
 #Module import
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
 
 from tlpf_toolkit.mtrx import MatrixZeroOffset
+
+__startIndex__ = {0:0, 
+                  1:4,
+                  2:8,
+                  3:12}
+
 
 #=======================================
 ## String Filter Function
@@ -200,3 +207,35 @@ def clearTransforms(items):
 #=======================================
 ## Clear Transforms - End
 #=======================================
+               
+
+def clearTransformsSpecific(items, t = True, r = True, s = True):
+     for item in items:
+          for channel in "XYZ":
+               if t:
+                cmds.setAttr(f"{item}.translate{channel}", 0)
+               if r:
+                cmds.setAttr(f"{item}.rotate{channel}", 0)
+               if s: 
+                cmds.setAttr(f"{item}.scale{channel}", 1)
+
+
+def getMatrixTranslation(inputMatrix):
+    resultTranslation = getMatrixRow(3, inputMatrix)
+    return resultTranslation
+
+
+def getMatrixRow(row = 0, inMat =None):
+    outVec = om.MVector(inMat[__startIndex__[row]],
+                        inMat[__startIndex__[row]+ 1],
+                        inMat[__startIndex__[row]+ 2])
+    return outVec
+
+def getOffsetSrt(source, target):
+    
+    localCoord = om.MMatrix(cmds.getAttr(f"{source}.worldInverseMatrix[0]"))
+    WorldMatrix = om.MMatrix(cmds.getAttr(f"{target}.worldMatrix[0]"))
+
+    resultMatrix = localCoord * WorldMatrix
+
+    return resultMatrix

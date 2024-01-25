@@ -72,8 +72,8 @@ def buildSpine():
     log.info(f"Spine IK SkinCluster Node: {spineSplineIKSkinCluster}")
 
     #noodle the Ctrls into the mix
-    cmds.connectAttr(f"{MID}_chest_ctrl.worldMatrix[0]", f"{spineCurveDriverJoints[0]}.offsetParentMatrix")
-    cmds.connectAttr(f"{MID}_spine02_ikCtrl.worldMatrix[0]", f"{spineCurveDriverJoints[1]}.offsetParentMatrix")
+    cmds.connectAttr(f"cn_chest_ctrl.worldMatrix[0]", f"{spineCurveDriverJoints[0]}.offsetParentMatrix")
+    cmds.connectAttr(f"cn_spine02_ikCtrl.worldMatrix[0]", f"{spineCurveDriverJoints[1]}.offsetParentMatrix")
 
     hipsCtrlToJointOffsetValue = -4.5
 
@@ -82,7 +82,7 @@ def buildSpine():
 
     cmds.setAttr(f"{composeOffsetMatrixNode}.inputTranslateY", hipsCtrlToJointOffsetValue)
     cmds.connectAttr(f"{composeOffsetMatrixNode}.outputMatrix", f"{multiplyOffsetMatrixNode}.matrixIn[0]")
-    cmds.connectAttr(f"{MID}_hips_ctrl.worldMatrix[0]", f"{multiplyOffsetMatrixNode}.matrixIn[1]")
+    cmds.connectAttr(f"cn_hips_ctrl.worldMatrix[0]", f"{multiplyOffsetMatrixNode}.matrixIn[1]")
     cmds.connectAttr(f"{multiplyOffsetMatrixNode}.matrixSum", f"{spineCurveDriverJoints[2]}.offsetParentMatrix")
 
     GeneralFunctions.clearTransforms(spineCurveDriverJoints)
@@ -92,12 +92,12 @@ def buildSpine():
 
     steadyChestAttributeReverseNode = cmds.createNode("reverse", name = f"{MID}_Spine_steadyChestAttributeRevesre_fNode")
 
-    cmds.connectAttr(f"{MID}_chest_ctrl.SteadySpine", f"{steadyChestAttributeReverseNode}.inputX")
-    cmds.connectAttr(f"{MID}_chest_ctrl.SteadySpine", f"{steadyChestpointConstraint}.{MID}_chest_ctrlDriverW1")
+    cmds.connectAttr(f"cn_chest_ctrl.SteadySpine", f"{steadyChestAttributeReverseNode}.inputX")
+    cmds.connectAttr(f"cn_chest_ctrl.SteadySpine", f"{steadyChestpointConstraint}.{MID}_chest_ctrlDriverW1")
     cmds.connectAttr(f"{steadyChestAttributeReverseNode}.outputX", f"{steadyChestpointConstraint}.{MID}_chest_drvIkfkW0")
 
     chestCtrlWorldSpaceRotationDecomposeNode = cmds.createNode("decomposeMatrix", name = f"{MID}_spine_chestCtrlWorldSpaceRotation_dcm_fNode")
-    cmds.connectAttr(f"{MID}_chest_ctrl.worldMatrix[0]", f"{chestCtrlWorldSpaceRotationDecomposeNode}.inputMatrix")
+    cmds.connectAttr(f"cn_chest_ctrl.worldMatrix[0]", f"{chestCtrlWorldSpaceRotationDecomposeNode}.inputMatrix")
     for channel in "XYZ":
         cmds.connectAttr(f"{chestCtrlWorldSpaceRotationDecomposeNode}.outputRotate{channel}", f"{MID}_chest_skn.rotate{channel}")
 
@@ -117,7 +117,7 @@ def buildSpine():
         cmds.connectAttr(f"{spineDrvIKFKJointWorldDCMNode}.outputRotate{channel}", f"{hipDeformJointRotationBlendNode}.inRotate{channel}1")
         cmds.connectAttr(f"{hipDeformJointRotationBlendNode}.outRotate{channel}", f"{spineDeformJoints[0]}.rotate{channel}")
 
-    cmds.connectAttr(f"{MID}_hips_ctrl.SteadyHip", f"{hipDeformJointRotationBlendNode}.weight")
+    cmds.connectAttr(f"cn_hips_ctrl.SteadyHip", f"{hipDeformJointRotationBlendNode}.weight")
 
     for index in [1, 2, 3]:
         cmds.connectAttr(f"{spineDriverJoints[index]}.worldMatrix[0]", f"{spineDeformJoints[index]}.offsetParentMatrix")
@@ -131,8 +131,8 @@ def buildSpine():
     cmds.setAttr(f"{spineIKHandle[0]}.dWorldUpAxis", 4)
     cmds.setAttr(f"{spineIKHandle[0]}.dWorldUpVectorZ",-1)
     cmds.setAttr(f"{spineIKHandle[0]}.dWorldUpVectorEndZ", -1)
-    cmds.connectAttr(f"{MID}_hips_ctrl.worldMatrix[0]", f"{spineIKHandle[0]}.dWorldUpMatrix")
-    cmds.connectAttr(f"{MID}_chest_ctrl.worldMatrix[0]", f"{spineIKHandle[0]}.dWorldUpMatrixEnd")
+    cmds.connectAttr(f"cn_hips_ctrl.worldMatrix[0]", f"{spineIKHandle[0]}.dWorldUpMatrix")
+    cmds.connectAttr(f"cn_chest_ctrl.worldMatrix[0]", f"{spineIKHandle[0]}.dWorldUpMatrixEnd")
 
     #Implement Stretch
     spineIKCurveLengthInfoNode = cmds.createNode("curveInfo", name = f"{MID}_spine_splineIKCurveLengthInfo_fNode")
@@ -155,13 +155,13 @@ def buildSpine():
     #Create and Connect a Plus minus Average node to get set the right operation for the condition node for selection the spine stretch type
     spineStretchTypeOffsetAdditionNode = cmds.createNode("plusMinusAverage", name = f"{MID}_spine_splineIKFKStretchTypeOffsetAddition_fNode")
     cmds.setAttr(f"{spineStretchTypeOffsetAdditionNode}.input1D[0]", 1)
-    cmds.connectAttr(f"{MID}_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[1]")
-    cmds.connectAttr(f"{MID}_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[2]")
+    cmds.connectAttr(f"cn_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[1]")
+    cmds.connectAttr(f"cn_chest_ctrl.StretchType", f"{spineStretchTypeOffsetAdditionNode}.input1D[2]")
     cmds.connectAttr(f"{spineStretchTypeOffsetAdditionNode}.output1D", f"{spineStretchTypeMainConditionNode}.operation")
 
     #blend between using the volume preservation or not using the attribute on the Chest Ctrl
     spineStretchVolumePreservationBlendNode = cmds.createNode("blendTwoAttr", name = f"{MID}_spine_splineVolumePreservationBlend_fNode")
-    cmds.connectAttr(f"{MID}_chest_ctrl.VolumePreservation", f"{spineStretchVolumePreservationBlendNode}.attributesBlender")
+    cmds.connectAttr(f"cn_chest_ctrl.VolumePreservation", f"{spineStretchVolumePreservationBlendNode}.attributesBlender")
     cmds.setAttr(f"{spineStretchVolumePreservationBlendNode}.input[0]", 1)
     cmds.connectAttr(f"{spineStretchTypeMainConditionNode}.outColorR", f"{spineStretchVolumePreservationBlendNode}.input[1]")
     
@@ -181,9 +181,9 @@ def buildSpine():
         newMultDoubleNode = cmds.createNode("multDoubleLinear", name = f"{MID}_spine_{node}SquashMulti_fNode")
         cmds.connectAttr(f"{spineIKSquashFactorMultiplyNode}.outputX", f"{newMultDoubleNode}.input1")
         newSquashFactorBlendNode = cmds.createNode(f"blendTwoAttr", name = f"{MID}_spine_{node}blendStretchType_fNode")
-        cmds.connectAttr(f"{MID}_chest_ctrl.VolumePreservation", f"{newSquashFactorBlendNode}.attributesBlender")
+        cmds.connectAttr(f"cn_chest_ctrl.VolumePreservation", f"{newSquashFactorBlendNode}.attributesBlender")
         cmds.setAttr(f"{newSquashFactorBlendNode}.input[0]", 1)
-        cmds.connectAttr(f"{MID}_chest_ctrl.{spineSquashFactorAttributes[index]}", f"{newSquashFactorBlendNode}.input[1]")
+        cmds.connectAttr(f"cn_chest_ctrl.{spineSquashFactorAttributes[index]}", f"{newSquashFactorBlendNode}.input[1]")
         cmds.connectAttr(f"{newSquashFactorBlendNode}.output", f"{newMultDoubleNode}.input2")
         cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleX")
         cmds.connectAttr(f"{newMultDoubleNode}.output", f"{node}.scaleZ")

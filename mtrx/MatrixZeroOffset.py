@@ -1,5 +1,13 @@
 #Module Import
 import maya.cmds as cmds
+import maya.api.OpenMaya as om
+import logging
+from tlpf_toolkit.utils import GeneralFunctions
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 
 #=======================================
@@ -78,4 +86,57 @@ def createMatrixZeroOffset(sel):
 #=======================================
 
 
+def createMatrixZeroOffsetSpecific(targets, translation = True, rotation = True, scale = True, ct  = True, cr =True, cs = True, deleteZero = True):
+    offsetMatrixNodes = []
 
+    for target in targets:
+
+        cmds.select(clear=True)
+
+        zeroNode = cmds.listRelatives(target, parent = True)[0]
+        parentNode = cmds.listRelatives(zeroNode, parent = True)[0]
+
+        cmds.select(clear=True)
+
+        newOffsetComposeMatrixNode = cmds.createNode("composeMatrix", name = f"{target}_zeroOffsetComposeMatrix_fNode")
+        newOffsetMultiplyMatrixNode = cmds.createNode("multMatrix", name = f"{target}_zeroOffsetMultMatrix_fNode")
+
+        offsetMatrixNodes.append(newOffsetComposeMatrixNode)
+
+        cmds.connectAttr(f"{newOffsetComposeMatrixNode}.outputMatrix", f"{newOffsetMultiplyMatrixNode}.matrixIn[0]")
+        cmds.connectAttr(f"{parentNode}.worldMatrix[0]", f"{newOffsetMultiplyMatrixNode}.matrixIn[1]")
+        cmds.connectAttr(f"{newOffsetMultiplyMatrixNode}.matrixSum", f"{target}.offsetParentMatrix")
+
+        cmds.parent(target, world=True)
+        cmds.select(clear=True)
+
+        if translation:
+            offsetTranslation = cmds.getAttr(f"{zeroNode}.translate")[0]
+            log.info(f"OffsetTranslation: {offsetTranslation}:{type(offsetTranslation)}")
+            cmds.setAttr(f"{newOffsetComposeMatrixNode}.inputTranslate", *offsetTranslation)
+
+        if rotation:
+            offsetRotation = cmds.getAttr(f"{zeroNode}.rotate")[0]
+            log.info(f"OffsetRotation: {offsetRotation}:{type(offsetRotation)}")
+            cmds.setAttr(f"{newOffsetComposeMatrixNode}.inputRotate", *offsetRotation)
+
+        if scale:
+            offsetScale = cmds.getAttr(f"{zeroNode}.scale")[0]
+            cmds.setAttr(f"{newOffsetComposeMatrixNode}.inputScale", *offsetScale)
+
+        log.info(f"clearTranslate{ct}:clearRotate{cr}:clearScale:{cs}")
+
+        GeneralFunctions.clearTransformsSpecific([target], ct, cr, cs)
+
+        if deleteZero:
+            cmds.delete(zeroNode)
+
+        cmds.select(clear=True)
+
+    
+    return offsetMatrixNodes
+
+
+#=======================================
+## Matrix Node Zero Offset - END
+#=======================================

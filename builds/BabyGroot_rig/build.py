@@ -29,7 +29,7 @@ PUBLISHFILE = "BabyGroot_Publish_V001"
 PUBLISHDIR = "scenes/RigBuildDir/Publish"
 SOURCEDIR = f"{PROJ_PATH}scenes/RigBuildDir/Sources/"
 
-CTRLFILENAME = "BabyGroot_Ctrl_Publish_V003.ma"
+CTRLFILENAME = "BabyGroot_Ctrl_Publish_V004.ma"
 GUIDEFILENAME = "BabyGroot_Guides_Publish_V005.ma"
 MODELFILENAME = "BabyGroot_Model_Publish_V001.ma"
 
