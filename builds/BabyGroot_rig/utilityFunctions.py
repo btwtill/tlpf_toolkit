@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.api.OpenMaya as om
+import re
 from tlpf_toolkit.mtrx import MatrixZeroOffset
 from tlpf_toolkit.systems import TwistJoints
 
@@ -75,3 +76,12 @@ def BuildTwistJoints(parentJoint, childJoint, side, suffix, limb):
     return twistJoints
 
 
+
+
+
+def getBaseName(pattern, inputString):
+    baseNameMatch = re.search(pattern, inputString)
+    return baseNameMatch.group(1)
+
+def check_multiple_strings(main_string, substrings):
+    return any(substring in main_string for substring in substrings)

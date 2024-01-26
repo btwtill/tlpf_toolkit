@@ -79,6 +79,44 @@ def createPoleVectorLine():
         cmds.delete(qshape)
     except:
         print("time to investigate!!")
+
+
+
+def createPoleVectorLineInternal(ctrl, joint):
+    try:
+            
+        sel = cmds.ls(selection=True)
+
+        qshape = cmds.curve(p=[(0,0,0), (0,0,0)], d=1)
+
+
+        qshape = cmds.rename(qshape, ctrl + '_q')
+        cmds.select(qshape)
+
+        selectionShape = cmds.pickWalk(direction="Down")
+
+
+        cmds.parent(selectionShape, ctrl, shape=True, relative=True)
+
+        multmatrix = cmds.createNode('multMatrix', name = f"{ctrl}_poleVectorLineMultMatrix_fNode")
+        decomposeMatrix = cmds.createNode('decomposeMatrix', name = f"{ctrl}_poleVectorLineDecompose_fNode")
+
+
+        cmds.connectAttr(multmatrix + '.matrixSum', decomposeMatrix + '.inputMatrix')
+
+        cmds.connectAttr(joint + '.worldMatrix', multmatrix + '.matrixIn[0]')
+        cmds.connectAttr(ctrl + '.worldInverseMatrix[0]', multmatrix + '.matrixIn[1]')
+
+
+        cmds.connectAttr(decomposeMatrix + '.outputTranslateX', selectionShape[0] + '.controlPoints[0].xValue')
+        cmds.connectAttr(decomposeMatrix + '.outputTranslateY', selectionShape[0] + '.controlPoints[0].yValue')
+        cmds.connectAttr(decomposeMatrix + '.outputTranslateZ', selectionShape[0] + '.controlPoints[0].zValue')
+
+        cmds.delete(qshape)
+    except:
+        print("time to investigate!!")
+
+    return [multmatrix, decomposeMatrix, selectionShape[0]]
 #=======================================
 ## ConnectionLine Function - END
 #=======================================

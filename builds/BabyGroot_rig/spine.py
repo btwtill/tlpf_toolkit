@@ -6,6 +6,7 @@ from tlpf_toolkit.joint import JointFunctions
 from tlpf_toolkit.utils import GeneralFunctions
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.systems import RibbonSetup
+from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -20,12 +21,6 @@ MID = "M"
 LEFT = "L"
 RIGHT = "R"
 
-def getBaseName(pattern, inputString):
-    baseNameMatch = re.search(pattern, inputString)
-    return baseNameMatch.group(1)
-
-def check_multiple_strings(main_string, substrings):
-    return any(substring in main_string for substring in substrings)
 
 def buildSpine():
 
@@ -206,7 +201,7 @@ def buildSpine():
         log.info(f"#####")
         log.info(f"Current Vine Guide: {vineGuide}")
         baseNamePattern = r'_(.*?)_'
-        baseName = getBaseName(baseNamePattern, vineGuide)
+        baseName = utilityFunctions.getBaseName(baseNamePattern, vineGuide)
         
         if baseName:
             log.info(f"Current Vine Base Name: {baseName}")
@@ -214,7 +209,7 @@ def buildSpine():
             log.info(f"Base Name could not be found Check your Guides Naming Convention.")
         log.info(f"Current Vine Side: {MID}")
         
-        isHorzontal = check_multiple_strings(vineGuide, horizontalVines)
+        isHorzontal = utilityFunctions.check_multiple_strings(vineGuide, horizontalVines)
         direction = 'Horizontal' if isHorzontal else 'Vertical'
         log.info(f"Current Vine Direction: {direction}")
 

@@ -112,8 +112,24 @@ def TimZero(transform_list, add_transforms):
 ## Tim COlement Zero Method - END
 #=======================================
 
+def internalZeroOffset(targets, add_transforms):
+    for tfm in targets:
+        created_tfms = list()
+        for i in range(0, len(add_transforms)):
 
+            #add_tfm = cmds.duplicate(tfm, po=True, name= tfm + add_transforms[i])
+            newTransform = cmds.createNode("transform", name = tfm + add_transforms[i])
+            cmds.matchTransform(newTransform, tfm)
+            try:
+                cmds.parent(newTransform, cmds.listRelatives(tfm, parent=True))
+            except:
+                pass
 
+            created_tfms.append(newTransform)
+            if i:
+                cmds.parent(newTransform, created_tfms[i - 1])
+        cmds.parent(tfm, created_tfms[-1])
+                
 #=======================================
 ## Clear Transforms to offsetParent Matrix
 #=======================================
