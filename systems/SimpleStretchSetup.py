@@ -265,6 +265,33 @@ def BuildStretchSetup(_upperJointPos, _midJointPos, _lowerJointPos, _anchor, _po
 
     setupConnections(endCtrl, poleVector, anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJointList)
 
+
+def BuildStretchSetupInternal(IKJoints, _anchor, _poleVector, _endCtrl):
+
+    SideNamingConvention = getCharacterSideNamingConvention(IKJoints)
+
+    print(_endCtrl, _anchor, _poleVector)
+
+    limbType = getLimbType(_endCtrl)
+
+    if SideNamingConvention == "Not_Defined" or limbType == "Not_Defined" or _anchor == "" or _poleVector == "" or _endCtrl == "":
+        print(SideNamingConvention, limbType, _anchor, _endCtrl, _poleVector)
+        print("check youre Naming conventions")
+        return
+    
+    if IKJoints == []:
+        print("no Joints Selected")
+        return
+    
+    defaultChain = createDefaultChain(IKJoints)
+    GeneralFunctions.reparenting(defaultChain)
+
+    stretchAttributes = ["Stretch_Ctrls", "Do_Stretch", "Pin", "Nudge", "Max_Stretch"]
+
+    addStretchAttributes(_endCtrl, stretchAttributes)
+
+    setupConnections(_endCtrl, _poleVector, _anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJoints)
+
 #=======================================
 ## Simple Stetch Function - END
 #=======================================
