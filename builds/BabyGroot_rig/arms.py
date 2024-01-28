@@ -341,12 +341,113 @@ def buildLeftArm():
     #implement Arm Stretch
     log.info(f"ik joints: {leftArmIKJoints}")
     cmds.select(clear=True)
-    SimpleStretchSetup.BuildStretchSetupInternal(leftArmIKJoints, leftArmANCHOR, "l_armPV_ctrl", "l_wrist_IKCtrl")
+    leftArmStretchPinNodes, defaultLengthJoints = SimpleStretchSetup.BuildStretchSetupInternal(leftArmIKJoints, leftArmANCHOR, "l_armPV_ctrl", "l_wrist_IKCtrl")
+    log.info(f"Left Arm StretchPin Nodes: {leftArmStretchPinNodes}")
+    log.info(f"Left Arm default Length Joints: {defaultLengthJoints}")
+
+    try:
+        cmds.connectAttr(f"{leftArmStretchPinNodes[0]}.output", f"{leftArmIKJoints[1]}.translateY")
+        cmds.connectAttr(f"{leftArmStretchPinNodes[1]}.output", f"{leftArmIKJoints[2]}.translateY")
+    except:
+        log.info("Couldnt Conncet stretch values to Joints!")
+
+    cmds.select(clear=True)
+    cmds.parent(defaultLengthJoints[0], leftArmIKFKSystems)
+    cmds.select(clear=True)
 
     #create Arm Vines
+    leftArmVineSystem = cmds.createNode("transform", name = f"{LEFT}_arm_VineSystem", parent = f"{LEFT}_arm_systems")
+    leftArmVineDeformGroup = cmds.createNode("transform", name = f"{LEFT}_arm_VineDeformation", parent = f"{LEFT}_arm_deform")
+
+    leftArmVineGuides = cmds.listRelatives("l_armVine_Guides_grp", c = True)
+    log.info(f"All Vine Guides: {leftArmVineGuides}")
+
+    #STORE THE VERTICAL VINES AS LIST
+    leftArmVerticalVines = ["ArmVineB00, ArmVineE00, ArmVineP01"]
+
+    #Create Vines
+    for vineGuide in leftArmVineGuides:
+
+        log.info(f"Current Vine Guide: {vineGuide}")
+        baseNamePattern = r'_(.*?)_'
+        baseName = utilityFunctions.getBaseName(baseNamePattern, vineGuide)
+        
+        if baseName:
+            log.info(f"Current Vine Base Name: {baseName}")
+        else:
+            log.info(f"Base Name could not be found Check your Guides Naming Convention.")
+        log.info(f"Current Vine Side: {LEFT}")
+
+        isVertical = utilityFunctions.check_multiple_strings(vineGuide, leftArmVerticalVines)
+        direction = 'Vertical' if isVertical else 'Horizontal'
+
+        log.info(f"Current Vine Direction: {direction}")
+
+        RibbonSetup.buildGuidedRibbon(LEFT, baseName, True, False, False, "", True, "sphere_blue", True, "diamond_blue", direction)
+
+        cmds.select(clear=True)
+        vineRigGroupName = f"{LEFT}_{baseName}_Rig_grp"
+        cmds.parent(vineRigGroupName, leftArmVineSystem)
+
+        vineLetter = baseName.replace("armVine", "")
+        vineLetter = vineLetter[0]
+        activationButton = f"l_armVine{vineLetter}_innerButton"
+
+        ctrlRemapName = f"{activationButton}_ctrlVisRemap_fNode"
+        tweakCtrlRemapName = f"{activationButton}_tweakCtrlVisRemap_fNode"
+
+
+        vineRigTweakCtrlGroup = cmds.listRelatives(vineRigGroupName, c = True)[-1]
+
+        vineRigDeformJoints = cmds.listRelatives(vineRigTweakCtrlGroup, c = True, ad =True, typ = "joint")
+        vineRigDeformCtrls = cmds.listRelatives(vineRigTweakCtrlGroup, c = True, ad =True, typ = "transform")
+        
+        vineRigDeformCtrls = vineRigDeformCtrls[1::2]
+
+        log.info(f"Vine Rig tweakCtrls: {vineRigDeformCtrls}")
+        log.info(f"Vine Rig deformJointsList: {vineRigDeformJoints}")
+
+        for ctrl in vineRigDeformJoints:
+            log.info(f"Current Vine Deform Joints{ctrl}")
+
+
+        for index, joint in enumerate(vineRigDeformJoints):
+            cmds.connectAttr(f"{vineRigDeformCtrls[index]}.worldMatrix[0]", f"{joint}.offsetParentMatrix")
+            
+
+        cmds.select(clear=True)
+        cmds.parent(vineRigDeformJoints, leftArmVineDeformGroup)
+        cmds.select(clear=True)
+
+        for joint in vineRigDeformJoints:
+            GeneralFunctions.clearTransformsSpecific([joint])
+            JointFunctions.ClearJointOrientValuesInternal([joint])
+            log.info(f"currently Cleared Joint {joint}")
+
+
+
+
+        if cmds.objExists(ctrlRemapName):
+            cmds.connectAttr(f"{ctrlRemapName}.outValue",  f"{vineRigGroupName}.CtrlVisibility")
+            cmds.connectAttr(f"{tweakCtrlRemapName}.outValue", f"{vineRigGroupName}.TweakCtrlVisibility")
+        else:
+            ctrlRemapNode = cmds.createNode("remapValue", name = ctrlRemapName)
+            cmds.setAttr(f"{ctrlRemapNode}.inputMax", 3)
+            cmds.setAttr(f"{ctrlRemapNode}.outputMax", 0.5)
+            cmds.connectAttr(f"{activationButton}.translateX", f"{ctrlRemapNode}.inputValue")
+            cmds.connectAttr(f"{ctrlRemapNode}.outValue",  f"{vineRigGroupName}.CtrlVisibility")
+            
+            tweakctrlRemapNode = cmds.createNode("remapValue", name = tweakCtrlRemapName)
+            cmds.setAttr(f"{tweakctrlRemapNode}.inputMin", 3)
+            cmds.setAttr(f"{tweakctrlRemapNode}.inputMax", 6)
+            cmds.setAttr(f"{tweakctrlRemapNode}.outputMax", 0.5)
+            cmds.connectAttr(f"{activationButton}.translateX", f"{tweakctrlRemapNode}.inputValue")
+            cmds.connectAttr(f"{tweakctrlRemapNode}.outValue", f"{vineRigGroupName}.TweakCtrlVisibility")
+
+        log.info(f"Vine ActivationButton: {activationButton}")
+
 
     
-
 
     return True
 

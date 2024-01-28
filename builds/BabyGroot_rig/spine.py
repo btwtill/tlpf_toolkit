@@ -187,6 +187,7 @@ def buildSpine():
     #Build the Torso Vines 
     #Torso Vines System Group
     torsoVinesSystem = cmds.createNode("transform", name = f"{MID}_spine_torsoVineSystem", parent = f"{MID}_spine_systems")
+    trosoVineDeformGroup = cmds.createNode("transform", name = f"{MID}_spine_torsoVineDeformationJoints", parent = f"{MID}_spine_deform")
 
     #create Actual Vine Ribbons
     
@@ -225,6 +226,33 @@ def buildSpine():
 
         ctrlRemapName = f"{activationButton}_ctrlVisRemap_fNode"
         tweakCtrlRemapName = f"{activationButton}_tweakCtrlVisRemap_fNode"
+
+        vineRigTweakCtrlGroup = cmds.listRelatives(vineRigGroupName, c = True)[-1]
+
+        vineRigDeformJoints = cmds.listRelatives(vineRigTweakCtrlGroup, c = True, ad =True, typ = "joint")
+        vineRigDeformCtrls = cmds.listRelatives(vineRigTweakCtrlGroup, c = True, ad =True, typ = "transform")
+        
+        vineRigDeformCtrls = vineRigDeformCtrls[1::2]
+
+        log.info(f"Vine Rig tweakCtrls: {vineRigDeformCtrls}")
+        log.info(f"Vine Rig deformJointsList: {vineRigDeformJoints}")
+
+        for ctrl in vineRigDeformJoints:
+            log.info(f"Current Vine Deform Joints{ctrl}")
+
+
+        for index, joint in enumerate(vineRigDeformJoints):
+            cmds.connectAttr(f"{vineRigDeformCtrls[index]}.worldMatrix[0]", f"{joint}.offsetParentMatrix")
+            
+
+        cmds.select(clear=True)
+        cmds.parent(vineRigDeformJoints, trosoVineDeformGroup)
+        cmds.select(clear=True)
+
+        for joint in vineRigDeformJoints:
+            GeneralFunctions.clearTransformsSpecific([joint])
+            JointFunctions.ClearJointOrientValuesInternal([joint])
+            log.info(f"currently Cleared Joint {joint}")
 
         if cmds.objExists(ctrlRemapName):
             cmds.connectAttr(f"{ctrlRemapName}.outValue",  f"{vineRigGroupName}.CtrlVisibility")

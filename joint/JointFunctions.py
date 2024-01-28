@@ -73,7 +73,24 @@ def ClearJointOrientValues():
 #=======================================
 ## Clear Joint Orient Values - END
 #=======================================
-            
+
+
+
+#=======================================
+## Clear Joint Orient Values Internal
+#=======================================
+
+def ClearJointOrientValuesInternal(targets):
+
+    for i in targets:
+        for j in "XYZ":
+            cmds.setAttr(i + ".jointOrient" + j, 0)
+
+#=======================================
+## Clear Joint Orient Values Internal - END
+#=======================================
+
+
 #=======================================
 ## Build Forward Joint Chain form Selection 
 #=======================================

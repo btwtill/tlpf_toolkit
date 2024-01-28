@@ -216,13 +216,15 @@ def setupConnections(_End_ctrl, _PoleVector_ctrl, _anchor, _side, _DefaultIKChai
 
              cmds.connectAttr(upperInvert + ".outFloat", _IkJointList[1] + ".translateX")
              cmds.connectAttr(lowerInvert + ".outFloat", _IkJointList[2] + ".translateX")
+             return [upperPin, lowerPin]
 
         elif upperIKJointTranslateX == upperPinOutput and lowerIKJointTranlateX == lowerPinOutput:
              cmds.connectAttr(upperPin + ".output", _IkJointList[1] + ".translateX")
              cmds.connectAttr(lowerPin + ".output", _IkJointList[2] + ".translateX")
+             return [upperPin, lowerPin]
         else: 
              print("Your stretch values do not match up!!")
-             return
+             return [upperPin, lowerPin]
              
 
         
@@ -263,7 +265,7 @@ def BuildStretchSetup(_upperJointPos, _midJointPos, _lowerJointPos, _anchor, _po
 
     addStretchAttributes(endCtrl, stretchAttributes)
 
-    setupConnections(endCtrl, poleVector, anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJointList)
+    resultPinNodes = setupConnections(endCtrl, poleVector, anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJointList)
 
 
 def BuildStretchSetupInternal(IKJoints, _anchor, _poleVector, _endCtrl):
@@ -290,7 +292,9 @@ def BuildStretchSetupInternal(IKJoints, _anchor, _poleVector, _endCtrl):
 
     addStretchAttributes(_endCtrl, stretchAttributes)
 
-    setupConnections(_endCtrl, _poleVector, _anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJoints)
+    resultPinNodes = setupConnections(_endCtrl, _poleVector, _anchor, SideNamingConvention, defaultChain, stretchAttributes, limbType, IKJoints)
+
+    return resultPinNodes, defaultChain
 
 #=======================================
 ## Simple Stetch Function - END
