@@ -26,6 +26,7 @@ def ShapeReplace():
     sel = cmds.ls(selection = True)
 
     targetShapeName = cmds.listRelatives(sel[1], shapes = True)[0]
+    
     cmds.select(clear=True)
     cmds.select(sel[0])
     cmds.pickWalk(direction="down")
