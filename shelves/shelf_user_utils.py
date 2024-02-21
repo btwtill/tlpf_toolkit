@@ -51,6 +51,8 @@ from tlpf_toolkit.ctrls import CtrlMirror
 from tlpf_toolkit.mtrx import MatrixZeroOffset
 from tlpf_toolkit.mtrx import MatrixZeroDrvOffset
 from tlpf_toolkit.mtrx import CorrectiveMatrixSetup
+from tlpf_toolkit.mtrx import MatrixConstraints
+from tlpf_toolkit.mtrx import MatrixFunctions
 
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
@@ -429,6 +431,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(MatrixMenu, "Matrix Drv Offset", command=lambda _: MatrixZeroDrvOffset.createMatrixDrvOffset())
         self.addMenuItem(MatrixMenu, "Ball Joint Corrective Tool", command = lambda _: CorrectiveMatrixSetup.ballJointCorrectiveSystemUI())
         self.addMenuItem(MatrixMenu, "Hinge Joint Corrective Tool", command = lambda _: CorrectiveMatrixSetup.hingeJointCorrectiveSystemUI())
+        self.addMenuItem(MatrixMenu, "Matrix Constraint to Joint", command = lambda _: MatrixConstraints.matrixConstraintsToJointsUI())
+        self.addMenuItem(MatrixMenu, "Reset Parent offset Matrix", command = lambda _: MatrixFunctions.resetOffsetParentMatrix())
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
