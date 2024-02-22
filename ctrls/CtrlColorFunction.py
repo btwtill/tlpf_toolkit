@@ -5,6 +5,7 @@ import maya.cmds as cmds
 #=======================================
 ## CTRL Color Function
 #=======================================
+
 def ColorSettingWindow():
 
     #initilizing the window to pick the color

@@ -278,10 +278,15 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V003/ctrls.png")
         ctrlsMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(ctrlsMenu, "Basic Ctrls", command=lambda _: CreateBasicCtls.CreateCircleCtrls())
+        self.addMenuItem(ctrlsMenu, "Circle Ctrls - Hirarchy", command=lambda _: CreateBasicCtls.CreateCircleCtrlsHirarchyUserInput())
 
-        self.addMenuItem(ctrlsMenu, "Mirror Ctrls", command=lambda _: CtrlMirror.MirrorCtrlsBehavior())
-
+        self.addMenuItem(ctrlsMenu, "Circle Ctrls - Flat", command=lambda _: CreateBasicCtls.CreateCircleCtrlsUserInput())
+        
+        ctrlMirrorSubMenu = self.addSubMenu(ctrlsMenu, "Ctrl Mirroring")
+        
+        self.addMenuItem(ctrlMirrorSubMenu, "Scale Based Ctrls Mirror", command=lambda _: CtrlMirror.MirrorCtrlsBehaviorUserInput())
+        
+        self.addMenuItem(ctrlMirrorSubMenu, "Joint Based Ctrl Mirror", command=lambda _: CtrlMirror.mirrorCtrlsJointsMethodUI())
 
         #=======================================
         ## DISCLAIMER - Credit for the Following 

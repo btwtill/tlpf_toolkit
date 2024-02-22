@@ -146,7 +146,7 @@ def matrixConstraintsToJointsUI():
     cmds.text(label="", height=10)
 
     #Create constraints Button
-    matrixConstraintToJointsBuild = cmds.button(label = "Create pair blends", command = lambda _: fetchUserSelectionData())
+    matrixConstraintToJointsBuild = cmds.button(label = "Create Matrix Constraint", command = lambda _: fetchUserSelectionData())
 
     #display Window 
     cmds.showWindow(configWindow)
