@@ -151,3 +151,59 @@ def convertGuidesToIndividualJoints(guides, targetLocation = "World",searchTerm 
 #=======================================
 ## Convert Guides to individual Joints - END
 #=======================================
+
+#=======================================
+## Create Joints at Selected SRT with Names
+#=======================================
+
+def copyJointsReplaceNameUI():
+    #window
+    configWindow = cmds.window(title="Copy Joints with Name", iconName = "CopyJoints", widthHeight=(200, 300), sizeable=True)
+
+    #window Layout
+    cmds.rowColumnLayout(adjustableColumn=True)
+
+    #Title Text
+    titleText = cmds.text(label="CopyJoints and Replace String", height = 30, backgroundColor = [.5, .5, .5])
+
+    #Space Divider
+    cmds.text(label="", height=10)
+
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+    cmds.text(label = "Search Term", width = 150, height = 20, backgroundColor = [.3, .3, .3])
+    cmds.text(label = "replace Term", width = 150, height = 20, backgroundColor = [.3, .3, .3])
+    cmds.setParent('..')
+    cmds.rowLayout(numberOfColumns = 2, columnWidth2 = [150, 150])
+    searchTermInput = cmds.textField(width=150)
+    replaceTermInput = cmds.textField(width = 150)
+    cmds.setParent('..')
+
+    cmds.rowColumnLayout(adjustableColumn=True)
+
+    #Space Divider
+    cmds.text(label="", height=10)
+    
+
+    #Create pairBlends Button
+    copyJointsButton = cmds.button(label = "CopyJoints", command = lambda _: copyJointsReplaceName(cmds.ls(sl=True),
+                                                                                                   cmds.textField(searchTermInput, query =True, text=True),
+                                                                                                   cmds.textField(replaceTermInput, query = True, text = True)))
+
+    #display Window 
+    cmds.showWindow(configWindow)
+
+def copyJointsReplaceName(pos, searchTerm, replaceTerm):
+
+    for index, item in enumerate(pos):
+        matrixPos = cmds.xform(item, query = True, ws= True, m = True)
+        
+        cmds.select(clear=True)
+        newJoint = cmds.joint(name = item.replace(searchTerm, replaceTerm))
+        
+        cmds.xform(newJoint, m = matrixPos, ws =True)
+        cmds.makeIdentity(newJoint, apply=True, t = True, r=True, s = True, n = False, pn = True)
+
+#=======================================
+## Create Joints at Selected SRT with Names - END
+#=======================================

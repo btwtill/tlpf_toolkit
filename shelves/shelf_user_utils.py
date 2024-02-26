@@ -528,6 +528,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(JointMenu, "Create Joint at Selection", command=lambda _: JointFunctions.CreateJointsOnSelected())
 
+        self.addMenuItem(JointMenu, "Create Joints at Selection keep Names", command=lambda _: JointFunctions.copyJointsReplaceNameUI())
+
         self.addMenuItem(JointMenu, "Move Joint SRT to Matrix", command=lambda _: JointFunctions.MoveJointSRTtoParentMatrixOffset())
 
         self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
