@@ -482,6 +482,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(NodeMenu, "Connect SRT to Compose Matrix in Selection Order", command=lambda _: composeMatrixNodes.connectSRTToComposeMatrixMultiSelectUI())
 
         self.addMenuItem(NodeMenu, "Connect SRT to Compose Matrix in Batch Order", command=lambda _: composeMatrixNodes.batchConnectSRTToComposeMatrixMultiSelectUI())
+
+        self.addMenuItem(NodeMenu, "Create ComposeMatrix from SRT", command=lambda _: composeMatrixNodes.createComposeMatrixFromSRTMultiSelectUI())
         
 
         # Separator

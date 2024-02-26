@@ -1,6 +1,8 @@
 import maya.cmds as cmds
 
 
+
+#connect Srt To Compose Matrix Node inputs
 def connectSRTToComposeMatrixMultiSelectUI():
 
     sel = cmds.ls(sl=True)
@@ -31,3 +33,19 @@ def connectSRTToComposeMatrix(srt, mtx, rotateOrder = True):
     
     if rotateOrder:
             cmds.connectAttr(f"{srt}.rotateOrder", f"{mtx}.inputRotateOrder")
+
+#Crate Compose Matrix Node from SRT Node
+
+def createComposeMatrixFromSRTMultiSelectUI():
+
+    sel = cmds.ls(sl=True)
+    if type(sel) == list:
+        createComposeMatrixFromSRT(sel)
+    else:
+        for item1 in sel:
+            createComposeMatrixFromSRT(item1)
+
+def createComposeMatrixFromSRT(items):
+    for item in items:
+        newCmNode = cmds.createNode("composeMatrix", name = f"{item}_Offset_cm_fNode")
+        connectSRTToComposeMatrix(item, newCmNode, rotateOrder = True)
