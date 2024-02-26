@@ -235,7 +235,9 @@ def clearTransforms(items):
 #=======================================
 ## Clear Transforms - End
 #=======================================
-               
+
+
+
 
 def clearTransformsSpecific(items, t = True, r = True, s = True):
      for item in items:
@@ -267,3 +269,5 @@ def getOffsetSrt(source, target):
     resultMatrix = localCoord * WorldMatrix
 
     return resultMatrix
+
+

@@ -207,3 +207,35 @@ def copyJointsReplaceName(pos, searchTerm, replaceTerm):
 #=======================================
 ## Create Joints at Selected SRT with Names - END
 #=======================================
+        
+
+#=======================================
+## set segment Scale Compensate
+#=======================================
+        
+def setSegmentScaleCompensateOneUI():
+    selection = cmds.ls(sl=True)
+    if type(selection) == list:
+        setSegmentScaleCompensateOne(list(selection))
+    else:
+        setSegmentScaleCompensateOne(selection)
+
+def setSegmentScaleCompensateZeroUI():
+    selection = cmds.ls(sl=True)
+    if type(selection) == list:
+        setSegmentScaleCompensateZero(list(selection))
+    else:
+        setSegmentScaleCompensateZero(selection)
+
+def setSegmentScaleCompensateOne(input):
+    for item in input:
+        cmds.setAttr(f"{item}.segmentScaleCompensate", 1)
+
+def setSegmentScaleCompensateZero(input):
+
+    for item in input:
+        cmds.setAttr(f"{item}.segmentScaleCompensate", 0)
+
+#=======================================
+## set segment Scale Compensate - End
+#=======================================

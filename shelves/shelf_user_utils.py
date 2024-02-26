@@ -534,6 +534,12 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(JointMenu, "Clear Joint Orients", command=lambda _: JointFunctions.ClearJointOrientValues())
 
+        SegmentScaleCompensateSubMenu = self.addSubMenu(JointMenu, "Set Segment Scale Compensate")
+
+        self.addMenuItem(SegmentScaleCompensateSubMenu, "0", command=lambda _: JointFunctions.setSegmentScaleCompensateZeroUI())
+
+        self.addMenuItem(SegmentScaleCompensateSubMenu, "1", command=lambda _: JointFunctions.setSegmentScaleCompensateOneUI())
+
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
