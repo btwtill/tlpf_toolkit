@@ -57,7 +57,8 @@ from tlpf_toolkit.mtrx import MatrixFunctions
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
 from tlpf_toolkit.node import NodeSRTConnector
-from tlpf_toolkit.node import batchOffsetParentMatrixConnector
+from tlpf_toolkit.node import OffsetParentMatrixConnector
+from tlpf_toolkit.node import composeMatrixNodes
 
 from tlpf_toolkit.locator import LocatorFunctions
 
@@ -462,7 +463,7 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(NodeMenu, "M zu N MultiConnect All", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterfaceAll())
 
-        self.addMenuItem(NodeMenu, "Batch Connect WorldMatrix to OffsetParent Matrix", command=lambda _: batchOffsetParentMatrixConnector.connectOffsetParentMatrixBatchUI())
+        self.addMenuItem(NodeMenu, "Batch Connect WorldMatrix to OffsetParent Matrix", command=lambda _: OffsetParentMatrixConnector.connectOffsetParentMatrixBatchUI())
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="SRT Connector")
         
@@ -477,6 +478,11 @@ class load(shelf_base._shelf):
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="UTILITY")
 
         self.addMenuItem(NodeMenu, "Distance Bewteen", command=lambda _: CreateDistanceBetween.createDistance())
+
+        self.addMenuItem(NodeMenu, "Connect SRT to Compose Matrix in Selection Order", command=lambda _: composeMatrixNodes.connectSRTToComposeMatrixMultiSelectUI())
+
+        self.addMenuItem(NodeMenu, "Connect SRT to Compose Matrix in Batch Order", command=lambda _: composeMatrixNodes.batchConnectSRTToComposeMatrixMultiSelectUI())
+        
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
