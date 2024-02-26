@@ -57,6 +57,7 @@ from tlpf_toolkit.mtrx import MatrixFunctions
 from tlpf_toolkit.node import MultiConnectFunction
 from tlpf_toolkit.node import CreateDistanceBetween
 from tlpf_toolkit.node import NodeSRTConnector
+from tlpf_toolkit.node import batchOffsetParentMatrixConnector
 
 from tlpf_toolkit.locator import LocatorFunctions
 
@@ -126,19 +127,25 @@ class load(shelf_base._shelf):
         self.addButton(label="", icon=ICON_DIR + "/V003/utils.png")
         utilityMenu = cmds.popupMenu(b=1)
 
-        self.addMenuItem(utilityMenu, "Parent Shape", command=lambda _: ShapeParentFunction.ShapeParent())
+        shapesSubmenu = self.addSubMenu(utilityMenu, "Shape Functions")
 
-        self.addMenuItem(utilityMenu, "Instance Shape", command=lambda _: ShapeInstanceFunction.shapeParentInstance())
+        self.addMenuItem(shapesSubmenu, "Parent Shapes", command=lambda _: ShapeParentFunction.shapeParentMultiUI())
+
+        self.addMenuItem(shapesSubmenu, "Instance Shape", command=lambda _: ShapeInstanceFunction.shapeParentInstance())
+
+        self.addMenuItem(shapesSubmenu, "Shape Replace", command=lambda _: ShapeParentFunction.ShapeReplace())
 
         self.addMenuItem(utilityMenu, "Parent Only", command="cmds.duplicate(parentOnly=True)")
 
         self.addMenuItem(utilityMenu, "LRA", command="for i in cmds.ls(selection=True): cmds.toggle(i, la=True)")
 
-        self.addMenuItem(utilityMenu, "Clean Tranforms", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
+        self.addMenuItem(utilityMenu, "SRT To OffsetParnet Matrix", command=lambda _: ZeroOffsetFunction.ClearTransformsToOffsetParentMatrix())
+        
+        parentSubMenu = self.addSubMenu(utilityMenu, "Parenting")
 
-        self.addMenuItem(utilityMenu, "Parent Replace", command=lambda _: ShapeParentFunction.ShapeReplace())
+        self.addMenuItem(parentSubMenu, "MultiParent In Order", command=lambda _: GeneralFunctions.multiParentInOrderUI())
 
-        self.addMenuItem(utilityMenu, "multiParent", command=lambda _: GeneralFunctions.multiParent())
+        self.addMenuItem(parentSubMenu, "MultiParent Batch", command=lambda _: GeneralFunctions.batchMultiParentUI())
         
         self.addMenuItem(utilityMenu, "Select Transformed Objects", command=lambda _: GeneralFunctions.selectNoneZeroTransforms())
         
@@ -454,6 +461,8 @@ class load(shelf_base._shelf):
         self.addMenuItem(NodeMenu, "M zu N MultiConnect Filtered", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterfaceFiltered())
 
         self.addMenuItem(NodeMenu, "M zu N MultiConnect All", command=lambda _: MultiConnectFunction.MultiConnectMToNConfigurationInterfaceAll())
+
+        self.addMenuItem(NodeMenu, "Batch Connect WorldMatrix to OffsetParent Matrix", command=lambda _: batchOffsetParentMatrixConnector.connectOffsetParentMatrixBatchUI())
 
         self.addMenuItemDivider(NodeMenu, divider=True, dividerLabel="SRT Connector")
         

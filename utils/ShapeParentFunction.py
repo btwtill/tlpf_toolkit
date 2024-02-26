@@ -19,6 +19,27 @@ def ShapeParent(*args):
 
 
 #=======================================
+##Shape Parent Multi
+#=======================================
+        
+#Fetch user Input and execute function
+def shapeParentMultiUI():
+    selection = cmds.ls(sl=True)
+    targetTransform = selection.pop(-1)
+
+    shapeParentMulti(selection, targetTransform)
+
+#parnet mutltiple Shape nodes to one Transform
+def shapeParentMulti(selection, targetTransform):
+    for shape in selection:
+        cmds.parent(shape, targetTransform, shape=True, relative=True)
+
+#=======================================
+##Shape Parent Multi
+#=======================================
+        
+
+#=======================================
 ##Shape Replace
 #=======================================
 

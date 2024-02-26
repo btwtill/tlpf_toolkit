@@ -171,12 +171,40 @@ def selectNoneZeroTransforms():
 ## Multi Parent
 #=======================================
 
-def multiParent():
-    sel = cmds.ls(sl = True)
+def multiParentInOrderUI():
+    sel = cmds.ls(sl=True)
+    multiParentInOrder(sel)
+
+def multiParentInOrder(sel):
     
     for item1, item2 in zip(sel[::2], sel[1::2]):
         cmds.parent(item1, item2)
 
+def batchMultiParentUI():
+    input = cmds.ls(sl=True)
+    inputLength = len(input)
+    halfpoint = int(inputLength / 2)
+
+
+    for inte in range(0, halfpoint):
+        print(inte)
+    
+    for inte in range(halfpoint, inputLength):
+        print(inte)
+
+    children = []
+    for index in range(0, halfpoint):
+        children.append(input[index])
+
+    parents = []
+    for index in range(halfpoint, inputLength):
+        parents.append(input[index])
+    
+    batchMultiParent(children, parents)
+
+def batchMultiParent(children, parents):
+    for i, child in enumerate(children):
+        cmds.parent(child, parents[i])
 #=======================================
 ## Multi Parent - END
 #=======================================
