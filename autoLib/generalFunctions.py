@@ -46,23 +46,26 @@ def createNewRigHirarchy(name):
     return topLevelRigStructure
 
 #function to create a new rig component structure for the outliner
-def createRigComponent(name, parentNode = "world", additionalStructure = []):
+def createRigComponent(name, parentNode = "world", side = "M", additionalStructure = []):
 
     #base component Structure
-    componentStructure = ["input", "output", "control", "deform", "mod"]
+    componentStructure = ["input", "output", "control", "deform", "mod", "guide"]
 
     if len(additionalStructure) != 0:
         componentStructure = componentStructure + additionalStructure
 
     #create component top level node
-    componentTopLevelNode = cmds.createNode("transform", name = f"{name}_cmpnt_hrc", parent = parentNode)
+    componentTopLevelNode = cmds.createNode("transform", name = f"{side}_{name}_cmpnt_hrc", parent = parentNode)
 
     #clean top level Node channel box
     untouchableTransform([componentTopLevelNode])
 
+    #component Structure Transform Nodes
+    componentStructureNodes = []
+
     #create component Structure
-    for hrc in componentStructure:
-        cmds.createNode("transform", name = f"{hrc}", parent = componentTopLevelNode)
+    for index, hrc in enumerate(componentStructure):
+        componentStructure[index] = cmds.createNode("transform", name = f"{side}_{name}_{hrc}_hrc", parent = componentTopLevelNode)
 
     #clean component structure nodes channel box
     untouchableTransform(componentStructure)
@@ -84,5 +87,105 @@ def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5]):
     cmds.setAttr(f"{guideLocShape}.overrideColorG", color[1])
     cmds.setAttr(f"{guideLocShape}.overrideColorB", color[2])
 
+    #TODO Furthur modification to the appearence of the guide
+    #
+    #
+    #
+    #
+
     return guideLoc
+
+#function to create Guide Chains based on a numerical value
+def createGuideChainNumBased(numOfGuides, cmpnt = "world", side = "M", color = [0.5, 0.5, 0.5],
+                             defaultDist = 0.5, defaultforwardAxies = "X", baseName = "ChainGuide"):
+    
+    #list of names that will be assigend to the guides
+    guideNameList = []
+
+    #create guideNames iterative
+    for amount in range(numOfGuides):
+        guideNameList.append(f"{baseName}_{amount}")
+    
+    #call guide chain function to create the guide chain
+    createGuideChain(guideNameList, cmpnt, side, color, defaultDist, defaultforwardAxies)
+
+    return guideNameList
+
+#function to create a curve line between guides
+def createLineEdgeBetweenGuides(guides, color = [0.5, 0.5, 0.5]):
+    #check if there is more than one guide
+    if len(guides) > 0:
+        for index, guide in enumerate(guides):
+            if index + 1 < len(guides):
+                #create the curve shape
+                edgeLine = cmds.curve(p=[(0,0,0), (0,0,0)], d=1)
+
+                #rename transform
+                edgeLine = cmds.rename(edgeLine, guide + '_edgeLineConnector')
+
+                #get srt shape
+                edgeLineShape = cmds.listRelatives(edgeLine, children = True)[0]
+
+                #parent shape to guide
+                cmds.parent(edgeLineShape, guide, shape=True, relative=True)
+
+                #delete original edge srt
+                cmds.delete(edgeLine)
+
+                #constraint the edge line to the next guide
+                multmatrix = cmds.createNode('multMatrix', name = f"{guide}_edgeLineConnection_mmtx_fNode")
+                decomposeMatrix = cmds.createNode('decomposeMatrix', name = f"{guide}_edgeLineConnection_dcm_fNode")
+
+
+                cmds.connectAttr(multmatrix + '.matrixSum', decomposeMatrix + '.inputMatrix')
+
+                cmds.connectAttr(guides[index + 1] + '.worldMatrix', multmatrix + '.matrixIn[0]')
+                cmds.connectAttr(guide + '.worldInverseMatrix[0]', multmatrix + '.matrixIn[1]')
+
+
+                cmds.connectAttr(decomposeMatrix + '.outputTranslateX', edgeLineShape + '.controlPoints[0].xValue')
+                cmds.connectAttr(decomposeMatrix + '.outputTranslateY', edgeLineShape + '.controlPoints[0].yValue')
+                cmds.connectAttr(decomposeMatrix + '.outputTranslateZ', edgeLineShape + '.controlPoints[0].zValue')
+
+                #set line Color
+                cmds.setAttr(f"{edgeLineShape}.overrideEnabled", 1)
+                cmds.setAttr(f"{edgeLineShape}.overrideRGBColors", 1)
+                cmds.setAttr(f"{edgeLineShape}.overrideColorR", color[0])
+                cmds.setAttr(f"{edgeLineShape}.overrideColorG", color[1])
+                cmds.setAttr(f"{edgeLineShape}.overrideColorB", color[2])
+
+#function to create a chain of guides
+def createGuideChain(guideNames = [], cmpnt = "world", side = "M", color = [0.5, 0.5, 0.5], 
+                     defaultDist = 0.5, defaultforwardAxies = "X"):
+    
+    #list to store the created Guides
+    guideChain = []
+
+    #create guides for each input name
+    for name in guideNames:
+        newGuide = createGuide(name, side, cmpnt, color)
+        guideChain.append(newGuide)
+    
+    #reverseOrder of Guides
+    revGuideChain = guideChain[::-1]
+
+    #parent all guide in a hirarchy
+    for index, guide in enumerate(revGuideChain):
+        if index + 1 < len(guideChain):
+            cmds.parent(guide, revGuideChain[index + 1])
+
+    #space the guides from each other in default position
+    for index, guide in enumerate(guideChain):
+        if index > 0:
+            #decide the direction the chain will be offset by default
+            cmds.setAttr(f"{guide}.translate{defaultforwardAxies}", defaultDist)
+    
+    #parent the guide chain to the respective component
+    if cmpnt != "world":
+        cmds.parent(guideChain[0], f"{side}_{cmpnt}_guide_hrc")
+    
+    #connect Guides with curve Lines
+    createLineEdgeBetweenGuides(guideChain)
+
+    return guideChain
 
