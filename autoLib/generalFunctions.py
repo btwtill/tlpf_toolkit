@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 
+#function to hide all the default channel box attributes from a list of transforms
 def untouchableTransform(transforms):
     #clean all the channelbox attributes from a transform
     for transform in transforms:
@@ -67,3 +68,21 @@ def createRigComponent(name, parentNode = "world", additionalStructure = []):
     untouchableTransform(componentStructure)
 
     return componentTopLevelNode, componentStructure
+
+#function to create a single guide
+def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5]):
+    #create guide locator
+    guideLoc = cmds.spaceLocator(name = f"{side}_{cmpnt}_{name}_guide_srt")[0]
+
+    #get Guide Shape
+    guideLocShape = cmds.listRelatives(guideLoc, children = True)[0]
+
+    #set guide Shape Color
+    cmds.setAttr(f"{guideLocShape}.overrideEnabled", 1)
+    cmds.setAttr(f"{guideLocShape}.overrideRGBColors", 1)
+    cmds.setAttr(f"{guideLocShape}.overrideColorR", color[0])
+    cmds.setAttr(f"{guideLocShape}.overrideColorG", color[1])
+    cmds.setAttr(f"{guideLocShape}.overrideColorB", color[2])
+
+    return guideLoc
+
