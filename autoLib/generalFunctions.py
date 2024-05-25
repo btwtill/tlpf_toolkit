@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+from tlpf_toolkit.autoLib import autolibGlobalVariables as gVar
 
 #function to hide all the default channel box attributes from a list of transforms
 def untouchableTransform(transforms):
@@ -46,7 +47,7 @@ def createNewRigHirarchy(name):
     return topLevelRigStructure
 
 #function to create a new rig component structure for the outliner
-def createRigComponent(name, parentNode = "world", side = "M", additionalStructure = []):
+def createRigComponent(name, parentNode = "world", side = gVar.CENTERDECLARATION, additionalStructure = []):
 
     #base component Structure
     componentStructure = ["input", "output", "control", "deform", "mod", "guide"]
@@ -73,7 +74,7 @@ def createRigComponent(name, parentNode = "world", side = "M", additionalStructu
     return componentTopLevelNode, componentStructure
 
 #function to create a single guide
-def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5], size = 5):
+def createGuide(name, side = gVar.CENTERDECLARATION, cmpnt = "world", color = [0.5, 0.5, 0.5], size = 5):
     #create guide locator
     guideLoc = cmds.spaceLocator(name = f"{side}_{cmpnt}_{name}_guide_srt")[0]
 
@@ -92,7 +93,7 @@ def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5], size
         cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
         cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
         cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
-        
+
     #TODO Furthur modification to the appearence of the guide
     #
     #
@@ -102,7 +103,7 @@ def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5], size
     return guideLoc
 
 #function to create Guide Chains based on a numerical value
-def createGuideChainNumBased(numOfGuides, cmpnt = "world", side = "M", color = [0.5, 0.5, 0.5],
+def createGuideChainNumBased(numOfGuides, cmpnt = "world", side = gVar.CENTERDECLARATION, color = [0.5, 0.5, 0.5],
                              defaultDist = 0.5, defaultforwardAxies = "X", baseName = "ChainGuide"):
     
     #list of names that will be assigend to the guides
@@ -161,7 +162,7 @@ def createLineEdgeBetweenGuides(guides, color = [0.5, 0.5, 0.5]):
                 cmds.setAttr(f"{edgeLineShape}.overrideColorB", color[2])
 
 #function to create a chain of guides
-def createGuideChain(guideNames = [], cmpnt = "world", side = "M", color = [0.5, 0.5, 0.5], 
+def createGuideChain(guideNames = [], cmpnt = "world", side = gVar.CENTERDECLARATION, color = [0.5, 0.5, 0.5], 
                      defaultDist = 0.5, defaultforwardAxies = "X"):
     
     #list to store the created Guides
