@@ -73,7 +73,7 @@ def createRigComponent(name, parentNode = "world", side = "M", additionalStructu
     return componentTopLevelNode, componentStructure
 
 #function to create a single guide
-def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5]):
+def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5], size = 5):
     #create guide locator
     guideLoc = cmds.spaceLocator(name = f"{side}_{cmpnt}_{name}_guide_srt")[0]
 
@@ -87,6 +87,12 @@ def createGuide(name, side = "M", cmpnt = "world", color = [0.5, 0.5, 0.5]):
     cmds.setAttr(f"{guideLocShape}.overrideColorG", color[1])
     cmds.setAttr(f"{guideLocShape}.overrideColorB", color[2])
 
+    #set Guide Size
+    for channel in "XYZ":
+        cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
+        cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
+        cmds.setAttr(f"{guideLocShape}.localScale{channel}", size)
+        
     #TODO Furthur modification to the appearence of the guide
     #
     #
