@@ -13,7 +13,7 @@ def untouchableTransform(transforms):
 
 #function to color a node draw override attribute
 def setOverrideColor(shapes, color):
-    
+
     for shape in shapes:
         cmds.setAttr(f"{shape}.overrideEnabled", 1)
         cmds.setAttr(f"{shape}.overrideRGBColors", 1)
@@ -60,7 +60,7 @@ def createNewRigHirarchy(name):
 def createRigComponent(name, parentNode = "world", side = gVar.CENTERDECLARATION, additionalStructure = []):
 
     #base component Structure
-    componentStructure = ["input", "output", "control", "deform", "mod", "guide"]
+    componentStructure = ["input", "output", "control", "deform", "mod"]
 
     if len(additionalStructure) != 0:
         componentStructure = componentStructure + additionalStructure
@@ -197,23 +197,21 @@ def createGuideChain(guideNames = [], cmpnt = "world", side = gVar.CENTERDECLARA
             #decide the direction the chain will be offset by default
             cmds.setAttr(f"{guide}.translate{defaultforwardAxies}", defaultDist)
     
-    #parent the guide chain to the respective component
-    if cmpnt != "world":
-        cmds.parent(guideChain[0], f"{side}_{cmpnt}_guide_hrc")
-    
     #connect Guides with curve Lines
     createLineEdgeBetweenGuides(guideChain)
 
     return guideChain
 
 #function to create a output Transform from an input transform
-def createOutputTransformSRTNode(transformInputs, outputDir):
+def createOutputTransformSRTNode(transformInputs, outputDir, connectRotateOrder = True):
     #create Transforms
     outputTransforms = []
 
     for srt in transformInputs:
         newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_output")
         cmds.connectAttr(f"{srt}.worldMatrix[0]", f"{newSrt}.offsetParentMatrix")
+        if connectRotateOrder:
+            cmds.connectAttr(f"{srt}.rotateOrder", f"{newSrt}.rotateOrder" )
         cmds.parent(newSrt, outputDir)
         outputTransforms.append(newSrt)
 
