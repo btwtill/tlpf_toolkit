@@ -11,6 +11,16 @@ def untouchableTransform(transforms):
             cmds.setAttr(f"{transform}.scale{channel}", keyable=False)
         cmds.setAttr(f"{transform}.visibility", keyable=False)
 
+#function to color a node draw override attribute
+def setOverrideColor(shapes, color):
+    
+    for shape in shapes:
+        cmds.setAttr(f"{shape}.overrideEnabled", 1)
+        cmds.setAttr(f"{shape}.overrideRGBColors", 1)
+        cmds.setAttr(f"{shape}.overrideColorR", color[0])
+        cmds.setAttr(f"{shape}.overrideColorG", color[1])
+        cmds.setAttr(f"{shape}.overrideColorB", color[2])
+
 #function to create the overall top level rig hirarchy
 def createNewRigHirarchy(name):
 
@@ -196,3 +206,15 @@ def createGuideChain(guideNames = [], cmpnt = "world", side = gVar.CENTERDECLARA
 
     return guideChain
 
+#function to create a output Transform from an input transform
+def createOutputTransformSRTNode(transformInputs, outputDir):
+    #create Transforms
+    outputTransforms = []
+
+    for srt in transformInputs:
+        newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_output")
+        cmds.connectAttr(f"{srt}.worldMatrix[0]", f"{newSrt}.offsetParentMatrix")
+        cmds.parent(newSrt, outputDir)
+        outputTransforms.append(newSrt)
+
+    return outputTransforms
