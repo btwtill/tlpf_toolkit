@@ -208,7 +208,7 @@ def createOutputTransformSRTNode(transformInputs, outputDir, connectRotateOrder 
     outputTransforms = []
 
     for srt in transformInputs:
-        newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_output")
+        newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_{gVar.NODEUSAGETYPEOUTPUT}]")
         cmds.connectAttr(f"{srt}.worldMatrix[0]", f"{newSrt}.offsetParentMatrix")
         if connectRotateOrder:
             cmds.connectAttr(f"{srt}.rotateOrder", f"{newSrt}.rotateOrder" )

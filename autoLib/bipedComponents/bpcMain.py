@@ -99,4 +99,4 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     
 
     #configure the Attribute hub of the rig
-    
+    attributeHubNode = cmds.createNode("transform", name = f"{gVar.CENTERDECLARATION}_{cmpntName}_AttributeHub_output")
