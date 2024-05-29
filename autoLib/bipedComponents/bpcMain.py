@@ -20,7 +20,7 @@ def createMainComponentGuide(rigName, cmpntName = "main"):
 
 #compose character Main component
 def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainControlOffsets = 1, 
-                         size = 40, cmpntName = "main", color = [1, 1, 0]):
+                         size = 40, cmpntName = "main", color = [1, 1, 0], additionalMeshVisibilityAttributes = [[]], jointOrientation = "xyz"):
 
     #component Directory path
     rigComponentDirectoryPath = f"{rigName}_component_hrc"
@@ -83,6 +83,12 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     mainCtrlOutputTransform = gf.createOutputTransformSRTNode([mainCtrlNode], mainComponentStructureNodes[1])
     offsetCtrlOutputTransforms = gf.createOutputTransformSRTNode(offsetControls, mainComponentStructureNodes[1])
 
+    #configure Deformation output
+    lastOffsetCtrlMember = offsetControls[-1]
+    mainComponentDeformOutputNode = cmds.createNode("transform", name = f"{gVar.CENTERDECLARATION}_{cmpntName}_root_{gVar.NODEUSAGETYPEDEFORM}", parent = mainComponentStructureNodes[3])
+    cmds.connectAttr(f"{lastOffsetCtrlMember}.worldMatrix[0]", f"{mainComponentDeformOutputNode}.offsetParentMatrix")
+    cmds.connectAttr(f"{lastOffsetCtrlMember}.rotateOrder", f"{mainComponentDeformOutputNode}.rotateOrder")
+
     #get rig of the construction history of the initial ctrl shapes
     #get ctrl shapes
     mainCtrlInitialShape = cmds.listRelatives(mainCtrlNode, shapes = True)
@@ -108,9 +114,11 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     #clean Channelbox of ctrls
     gf.untouchableTransform([mainCtrlNode], t = False, r = False)
     gf.untouchableTransform(offsetControls, t = False, r = False)
+    
 
     #configure the Attribute hub of the rig
     attributeHubNode = cmds.createNode("transform", name = f"{gVar.CENTERDECLARATION}_{cmpntName}_AttributeHub_output", parent = mainComponentStructureNodes[1])
+    gf.untouchableTransform([attributeHubNode])
 
     #add Global Scale Attribute
     globalScaleAttributeName = "GlobalScale"
@@ -120,8 +128,61 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     for channel in "XYZ":
         cmds.connectAttr(f"{attributeHubNode}.{globalScaleAttributeName}", f"{mainCtrlNode}.scale{channel}")
     
-    for offCtrl in offsetControls:
-        for channel in "XYZ":
-            cmds.connectAttr(f"{attributeHubNode}.{globalScaleAttributeName}", f"{offCtrl}.scale{channel}")
+    #lock scale attribute channels in srt channelbox
+    gf.lockChannelboxTransformChannel(mainCtrlNode, t=False, r = False)
+
+    for offsetCtrl in offsetControls:
+        gf.lockChannelboxTransformChannel(offsetCtrl, t=False, r = False)
+
+    #publish scale Attribute to controls
+    gf.createChannelboxAttributeDivider(mainCtrlNode, "GlobalAttributes")
+    cmds.addAttr(mainCtrlNode, ln=globalScaleAttributeName, proxy = f"{attributeHubNode}.{globalScaleAttributeName}")
+
+    for offsetCtrl in offsetControls:
+        gf.createChannelboxAttributeDivider(offsetCtrl, "GlobalAttributes")
+        cmds.addAttr(offsetCtrl, ln=globalScaleAttributeName, proxy = f"{attributeHubNode}.{globalScaleAttributeName}")
+
     
-    
+
+    #Mesh Attributes
+    meshAttributes = ["character"]
+    meshAttributeTargets = ["mesh_hrc"]
+
+    #add Aditional Mesh Visibility Attributes
+    for additionalAttr in additionalMeshVisibilityAttributes:
+        if len(additionalAttr) > 1:
+            meshAttributes.append(additionalAttr[1])
+            meshAttributeTargets.append(additionalAttr[0])
+        elif len(additionalAttr) == 1:
+            meshAttributes.append(additionalAttr[0])
+            meshAttributeTargets.append(additionalAttr[0])
+
+    #add Divider to main Ctrls
+    gf.createChannelboxAttributeDivider(mainCtrlNode, "GeometryAttributes")
+    for offsetCtrl in offsetControls:
+            gf.createChannelboxAttributeDivider(offsetCtrl, "GeometryAttributes")
+
+    geoVisibilityAttributeSuffix = "_geo_visibility"
+    geoSelectebilityAttributeSuffix = "_geo_selectebility"
+
+    #add mesh attributes to attribute hub
+    for index, attr in enumerate(meshAttributes):
+        cmds.addAttr(attributeHubNode, ln=f"{attr}{geoVisibilityAttributeSuffix}", at = "enum", enumName = "OFF:ON", keyable = True) # add Visibility Attribute
+        cmds.addAttr(attributeHubNode, ln=f"{attr}{geoSelectebilityAttributeSuffix}", at = "enum", enumName = "Normal:Template:Reference", keyable = True) # add Mesh Selectability Attribute
+
+        #configure mesh attributes
+        cmds.connectAttr(f"{attributeHubNode}.{attr}{geoVisibilityAttributeSuffix}", f"{meshAttributeTargets[index]}.visibility")
+        cmds.setAttr(f"{attributeHubNode}.{attr}{geoVisibilityAttributeSuffix}", 1)
+
+        cmds.setAttr(f"{meshAttributeTargets[index]}.overrideEnabled", 1)
+        cmds.connectAttr(f"{attributeHubNode}.{attr}{geoSelectebilityAttributeSuffix}", f"{meshAttributeTargets[index]}.overrideDisplayType")
+
+        #publish mesh attributes
+        cmds.addAttr(mainCtrlNode, ln=f"{attr}{geoVisibilityAttributeSuffix}", proxy = f"{attributeHubNode}.{attr}{geoVisibilityAttributeSuffix}") # publish visibility to main Ctrl 
+        cmds.addAttr(mainCtrlNode, ln=f"{attr}{geoSelectebilityAttributeSuffix}", proxy = f"{attributeHubNode}.{attr}{geoSelectebilityAttributeSuffix}") # publish selectablitiy to main Ctrl 
+
+        for offsetCtrl in offsetControls:
+            cmds.addAttr(offsetCtrl, ln=f"{attr}{geoVisibilityAttributeSuffix}", proxy = f"{attributeHubNode}.{attr}{geoVisibilityAttributeSuffix}") # publish visibility to offset Ctrl 
+            cmds.addAttr(offsetCtrl, ln=f"{attr}{geoSelectebilityAttributeSuffix}", proxy = f"{attributeHubNode}.{attr}{geoSelectebilityAttributeSuffix}") # publish selectability to offset Ctrl
+
+

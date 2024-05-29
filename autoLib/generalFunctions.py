@@ -16,6 +16,21 @@ def untouchableTransform(transforms, t = True, r = True, s = True):
                 cmds.setAttr(f"{transform}.scale{channel}", keyable=False)
         cmds.setAttr(f"{transform}.visibility", keyable=False)
 
+#function to lock channelBox Transformation channels
+def lockChannelboxTransformChannel(srt, t = True, r = True, s = True):
+    for channel in "XYZ":
+        if t:
+            cmds.setAttr(f"{srt}.translate{channel}", lock = True)
+        if r:
+            cmds.setAttr(f"{srt}.rotate{channel}", lock = True)
+        if s:
+            cmds.setAttr(f"{srt}.scale{channel}", lock = True)
+
+#function to create an Attribute Divider
+def createChannelboxAttributeDivider(target, name = "Divider"):
+    cmds.addAttr(target, ln=name, at="enum", en=gVar.ATTRDIVIDERSYMBOLS, keyable=False)
+    cmds.setAttr(target + "." + name, cb=True)
+
 #function to color a node draw override attribute
 def setOverrideColor(shapes, color):
 
