@@ -4,13 +4,16 @@ import logging
 from tlpf_toolkit.autoLib import autolibGlobalVariables as gVar
 
 #function to hide all the default channel box attributes from a list of transforms
-def untouchableTransform(transforms):
+def untouchableTransform(transforms, t = True, r = True, s = True):
     #clean all the channelbox attributes from a transform
     for transform in transforms:
         for channel in "XYZ":
-            cmds.setAttr(f"{transform}.translate{channel}", keyable=False)
-            cmds.setAttr(f"{transform}.rotate{channel}", keyable=False)
-            cmds.setAttr(f"{transform}.scale{channel}", keyable=False)
+            if t:
+                cmds.setAttr(f"{transform}.translate{channel}", keyable=False)
+            if r:
+                cmds.setAttr(f"{transform}.rotate{channel}", keyable=False)
+            if s:
+                cmds.setAttr(f"{transform}.scale{channel}", keyable=False)
         cmds.setAttr(f"{transform}.visibility", keyable=False)
 
 #function to color a node draw override attribute
@@ -231,9 +234,8 @@ def hasTransformValues(srt):
         roundedValue = round(value, 5)
         srtTransformMatrix[index] = roundedValue
 
-    if srtTransformMatrix == gVar.IDENTITYMATRIXLIST:
+    if srtTransformMatrix != gVar.IDENTITYMATRIXLIST:
         hasTransformations = True
-    
 
     return srtTransformMatrix, hasTransformations
 
