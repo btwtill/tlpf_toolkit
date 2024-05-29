@@ -73,6 +73,12 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     for offCtrl in offsetControls:
         cmds.setAttr(f"{offCtrl}.rotateOrder", mainGuideRotationOrder) #set Rotation order on Offset Controls
 
+    #check for transform values on the main control and create buffer if necessary
+    mainCtrlMatrix, mainCtrlHasTransformations = gf.hasTransformValues(mainCtrlNode)
+
+    if mainCtrlHasTransformations:
+        gf.moveSrtValuesToOffsetParentMatrix(mainCtrlNode)
+
     #configure the output of the main component
     mainCtrlOutputTransform = gf.createOutputTransformSRTNode([mainCtrlNode], mainComponentStructureNodes[1])
     offsetCtrlOutputTransforms = gf.createOutputTransformSRTNode(offsetControls, mainComponentStructureNodes[1])
@@ -90,13 +96,32 @@ def composeMainComponent(rigName, guideDir, characterMesh = None, numOfMainContr
     for shape in mainCtrlInitialShape:
         cmds.delete(shape, ch=True)  #delete construction History
         gf.setOverrideColor([shape], color) #set Color
+        cmds.setAttr(f"{shape}.isHistoricallyInteresting", False)
 
     for ctrl in offsetCtrlInitialShapes:
         gf.setOverrideColor(ctrl, color) #set Color
 
         for shape in ctrl:
             cmds.delete(shape, ch=True) #delete construction History
+            cmds.setAttr(f"{shape}.isHistoricallyInteresting", False)
     
+    #clean Channelbox of ctrls
+    gf.untouchableTransform([mainCtrlNode], t = False, r = False)
+    gf.untouchableTransform(offsetControls, t = False, r = False)
 
     #configure the Attribute hub of the rig
-    attributeHubNode = cmds.createNode("transform", name = f"{gVar.CENTERDECLARATION}_{cmpntName}_AttributeHub_output")
+    attributeHubNode = cmds.createNode("transform", name = f"{gVar.CENTERDECLARATION}_{cmpntName}_AttributeHub_output", parent = mainComponentStructureNodes[1])
+
+    #add Global Scale Attribute
+    globalScaleAttributeName = "GlobalScale"
+    cmds.addAttr(ln= globalScaleAttributeName, at = "float", minValue = 0.001, defaultValue = 1, keyable = True)
+
+    #configure global scale attribute to component controls
+    for channel in "XYZ":
+        cmds.connectAttr(f"{attributeHubNode}.{globalScaleAttributeName}", f"{mainCtrlNode}.scale{channel}")
+    
+    for offCtrl in offsetControls:
+        for channel in "XYZ":
+            cmds.connectAttr(f"{attributeHubNode}.{globalScaleAttributeName}", f"{offCtrl}.scale{channel}")
+    
+    
