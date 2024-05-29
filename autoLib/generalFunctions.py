@@ -1,4 +1,6 @@
 import maya.cmds as cmds
+import logging
+
 from tlpf_toolkit.autoLib import autolibGlobalVariables as gVar
 
 #function to hide all the default channel box attributes from a list of transforms
@@ -208,7 +210,7 @@ def createOutputTransformSRTNode(transformInputs, outputDir, connectRotateOrder 
     outputTransforms = []
 
     for srt in transformInputs:
-        newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_{gVar.NODEUSAGETYPEOUTPUT}]")
+        newSrt = cmds.createNode("transform", name = f"{srt}_wrldMtx_{gVar.NODEUSAGETYPEOUTPUT}")
         cmds.connectAttr(f"{srt}.worldMatrix[0]", f"{newSrt}.offsetParentMatrix")
         if connectRotateOrder:
             cmds.connectAttr(f"{srt}.rotateOrder", f"{newSrt}.rotateOrder" )
@@ -216,3 +218,74 @@ def createOutputTransformSRTNode(transformInputs, outputDir, connectRotateOrder 
         outputTransforms.append(newSrt)
 
     return outputTransforms
+
+#function to check if there is any transformation values in a given srt
+def hasTransformValues(srt):
+
+    #get the current Position Matrix of a given srt
+    srtTransformMatrix = cmds.xform(srt, query=True, m = True)
+    hasTransformations = False
+
+    #round Values in Transformation Matrix
+    for index, value in enumerate(srtTransformMatrix):
+        roundedValue = round(value, 5)
+        srtTransformMatrix[index] = roundedValue
+
+    if srtTransformMatrix == gVar.IDENTITYMATRIXLIST:
+        hasTransformations = True
+    
+
+    return srtTransformMatrix, hasTransformations
+
+#function to create a four by four vector node with input matrix transform
+def createFourByFourMayaMatrixNode(matrix, nodeName = "tmp_fourbyfour_matrix"):
+    #create temporary fourByFourMatrix to set offsetParent Matrix later
+    matrixNode = cmds.createNode("fourByFourMatrix", name = nodeName)
+    
+    #set control variables
+    indecies = [4, 4, 4, 4]
+    counter = 0
+
+    for index, vector in enumerate(indecies):
+        for entry in range(vector):
+            cmds.setAttr(f"{matrixNode}.in{index}{entry}", matrix[counter])
+            counter += 1
+
+    return matrixNode
+
+#function to remove all values from srt channelbox and set to default identity matrix
+def clearTransforms(srt, t = True, r = True, s = True): 
+    for channel in "XYZ":
+        if t:
+            cmds.setAttr(f"{srt}.translate{channel}", 0) # reset Translation if True
+        if r:
+            cmds.setAttr(f"{srt}.rotate{channel}", 0) # reset Rotation if True
+        if s: 
+            cmds.setAttr(f"{srt}.scale{channel}", 1) # reset Scale if True
+
+#function to move Srt Values to ther OffsetParentMatrix
+def moveSrtValuesToOffsetParentMatrix(srt):
+    #check if the input object type is string
+    if type(srt) == str and cmds.objExists(srt):
+        #get object space Matrix
+        currentObjectSpaceMatrix = cmds.xform(srt, query = True, m = True)
+
+        #create tmp four by four matrix 
+        matrixNode = createFourByFourMayaMatrixNode(currentObjectSpaceMatrix)
+
+        #connect output matrix to offset parent Matrix
+        cmds.connectAttr(f"{matrixNode}.output", f"{srt}.offsetParentMatrix")
+
+        #clean channelbox transforms
+        clearTransforms(srt)
+
+        #dissconnect the four by four matrix from the target object
+        cmds.disconnectAttr(f"{matrixNode}.output", f"{srt}.offsetParentMatrix")
+
+        #delete tmp matrix Node
+        cmds.delete(matrixNode)
+    else:
+        cmds.warning("The input Object is not String and therefore the transforms of the given object cannot be moved to there respective offset Parent Matrix!!")
+
+
+
