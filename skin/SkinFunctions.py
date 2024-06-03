@@ -344,3 +344,45 @@ def TransferSkinlusterBetweenNamespaceModels(_NamespaceInputs):
 ##=======================================
 ## Transfer SkinKluster between Namespaces - END
 ##=======================================
+
+##=======================================
+## create Selection Set of Joint Influences to a Skincluster
+##=======================================
+
+def getInfluenceJointsFromSkinCluster(obj):
+    #find First Skincluster
+
+    skinClusterNode = mel.eval('findRelatedSkinCluster("{}")'.format(obj))
+
+    jointInfluences = cmds.listConnections(f"{skinClusterNode}.matrix", d = False, s=True)
+
+    return jointInfluences, skinClusterNode
+
+def createSelectionSetOfJointInfluences(obj):
+
+    influences, skinCluster = getInfluenceJointsFromSkinCluster(obj)
+
+    #clear Selection
+    cmds.select(clear=True)
+
+    #select the input
+    cmds.select(influences)
+    newSelectionSet = cmds.sets(name = f"{skinCluster}_Influences")
+
+    return newSelectionSet
+
+def createJointInfluenceSelectionSetInput():
+
+    selection = cmds.ls(sl=True)
+
+    if type(selection) == str:
+        createSelectionSetOfJointInfluences(selection)
+        print("String Processing")
+    else:
+        print("List Processing")
+        for sel in selection:
+            createSelectionSetOfJointInfluences(sel)
+
+##=======================================
+## create Selection Set of Joint Influences to a Skincluster END
+##=======================================

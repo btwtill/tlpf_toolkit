@@ -556,6 +556,8 @@ class load(shelf_base._shelf):
 
         self.addMenuItem(SkinMenu, "Import SkinWeights", command=lambda _: SkinFunctions.import_skin_weights_selected())
 
+        self.addMenuItem(SkinMenu, "Create Joint Influence SelectionSet", command=lambda _: SkinFunctions.createJointInfluenceSelectionSetInput())
+        
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
 
