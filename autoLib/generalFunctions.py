@@ -304,5 +304,32 @@ def moveSrtValuesToOffsetParentMatrix(srt):
     else:
         cmds.warning("The input Object is not String and therefore the transforms of the given object cannot be moved to there respective offset Parent Matrix!!")
 
+#function to create a outout deform with world matrix decomposed Srt Values
 
+def createWrldMtxDeformOutput(inputSrt, outputDir = "world", connectRotationOrder = True):
+    
+    #list of name tokens from input
+    nameTokenList = inputSrt.split("_")
+    
+    nameTokenString = nameTokenList[0] + "_" + nameTokenList[1] + "_" + nameTokenList[2]
+    
+    #create new decompose node
+    deformDecomposeNode = cmds.createNode("decomposeMatrix", name = f"{nameTokenString}_dcm_fNode")
+    
+    #connect the output transform
+    deformOutputDeformNode = cmds.createNode("transform", name = f"{nameTokenString}_wrldMtx_defOutput", parent = outputDir)
+    
+    #connect srt to deformDecompose Node
+    cmds.connectAttr(f"{inputSrt}.worldMatrix[0]", f"{deformDecomposeNode}.inputMatrix")
+    
+    if connectRotationOrder:
+        cmds.connectAttr(f"{inputSrt}.rotateOrder", f"{deformDecomposeNode}.inputRotateOrder")
+    
+    #connect srt to output transform
+    for channel in "XYZ":
+        cmds.connectAttr(f"{deformDecomposeNode}.outputTranslate{channel}", f"{deformOutputDeformNode}.translate{channel}")
+        cmds.connectAttr(f"{deformDecomposeNode}.outputRotate{channel}",  f"{deformOutputDeformNode}.rotate{channel}")
+        cmds.connectAttr(f"{deformDecomposeNode}.outputScale{channel}",  f"{deformOutputDeformNode}.scale{channel}")
+
+    return deformOutputDeformNode
 
