@@ -254,6 +254,15 @@ def hasTransformValues(srt):
 
     return srtTransformMatrix, hasTransformations
 
+#function to evaluete if a given joint has joint Orient Values
+def jointHasOrientValues(jnt):
+    for channel in "XYZ":
+        channelValue = cmds.getAttr(f"{jnt}.jointOrient{channel}")
+        print(channelValue)
+        if channelValue != 0:
+            return False
+    return True
+
 #function to create a four by four vector node with input matrix transform
 def createFourByFourMayaMatrixNode(matrix, nodeName = "tmp_fourbyfour_matrix"):
     #create temporary fourByFourMatrix to set offsetParent Matrix later
@@ -305,7 +314,6 @@ def moveSrtValuesToOffsetParentMatrix(srt):
         cmds.warning("The input Object is not String and therefore the transforms of the given object cannot be moved to there respective offset Parent Matrix!!")
 
 #function to create a outout deform with world matrix decomposed Srt Values
-
 def createWrldMtxDeformOutput(inputSrt, outputDir = "world", connectRotationOrder = True):
     
     #list of name tokens from input
@@ -333,3 +341,127 @@ def createWrldMtxDeformOutput(inputSrt, outputDir = "world", connectRotationOrde
 
     return deformOutputDeformNode
 
+#function to connect Srt vales to a compose Matrix Node
+def connectSRTToComposeMatrix(srt, mtx, rotateOrder = True):
+    for channel in "XYZ":
+        cmds.connectAttr(f"{srt}.translate{channel}", f"{mtx}.inputTranslate{channel}")
+        cmds.connectAttr(f"{srt}.rotate{channel}", f"{mtx}.inputRotate{channel}")
+        cmds.connectAttr(f"{srt}.scale{channel}", f"{mtx}.inputScale{channel}")
+    if rotateOrder:
+            cmds.connectAttr(f"{srt}.rotateOrder", f"{mtx}.inputRotateOrder")
+
+#function to disconnect a composeMatrix from an Srt input
+def disconnectComposeMatrixFromSrt(srt, cm):
+    #try to disconnect the rotate order attribtue
+    try:
+        cmds.disconnectAttr(f"{srt}.rotateOrder", f"{cm}.inputRotateOrder")
+    except:
+        print(f"No Rotate Order Connection Betwee {srt} and {cm}")
+
+    #try to disconnect all the srt values
+    for channel in "XYZ":
+        try:
+            cmds.disconnectAttr(f"{srt}.translate{channel}", f"{cm}.inputTranslate{channel}")
+        except:
+            print(f"No Translate {channel} Connection Betwee {srt} and {cm}")
+        try:
+            cmds.disconnectAttr(f"{srt}.rotate{channel}", f"{cm}.inputRotate{channel}")
+        except:
+            print(f"No Rotate {channel} Connection Betwee {srt} and {cm}")
+        try:
+            cmds.disconnectAttr(f"{srt}.scale{channel}", f"{cm}.inputScale{channel}")
+        except:
+            print(f"No Scale {channel} Connection Betwee {srt} and {cm}")
+
+#function to connect a decompose Matrix Node to an SRT
+def connectDecomposeMatrixToSrt(dcm, srt, rotateOrder = True, t = True, r = True, s = True):
+   
+    if rotateOrder:
+            cmds.connectAttr(f"{dcm}.inputRotateOrder", f"{srt}.rotateOrder")
+    
+    for channel in "XYZ":
+        if t:
+            cmds.connectAttr(f"{dcm}.outputTranslate{channel}", f"{srt}.translate{channel}")
+        if r:
+            cmds.connectAttr(f"{dcm}.outputRotate{channel}", f"{srt}.rotate{channel}")
+        if s:
+            cmds.connectAttr(f"{dcm}.outputScale{channel}", f"{srt}.scale{channel}")
+
+#function to create a compose matrix node From an Srt input
+def createComposeMatrixFromSRT(srt, name = None):
+    #create new compose matrix node
+    if name == None:
+        newCmNode = cmds.createNode("composeMatrix", name = f"{srt}_Offset_cm_fNode")
+    else:
+        newCmNode = cmds.createNode("composeMatrix", name = f"{name}_Offset_cm_fNode")
+
+    connectSRTToComposeMatrix(srt, newCmNode, rotateOrder = True)
+
+    return newCmNode
+    
+#function to create a matrix parent constraint
+def createMatrixParentConstraint(source, target, t = True, r = True, s = True):
+    #check Rotation Orders
+    targetRotateOrder = cmds.getAttr(f"{target}.rotateOrder")
+    sourceRotateOrder = cmds.getAttr(f"{source}.rotateOrder")
+    
+    if targetRotateOrder != sourceRotateOrder:
+        print("RotationOrders between source and Target Objects do not Match.")
+    else: 
+    # check if we are working with a joint or an srt
+        if cmds.nodeType(target) == "joint":
+            #check the joint Orients
+            if not jointHasOrientValues(target):
+                pass
+
+            #create the joint orient extra multiplication
+        else:
+            
+            srtOffsetReaderObject = cmds.createNode("transform", name = "tmp_srtOffsetReader")
+            
+            #configure offset Obejct
+            cmds.setAttr(f"{srtOffsetReaderObject}.rotateOrder", targetRotateOrder)
+            cmds.matchTransform(srtOffsetReaderObject, target)
+            cmds.parent(srtOffsetReaderObject, source)
+
+            # check if there is a need to compute an offset
+            OffsetMatrix, hasOffset = hasTransformValues(srtOffsetReaderObject)
+            
+            print(OffsetMatrix)
+
+            # create mult matrix nodes
+            parentConstraintMultMatrixNode = cmds.createNode("multMatrix", name = f"{target}_parentConstraint_mmtx_fNode")
+            parentConstraintDecomposeNode = cmds.createNode("decomposeMatrix", name = f"{target}_parentConstraint_dcm_fNode")
+
+            # connect setup
+            cmds.connectAttr(f"{target}.parentInverseMatrix[0]", f"{parentConstraintMultMatrixNode}.matrixIn[0]")
+            cmds.connectAttr(f"{source}.worldMatrix[0]", f"{parentConstraintMultMatrixNode}.matrixIn[1]")
+
+            if hasOffset:
+                # get the offset
+                offsetMatrixNode = createComposeMatrixFromSRT(srtOffsetReaderObject, name = target)
+                offsetMultMatrixNode = cmds.createNode("multMatrix", name = f"{target}_parentConstraintOffset_mmtx_fNode")
+
+                #configure offset Multiplication
+                cmds.connectAttr(f"{offsetMatrixNode}.outputMatrix", f"{offsetMultMatrixNode}.matrixIn[0]")
+                cmds.connectAttr(f"{parentConstraintMultMatrixNode}.matrixSum", f"{offsetMultMatrixNode}.matrixIn[1]")
+                
+                #connect offset Multiplication to decompose
+                cmds.connectAttr(f"{offsetMultMatrixNode}.matrixSum", f"{parentConstraintDecomposeNode}.inputMatrix")
+
+                #disconnect tmp reader from offset matrix compose node
+                disconnectComposeMatrixFromSrt(srtOffsetReaderObject, offsetMatrixNode)
+            else:
+                #connect multiplication to decompose 
+                cmds.connectAttr(f"{parentConstraintMultMatrixNode}.matrixSum", f"{parentConstraintDecomposeNode}.inputMatrix")
+            
+            #connect decompose Values to target Object
+            connectDecomposeMatrixToSrt(parentConstraintDecomposeNode, target, True, t, r, s)
+            
+            
+
+            cmds.delete(srtOffsetReaderObject)
+
+        
+
+        
