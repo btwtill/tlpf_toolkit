@@ -82,9 +82,6 @@ from tlpf_toolkit.builds.BabyGroot_rig import utilityFunctions
 from tlpf_toolkit.builds.BabyGroot_rig import build
 
 
-
-
-
 # GLOBAL script variables referred to throughout this script
 ICON_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_icons")
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "shelf_user_utils_scripts")
@@ -100,11 +97,11 @@ def reload_shelf(shelf_name=SHELF_NAME):
 
         importlib.reload(shelf_base)
 
-        from tlpf_toolkit.shelves import shelf_user_utils
+        from tlpf_toolkit.shelves import riggingShelf_utils
 
-        importlib.reload(shelf_user_utils)
+        importlib.reload(riggingShelf_utils)
 
-        shelf_user_utils.load(name=SHELF_NAME)
+        riggingShelf_utils.load(name=SHELF_NAME)
 
         LOG.info("Successfully reloaded {} shelf".format(SHELF_NAME))
         return True
@@ -113,7 +110,7 @@ def reload_shelf(shelf_name=SHELF_NAME):
         return
 
 
-class load(shelf_base._shelf):
+class loadRiggingShelf(shelf_base._shelf):
     def build(self):
         # Reload shelf button
         self.addButton(
@@ -612,12 +609,3 @@ class load(shelf_base._shelf):
         self.addMenuItem(babyGrootSubMenu, "ConnectVisibilit Remap", command= lambda _: utilityFunctions.connectVisibilityRemap())
         self.addMenuItem(babyGrootSubMenu, "resetOffsetParentMatrix", command= lambda _: utilityFunctions.resetOffsetParentMatrix())
         self.addMenuItem(babyGrootSubMenu, "Plate Module", command = lambda _: plates.platesInput())
-
-        
-
-        
-
-        
-
-        
-        
