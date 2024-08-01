@@ -533,12 +533,11 @@ def fallOffSliderUpdate(sliderLabel, slider):
 #jaw Build Function
 def buildArturoCosoLipSetup(initalValueMultiplier, inputMesh, ctrlSizeSlider , createTweaks = True):
 
+    print(initalValueMultiplier, inputMesh, ctrlSizeSlider, createTweaks )
+
     if createTweaks:
         cmds.text(ctrlSizeSlider[0], edit = True, visible = True)
         cmds.floatSlider(ctrlSizeSlider[1], edit = True, visible = True)
-    else:
-        cmds.text(ctrlSizeSlider[0], edit = True, visible = False)
-        cmds.floatSlider(ctrlSizeSlider[1], edit = True, visible = False)
 
     createLipJointHirarchy(createTweaks)
     createLipSkinJoints(createTweaks, inputMesh)

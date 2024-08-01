@@ -165,7 +165,7 @@ def CopyAttributesToSelection(_selection, _attr):
 
     attrList = [_attr]
 
-    addAttributeToSelectionList(attrList)
+    #addAttributeToSelectionList(attrList)
 
     log.info("Attribute List {}".format(attrList[0]))
     log.info("Selection List {}".format(_selection[0]))
