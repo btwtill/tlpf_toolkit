@@ -6,7 +6,7 @@ import maya.cmds as cmds
 ## Sam Zero - Credit to Alexander Samouridis 
 ## for providing the base of this script
 #=========================================
-def insertNodeBefore(sfx = '_zro', alignToParent = False, loc = False, replace = '_ctl'):
+def insertNodeBefore(sfx = '_zro', alignToParent = False, loc = False, replace = '_ctrl'):
     nodes = cmds.ls(sl = 1)
 
     isRoot = False
