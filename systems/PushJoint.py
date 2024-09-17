@@ -20,6 +20,9 @@ class pushJoint():
         cmds.select(clear=True)
         targetPushJoint = cmds.joint(name = f"{name}_targetPushJoint_srt")
 
+        cmds.parent(targetPushJoint, parentObject)
+        cmds.select(clear=True)
+
         #Add control Attributes
         pushAttributeList = [["RotBlend", "float", 0.5, (0, 1)], 
                              ["XRotateOff", "float"],  
@@ -38,11 +41,11 @@ class pushJoint():
             print(attriute, len(attriute))
 
             if len(attriute) == 2:
-                cmds.addAttr(ln = f"{attriute[0]}", at=f"{attriute[1]}", keyable = True)
+                cmds.addAttr(targetPushJoint, ln = f"{attriute[0]}", at=f"{attriute[1]}", keyable = True)
             elif len(attriute) == 3:
-                cmds.addAttr(ln = f"{attriute[0]}", at=f"{attriute[1]}", defaultValue = attriute[2], keyable = True)
+                cmds.addAttr(targetPushJoint, ln = f"{attriute[0]}", at=f"{attriute[1]}", defaultValue = attriute[2], keyable = True)
             elif len(attriute) == 4:
-                cmds.addAttr(ln = f"{attriute[0]}", at=f"{attriute[1]}", defaultValue = attriute[2], minValue = attriute[3][0], maxValue = attriute[3][1], keyable = True)
+                cmds.addAttr(targetPushJoint, ln = f"{attriute[0]}", at=f"{attriute[1]}", defaultValue = attriute[2], minValue = attriute[3][0], maxValue = attriute[3][1], keyable = True)
 
         #decomposed inputWoldMatrix
         decomposeInputObjectWorldMatrixNode = cmds.createNode("decomposeMatrix", name = f"{name}_input_WrldMtx_dcm_fNode")
@@ -116,7 +119,7 @@ class pushJoint():
         #calculate the quatDiff Value
         quatDifferenceProductNode = cmds.createNode("quatProd", name = f"{name}_quatDiffProd_fNode")
         cmds.connectAttr(f"{inputObjectTransposeQuatInvNode}.outputQuat", f"{quatDifferenceProductNode}.input1Quat")
-        cmds.connectAttr(f"{decomposeReferenceObjectTransposeWorldMatrixNode}.outputQuat", f"{quatDifferenceProductNode}.input1Quat")
+        cmds.connectAttr(f"{decomposeReferenceObjectTransposeWorldMatrixNode}.outputQuat", f"{quatDifferenceProductNode}.input2Quat")
 
         quatDifferenceProductInvNode = cmds.createNode("quatInvert", name = f"{name}_quatDiffProdInvers_fNode")
         cmds.connectAttr(f"{quatDifferenceProductNode}.outputQuat", f"{quatDifferenceProductInvNode}.inputQuat")
@@ -143,9 +146,4 @@ class pushJoint():
         finalLocalPushVectorNode = cmds.createNode("plusMinusAverage", name = f"{name}_finalPushVector_add_fNode")
         cmds.connectAttr(f"{prepushVecotrMultNode}.outputY", f"{finalLocalPushVectorNode}.input3D[0].input3Dy")
 
-
-        
-
-
-        
 
