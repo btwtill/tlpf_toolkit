@@ -36,6 +36,9 @@ class pushJoint():
                              ["PushZ", "float", 2],
                              ["PushZNeg", "float", 2]]
         
+        #define Push Attribute array
+        pushAxisAttributeList = ["PushX", "PushY", "PushZ"]
+
         for attriute in pushAttributeList:
 
             print(attriute, len(attriute))
@@ -145,5 +148,121 @@ class pushJoint():
         #local PushVector Addition
         finalLocalPushVectorNode = cmds.createNode("plusMinusAverage", name = f"{name}_finalPushVector_add_fNode")
         cmds.connectAttr(f"{prepushVecotrMultNode}.outputY", f"{finalLocalPushVectorNode}.input3D[0].input3Dy")
+
+        
+        #create push Multiplication per axis
+        for index, axisAttribute,  in enumerate(pushAxisAttributeList):
+
+            #base Vector Node
+            pushAxisBaseVectorNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_baseVector_mult_fNode")
+            cmds.setAttr(f"{pushAxisBaseVectorNode}.operation", 1)
+            cmds.setAttr(f"{pushAxisBaseVectorNode}.input1Y", 1)
+
+            pushNegativeAxisBaseVectorNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}Neg_basevector_mult_fNode")
+            cmds.setAttr(f"{pushNegativeAxisBaseVectorNode}.operation", 1)
+            cmds.setAttr(f"{pushNegativeAxisBaseVectorNode}.input1Y", 1)
+
+            #configure base Vectors
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}", f"{pushAxisBaseVectorNode}.input2X")
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}", f"{pushAxisBaseVectorNode}.input2Y")
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}", f"{pushAxisBaseVectorNode}.input2Z")
+
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2X")
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2Y")
+            cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2Z")
+
+
+            #create multiplication for neg base Vector with quat difference Value
+            pushAxisMultiplyQuatDiffNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_multPushVector_quatDiff_fNode")
+            cmds.connectAttr(f"{pushNegativeAxisBaseVectorNode}.outputX", f"{pushAxisMultiplyQuatDiffNode}.input1X")
+            cmds.connectAttr(f"{pushNegativeAxisBaseVectorNode}.outputY", f"{pushAxisMultiplyQuatDiffNode}.input1Y")
+            cmds.connectAttr(f"{pushNegativeAxisBaseVectorNode}.outputZ", f"{pushAxisMultiplyQuatDiffNode}.input1Z")
+
+            #create multiplication for  base Vector with quat difference Value
+            pushNegativeAxisMultiplyQuatDiffNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_multNegPushVector_quatDiff_fNode")
+            cmds.connectAttr(f"{pushAxisBaseVectorNode}.outputX", f"{pushNegativeAxisMultiplyQuatDiffNode}.input1X")
+            cmds.connectAttr(f"{pushAxisBaseVectorNode}.outputY", f"{pushNegativeAxisMultiplyQuatDiffNode}.input1Y")
+            cmds.connectAttr(f"{pushAxisBaseVectorNode}.outputZ", f"{pushNegativeAxisMultiplyQuatDiffNode}.input1Z")
+
+            pushAxisBaseVectorInvertQuatValueNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_negateQuatDiffValue_fNode")
+            cmds.setAttr(f"{pushAxisBaseVectorInvertQuatValueNode}.operation", 1)
+            cmds.setAttr(f"{pushAxisBaseVectorInvertQuatValueNode}.input2X", -1)
+
+
+            #solve for socket and connect quat diff value to multiply nodes
+
+            if "X" in axisAttribute:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorR", f"{pushAxisMultiplyQuatDiffNode}.input2X")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorR", f"{pushAxisMultiplyQuatDiffNode}.input2Y")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorR", f"{pushAxisMultiplyQuatDiffNode}.input2Z")
+
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorR", f"{pushAxisBaseVectorInvertQuatValueNode}.input1X")
+
+            elif "Y" in axisAttribute:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorG", f"{pushAxisMultiplyQuatDiffNode}.input2X")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorG", f"{pushAxisMultiplyQuatDiffNode}.input2Y")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorG", f"{pushAxisMultiplyQuatDiffNode}.input2Z")
+
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorG", f"{pushAxisBaseVectorInvertQuatValueNode}.input1X")
+
+            else:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorB", f"{pushAxisMultiplyQuatDiffNode}.input2X")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorB", f"{pushAxisMultiplyQuatDiffNode}.input2Y")
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorB", f"{pushAxisMultiplyQuatDiffNode}.input2Z")
+
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorB", f"{pushAxisBaseVectorInvertQuatValueNode}.input1X")
+
+            cmds.connectAttr(f"{pushAxisBaseVectorInvertQuatValueNode}.outputX", f"{pushNegativeAxisMultiplyQuatDiffNode}.input2X")
+            cmds.connectAttr(f"{pushAxisBaseVectorInvertQuatValueNode}.outputX", f"{pushNegativeAxisMultiplyQuatDiffNode}.input2Y")
+            cmds.connectAttr(f"{pushAxisBaseVectorInvertQuatValueNode}.outputX", f"{pushNegativeAxisMultiplyQuatDiffNode}.input2Z")
+            
+
+            #create Absolute condition Node
+            pushVectorOutputConditionNode = cmds.createNode("condition", name = f"{name}_{axisAttribute}_abs_condition_fNode")
+            cmds.setAttr(f"{pushVectorOutputConditionNode}.operation", 4)
+
+            #configure condition node
+            cmds.connectAttr(f"{pushAxisMultiplyQuatDiffNode}.outputX", f"{pushVectorOutputConditionNode}.colorIfFalseR")
+            cmds.connectAttr(f"{pushAxisMultiplyQuatDiffNode}.outputY", f"{pushVectorOutputConditionNode}.colorIfFalseG")
+            cmds.connectAttr(f"{pushAxisMultiplyQuatDiffNode}.outputZ", f"{pushVectorOutputConditionNode}.colorIfFalseB")
+
+            cmds.connectAttr(f"{pushNegativeAxisMultiplyQuatDiffNode}.outputX", f"{pushVectorOutputConditionNode}.colorIfTrueR")
+            cmds.connectAttr(f"{pushNegativeAxisMultiplyQuatDiffNode}.outputY", f"{pushVectorOutputConditionNode}.colorIfTrueG")
+            cmds.connectAttr(f"{pushNegativeAxisMultiplyQuatDiffNode}.outputZ", f"{pushVectorOutputConditionNode}.colorIfTrueB")
+
+            if "X" in axisAttribute:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorR", f"{pushVectorOutputConditionNode}.firstTerm")
+            elif "Y" in axisAttribute:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorG", f"{pushVectorOutputConditionNode}.firstTerm")
+            else:
+                cmds.connectAttr(f"{quatDifferenceProductConditonNode}.outColorB", f"{pushVectorOutputConditionNode}.firstTerm")
+
+            cmds.connectAttr(f"{pushVectorOutputConditionNode}.outColorR", f"{finalLocalPushVectorNode}.input3D[{index + 1}].input3Dx")
+            cmds.connectAttr(f"{pushVectorOutputConditionNode}.outColorG", f"{finalLocalPushVectorNode}.input3D[{index + 1}].input3Dy")
+            cmds.connectAttr(f"{pushVectorOutputConditionNode}.outColorB", f"{finalLocalPushVectorNode}.input3D[{index + 1}].input3Dz")
+
+        #convert push Vector to Matrix
+        pushVectorComposeMatrixNode = cmds.createNode("composeMatrix", name = f"{name}_pushVector_cm_fNode")
+        cmds.connectAttr(f"{finalLocalPushVectorNode}.output3D", f"{pushVectorComposeMatrixNode}.inputTranslate")
+
+        #factor the orientation matrix into the system
+        multiplyPushVectorOrientationMatrixNode = cmds.createNode("multMatrix", name = f"{name}_multPushVecMtx_OrientMtx_fNode")
+        cmds.connectAttr(f"{pushVectorComposeMatrixNode}.outputMatrix", f"{multiplyPushVectorOrientationMatrixNode}.matrixIn[0]")
+        cmds.connectAttr(f"{orientationMatrixComposeNode}.outputMatrix", f"{multiplyPushVectorOrientationMatrixNode}.matrixIn[1]")
+
+        
+        #multply the local result matrix into the parent space of the input object
+
+        multiplyFinalOutputMatrixNode = cmds.createNode("multMatrix", name = f"{name}_multFinalOutputWrldMtx_fNode")
+        cmds.connectAttr(f"{multiplyPushVectorOrientationMatrixNode}.matrixSum", f"{multiplyFinalOutputMatrixNode}.matrixIn[0]")
+        cmds.connectAttr(f"{inputObject}.parentInverseMatrix[0]", f"{multiplyFinalOutputMatrixNode}.matrixIn[1]")
+
+        decomposeFinalOutputMatrixNode = cmds.createNode("decomposeMatrix", name = f"{name}_finalOutput_dcmWrldMtx_fNode")
+        cmds.connectAttr(f"{multiplyFinalOutputMatrixNode}.matrixSum", f"{decomposeFinalOutputMatrixNode}.inputMatrix")
+
+        #connect final matrix to output object
+        #Translation
+        cmds.connectAttr(f"{decomposeFinalOutputMatrixNode}.outputTranslate", f"{targetPushJoint}.translate")
+        cmds.connectAttr(f"{resultQuatToEulerNode}.outputRotate", f"{targetPushJoint}.rotate")
 
 
