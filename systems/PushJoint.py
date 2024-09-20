@@ -3,7 +3,19 @@ import maya.cmds as cmds
 class pushJoint():
 
     @staticmethod
-    def buildPushJoint(parentObject, inputObject, name):
+    def buildPushJointArray(parentObject, inputObject, numOfJoints, pushAxis, rotAxis, baseName):
+
+        rotationAmount = 360 / numOfJoints
+
+        for num in range(numOfJoints):
+
+            print(type(float(num)))
+            print(type(rotationAmount))
+
+            pushJoint.buildPushJoint(parentObject, inputObject, float(num) * rotationAmount, pushAxis, rotAxis, (baseName + str(num)) )
+
+    @staticmethod
+    def buildPushJoint(parentObject, inputObject, defaultRotOffset = 0, pushAxis ="Y", rotAxis = "X", name = "newPushJoint"):
         
         #create Reference Oject
         referenceObject = cmds.createNode("transform", name = f"{name}_referenceObject_srt")
@@ -99,8 +111,13 @@ class pushJoint():
         cmds.connectAttr(f"{multiplyResultQuatNode}.outputQuat", f"{orientationMatrixComposeNode}.inputQuat")
         cmds.connectAttr(f"{decomposeInputObjectWorldMatrixNode}.outputScale", f"{orientationMatrixComposeNode}.inputScale")
         cmds.connectAttr(f"{decomposeInputObjectWorldMatrixNode}.outputTranslate", f"{orientationMatrixComposeNode}.inputTranslate")
+        
+        #set Default Rotation Offset 
+        #solve for input Object aim Axis !!!!Needs Improvement
 
-        #transpose input Wo Matrix
+        cmds.setAttr(f"{targetPushJoint}.{rotAxis}RotateOff", defaultRotOffset)
+
+        #transpose input Matrix
         inputObjectTransposeWorldMatrixNode = cmds.createNode("transposeMatrix", name = f"{name}_inputTransposeWrldMtx_fNode")
         cmds.connectAttr(f"{inputObject}.worldMatrix[0]", f"{inputObjectTransposeWorldMatrixNode}.inputMatrix")
 
@@ -142,12 +159,12 @@ class pushJoint():
 
         #implement Prepush Vector
         prepushVecotrMultNode = cmds.createNode("multiplyDivide", name = f"{name}_prepushVec_mult_fNode")
-        cmds.setAttr(f"{prepushVecotrMultNode}.input1Y", 1)
-        cmds.connectAttr(f"{targetPushJoint}.{pushAttributeList[4][0]}", f"{prepushVecotrMultNode}.input2Y")
+        cmds.setAttr(f"{prepushVecotrMultNode}.input1{pushAxis}", 1)
+        cmds.connectAttr(f"{targetPushJoint}.{pushAttributeList[4][0]}", f"{prepushVecotrMultNode}.input2{pushAxis}")
 
         #local PushVector Addition
         finalLocalPushVectorNode = cmds.createNode("plusMinusAverage", name = f"{name}_finalPushVector_add_fNode")
-        cmds.connectAttr(f"{prepushVecotrMultNode}.outputY", f"{finalLocalPushVectorNode}.input3D[0].input3Dy")
+        cmds.connectAttr(f"{prepushVecotrMultNode}.output{pushAxis}", f"{finalLocalPushVectorNode}.input3D[0].input3D{pushAxis.lower()}")
 
         
         #create push Multiplication per axis
@@ -156,11 +173,11 @@ class pushJoint():
             #base Vector Node
             pushAxisBaseVectorNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_baseVector_mult_fNode")
             cmds.setAttr(f"{pushAxisBaseVectorNode}.operation", 1)
-            cmds.setAttr(f"{pushAxisBaseVectorNode}.input1Y", 1)
+            cmds.setAttr(f"{pushAxisBaseVectorNode}.input1{pushAxis}", 1)
 
             pushNegativeAxisBaseVectorNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}Neg_basevector_mult_fNode")
             cmds.setAttr(f"{pushNegativeAxisBaseVectorNode}.operation", 1)
-            cmds.setAttr(f"{pushNegativeAxisBaseVectorNode}.input1Y", 1)
+            cmds.setAttr(f"{pushNegativeAxisBaseVectorNode}.input1{pushAxis}", 1)
 
             #configure base Vectors
             cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}", f"{pushAxisBaseVectorNode}.input2X")
