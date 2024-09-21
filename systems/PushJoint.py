@@ -1,6 +1,185 @@
 import maya.cmds as cmds
 
-class pushJoint():
+
+from maya import OpenMayaUI as omui
+from shiboken2 import wrapInstance
+from PySide2 import QtUiTools, QtCore, QtGui, QtWidgets
+
+from tlpf_toolkit import global_variables
+
+class pushJoint(QtWidgets.QWidget):
+
+    def __init__(self, parent = None):
+
+
+        super(pushJoint, self).__init__(parent=parent)
+
+        self.setWindowFlags(QtCore.Qt.Window)
+
+        #load UI File
+        self.widgetPath = global_variables.CURRENT_DIRECTORY + "/ui/QtUIs/"
+
+        self.widget = QtUiTools.QUiLoader().load(self.widgetPath + 'PushJoint_Ui.ui')
+        
+        self.widget.setParent(self)
+
+        # set initial window size
+        self.resize(400, 300)
+
+        # locate UI widgets
+        self.builtBtn = self.widget.findChild(QtWidgets.QPushButton, 'buildBtn') 
+        self.pushAxisComboB = self.widget.findChild(QtWidgets.QComboBox, 'PushAxisSelector')
+
+        self._pushAxis = self.pushAxisComboB.currentText()
+
+        self.aimAxisComboB = self.widget.findChild(QtWidgets.QComboBox, 'AimAxisSelector')
+
+        self._aimAxis = self.aimAxisComboB.currentText()
+
+        self.jointAmountSpinBox = self.widget.findChild(QtWidgets.QSpinBox, 'targetAmount')
+
+        self._numberOfJoints = self.jointAmountSpinBox.value()
+
+        self.baseNameLineEdit = self.widget.findChild(QtWidgets.QLineEdit, 'BaseName')
+
+        self._baseName = ""
+
+        self.parentObjectSelectorBtn = self.widget.findChild(QtWidgets.QPushButton, 'parentObjectSelector')
+        self.parentObjectLabel = self.widget.findChild(QtWidgets.QLabel, 'ParentObjectLabel')
+
+        self._parentObject = "No Object Selected"
+
+        self.inputObjectSelectorBtn = self.widget.findChild(QtWidgets.QPushButton, 'InputObjectSelector')
+        self.inputObjectLabel = self.widget.findChild(QtWidgets.QLabel, 'InputObjectLabel')
+
+        self._inputObject= "No Object Selected"
+
+
+
+        # assign functionality to buttons
+        self.builtBtn.clicked.connect(self.buildPushJointUIConfig)
+        self.pushAxisComboB.currentIndexChanged.connect(self.updatePushAxisValue)
+        self.aimAxisComboB.currentIndexChanged.connect(self.updateAimAxisValue)
+        self.jointAmountSpinBox.valueChanged.connect(self.updateNumberOfPushJoints)
+        self.baseNameLineEdit.textChanged.connect(self.updateBaseName)
+        self.parentObjectSelectorBtn.clicked.connect(self.updateParentObject)
+        self.inputObjectSelectorBtn.clicked.connect(self.updateInputObject)
+
+
+    def updatePushAxisValue(self):
+        self.pushAxis = self.pushAxisComboB.currentText()
+        # print(f"The new Push Axis is set to: {self.pushAxis}")
+
+    def updateAimAxisValue(self):
+        self.aimAxis = self.aimAxisComboB.currentText()
+        # print(f"The new Aim Axis is set to: {self.aimAxis}")
+
+    def updateNumberOfPushJoints(self):
+        self.numberOfJoints = self.jointAmountSpinBox.value()
+        # print(f"The new Number of Joints to create is set to: {self.numberOfJoints}")
+    
+    def updateBaseName(self):
+        self.baseName = self.baseNameLineEdit.text()
+        # print(f"The Current Base Name for the Push Joint is: {self.baseName}")
+
+    def updateParentObject(self):
+        newParentObject= cmds.ls(sl=True)[0]
+        self.parentObject = newParentObject
+        self.parentObjectSelectorBtn.setStyleSheet("background-color: green; color: white")
+        self.parentObjectLabel.setText(self.parentObject)
+
+    def updateInputObject(self):
+        newInputObject= cmds.ls(sl=True)[0]
+        self.inputObject = newInputObject
+        self.inputObjectSelectorBtn.setStyleSheet("background-color: green; color: white")
+        self.inputObjectLabel.setText(self.inputObject)
+
+
+    def buildPushJointUIConfig(self):
+        
+        # Validate if input and parent objects exist
+        if not (cmds.objExists(self.parentObject)):
+            self.raiseErrorMessage("Obj Not Found", "The Selected Objects Existence Could not be validated, please check again!")
+            return
+        
+        if not (cmds.objExists(self.inputObject)):
+            self.raiseErrorMessage("Obj Not Found", "The Selected Objects Existence Could not be validated, please check again!")
+            return
+        
+        if self.parentObject == self.inputObject:
+            self.raiseErrorMessage("Input Selection Error", "The Input Object and Parent Object cannot be the same! Plesae change selection")
+            return
+        
+        if self.baseName == "":
+            self.raiseErrorMessage("Naming Error", "Please enter a base name to make the created nodes unique!")
+            return
+        
+        # Validate that The aim and Push Axis are not the same
+        if self.aimAxis == self.pushAxis:
+            self.raiseErrorMessage("Axis Orientation Error", "The Push and the Aim Axis cannot be the same, please check again and match the orientation Axis!")
+            return
+
+        pushJoint.buildPushJointArray(self.parentObject, self.inputObject, self.numberOfJoints, self.pushAxis, self.aimAxis, self.baseName)
+    
+    def resizeEvent(self, event):
+        """
+        Called on automatically generated resize event
+        """
+        self.widget.resize(self.width(), self.height())
+
+    def raiseErrorMessage(self, title, decription):
+        error_dialog = QtWidgets.QMessageBox(self)
+        error_dialog.setIcon(QtWidgets.QMessageBox.Critical)  # Set the icon to show it's an error
+        error_dialog.setWindowTitle("Error")
+        error_dialog.setText(title)
+        error_dialog.setInformativeText("Please check your input and try again.")
+        error_dialog.setDetailedText(f"Error Details: {decription}")
+        error_dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        error_dialog.exec_()
+        
+    def closeWindow(self):
+        """
+        Close window.
+        """
+        print ('closing window')
+        self.destroy()
+    
+    @property
+    def pushAxis(self): return self._pushAxis
+    @pushAxis.setter
+    def pushAxis(self, newPushAxis):
+        self._pushAxis = newPushAxis
+        
+    @property
+    def aimAxis(self): return self._aimAxis
+    @aimAxis.setter
+    def aimAxis(self, newAimAxis):
+        self._aimAxis = newAimAxis
+        
+    @property
+    def numberOfJoints(self): return self._numberOfJoints
+    @numberOfJoints.setter
+    def numberOfJoints(self, newNumberOfJoints):
+        self._numberOfJoints = newNumberOfJoints
+
+    @property
+    def baseName(self): return self._baseName
+    @baseName.setter
+    def baseName(self, newBaseName):
+        self._baseName = newBaseName
+
+    @property
+    def parentObject(self): return self._parentObject
+    @parentObject.setter
+    def parentObject(self, newParentObject):
+        self._parentObject = newParentObject
+
+    @property
+    def inputObject(self): return self._inputObject
+    @inputObject.setter
+    def inputObject(self, newInputObject):
+        self._inputObject = newInputObject
 
     @staticmethod
     def buildPushJointArray(parentObject, inputObject, numOfJoints, pushAxis, rotAxis, baseName):
@@ -283,3 +462,21 @@ class pushJoint():
         cmds.connectAttr(f"{resultQuatToEulerNode}.outputRotate", f"{targetPushJoint}.rotate")
 
 
+def openWindow():
+    """
+    ID Maya and attach tool window.
+    """
+    # Maya uses this so it should always return True
+    if QtWidgets.QApplication.instance():
+        # Id any current instances of tool and destroy
+        for win in (QtWidgets.QApplication.allWindows()):
+            if 'PushJointWindow' in win.objectName(): # update this name to match name below
+                win.destroy()
+
+    #QtWidgets.QApplication(sys.argv)
+    mayaMainWindowPtr = omui.MQtUtil.mainWindow()
+    mayaMainWindow = wrapInstance(int(mayaMainWindowPtr), QtWidgets.QWidget)
+    pushJoint.window = pushJoint(parent = mayaMainWindow)
+    pushJoint.window.setObjectName('PushJointWindow') # code above uses this to ID any existing windows
+    pushJoint.window.setWindowTitle('Push Joint Builder')
+    pushJoint.window.show()

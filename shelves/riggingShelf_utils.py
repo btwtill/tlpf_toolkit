@@ -43,6 +43,7 @@ from tlpf_toolkit.systems import EyeLidSetup
 from tlpf_toolkit.systems import SplineSystem
 from tlpf_toolkit.systems import SpaceSwapping
 from tlpf_toolkit.systems import RibbonSetup
+from tlpf_toolkit.systems import PushJoint
 
 from tlpf_toolkit.ctrls import CtrlColorFunction
 from tlpf_toolkit.ctrls import CreateBasicCtls
@@ -262,6 +263,13 @@ class loadRiggingShelf(shelf_base._shelf):
         ribbonMenu = cmds.popupMenu(b=1)
 
         self.addMenuItem(ribbonMenu, "Guided Ribbon", command= lambda _: RibbonSetup.guidedRibbonUI())
+
+        self.addButton(label="", icon=ICON_DIR + "/V003/push.png", command="")
+
+        pushMenu = cmds.popupMenu(b=1)
+
+        self.addMenuItem(pushMenu, "Push Joint", command= lambda _: PushJoint.openWindow())
+        
 
         # Separator
         self.addButton(label="", icon=ICON_DIR + "/V003/sep.png", command="")
