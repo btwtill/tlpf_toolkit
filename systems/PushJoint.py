@@ -94,7 +94,6 @@ class pushJoint(QtWidgets.QWidget):
         self.inputObjectSelectorBtn.setStyleSheet("background-color: green; color: white")
         self.inputObjectLabel.setText(self.inputObject)
 
-
     def buildPushJointUIConfig(self):
         
         # Validate if input and parent objects exist
@@ -191,7 +190,7 @@ class pushJoint(QtWidgets.QWidget):
             print(type(float(num)))
             print(type(rotationAmount))
 
-            pushJoint.buildPushJoint(parentObject, inputObject, float(num) * rotationAmount, pushAxis, rotAxis, (baseName + str(num)) )
+            pushJoint.buildPushJoint(parentObject, inputObject, float(num) * rotationAmount, pushAxis, rotAxis, (baseName + str(num)))
 
     @staticmethod
     def buildPushJoint(parentObject, inputObject, defaultRotOffset = 0, pushAxis ="Y", rotAxis = "X", name = "newPushJoint"):
@@ -345,7 +344,6 @@ class pushJoint(QtWidgets.QWidget):
         finalLocalPushVectorNode = cmds.createNode("plusMinusAverage", name = f"{name}_finalPushVector_add_fNode")
         cmds.connectAttr(f"{prepushVecotrMultNode}.output{pushAxis}", f"{finalLocalPushVectorNode}.input3D[0].input3D{pushAxis.lower()}")
 
-        
         #create push Multiplication per axis
         for index, axisAttribute,  in enumerate(pushAxisAttributeList):
 
@@ -366,7 +364,6 @@ class pushJoint(QtWidgets.QWidget):
             cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2X")
             cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2Y")
             cmds.connectAttr(f"{targetPushJoint}.{axisAttribute}Neg", f"{pushNegativeAxisBaseVectorNode}.input2Z")
-
 
             #create multiplication for neg base Vector with quat difference Value
             pushAxisMultiplyQuatDiffNode = cmds.createNode("multiplyDivide", name = f"{name}_{axisAttribute}_multPushVector_quatDiff_fNode")
@@ -449,12 +446,15 @@ class pushJoint(QtWidgets.QWidget):
         
         #multply the local result matrix into the parent space of the input object
 
-        multiplyFinalOutputMatrixNode = cmds.createNode("multMatrix", name = f"{name}_multFinalOutputWrldMtx_fNode")
-        cmds.connectAttr(f"{multiplyPushVectorOrientationMatrixNode}.matrixSum", f"{multiplyFinalOutputMatrixNode}.matrixIn[0]")
-        cmds.connectAttr(f"{inputObject}.parentInverseMatrix[0]", f"{multiplyFinalOutputMatrixNode}.matrixIn[1]")
+        # multiplyFinalOutputMatrixNode = cmds.createNode("multMatrix", name = f"{name}_multFinalOutputWrldMtx_fNode")
+        # cmds.connectAttr(f"{multiplyPushVectorOrientationMatrixNode}.matrixSum", f"{multiplyFinalOutputMatrixNode}.matrixIn[0]")
+        # cmds.connectAttr(f"{inputObject}.parentInverseMatrix[0]", f"{multiplyFinalOutputMatrixNode}.matrixIn[1]")
 
         decomposeFinalOutputMatrixNode = cmds.createNode("decomposeMatrix", name = f"{name}_finalOutput_dcmWrldMtx_fNode")
-        cmds.connectAttr(f"{multiplyFinalOutputMatrixNode}.matrixSum", f"{decomposeFinalOutputMatrixNode}.inputMatrix")
+        cmds.connectAttr(f"{multiplyPushVectorOrientationMatrixNode}.matrixSum", f"{decomposeFinalOutputMatrixNode}.inputMatrix")
+
+        # unparent input joint
+        cmds.parent(targetPushJoint, world = True)
 
         #connect final matrix to output object
         #Translation
