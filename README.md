@@ -26,12 +26,14 @@ shelf_user_utils.load(name="tlpf_shelf")
     # Load Custom User Shelf at Maya startup
     # ==========================================
 
-    from tlpf_toolkit.shelves import shelf_user_utils
+    from tlpf_toolkit.shelves import riggingShelf_utils
 
 
     def load_user_shelf():
-        shelf_user_utils.load(name="tlpf_shelf")
+        riggingShelf_utils.loadRiggingShelf(name="tlpf_shelf")
 
 
     maya.utils.executeDeferred("load_user_shelf()")
+
+# ==========================================
 ```
