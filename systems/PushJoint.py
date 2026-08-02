@@ -2,8 +2,8 @@ import maya.cmds as cmds
 
 
 from maya import OpenMayaUI as omui
-from shiboken2 import wrapInstance
-from PySide2 import QtUiTools, QtCore, QtGui, QtWidgets
+from shiboken6 import wrapInstance
+from PySide6 import QtUiTools, QtCore, QtGui, QtWidgets
 
 from tlpf_toolkit import global_variables
 
